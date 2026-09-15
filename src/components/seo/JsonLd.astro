@@ -1,0 +1,10 @@
+---
+interface Props {
+  data: Record<string, unknown>;
+}
+
+// Escape `<` so user-provided strings (e.g. blog titles) can't close the script tag.
+const json = JSON.stringify(Astro.props.data).replace(/</g, "\\u003c");
+---
+
+<script type="application/ld+json" set:html={json} is:inline />

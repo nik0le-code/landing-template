@@ -53,6 +53,10 @@ export interface SiteConfig {
     /** Show the cookie banner. Tracking scripts only load after consent when enabled. */
     enabled: boolean;
   };
+  seo: {
+    /** Locale-less paths (e.g. "/thank-you") to leave out of sitemap.xml. */
+    sitemapExclude: string[];
+  };
 }
 
 export const siteConfig: SiteConfig = {
@@ -94,5 +98,8 @@ export const siteConfig: SiteConfig = {
   },
   consent: {
     enabled: true,
+  },
+  seo: {
+    sitemapExclude: [],
   },
 };

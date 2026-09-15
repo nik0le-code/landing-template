@@ -1,22 +1,41 @@
 ---
+/**
+ * Document shell for every public page: <html>, SEO head, fonts, favicons.
+ * Visual chrome (navbar, footer) lives in PageLayout, built on top of this.
+ */
 import { Font } from "astro:assets";
+import { siteConfig } from "@site-config";
+import Seo, { type SeoProps } from "@/components/seo/Seo.astro";
+import JsonLd from "@/components/seo/JsonLd.astro";
+import { graph } from "@/lib/seo/schema";
+import { localeFontSubsets } from "@/i18n";
 import "@/styles/global.css";
 
 interface Props {
-  title: string;
+  seo: SeoProps;
+  /** schema.org nodes for this page; combined into a single @graph. */
+  schema?: Record<string, unknown>[];
 }
 
-const { title } = Astro.props;
-const lang = Astro.currentLocale;
+const { seo, schema = [] } = Astro.props;
+const lang = Astro.locals.lang;
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} dir="ltr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <Font cssVariable="--font-inter" preload />
+    <Seo {...seo} />
+    <Font cssVariable="--font-inter" preload={localeFontSubsets[lang].map((subset) => ({ subset }))} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content={siteConfig.themeColor} />
+    <link rel="sitemap" href="/sitemap.xml" />
+    {schema.length > 0 && <JsonLd data={graph(...schema)} />}
+    <slot name="head" />
   </head>
   <body>
     <slot />

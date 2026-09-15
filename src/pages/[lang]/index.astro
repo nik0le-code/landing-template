@@ -1,16 +1,21 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { useTranslations } from "@/i18n";
+import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@site-config";
 
-const { lang } = Astro.params;
-if (!siteConfig.locales.includes(lang as never)) {
-  return new Response(null, { status: 404 });
-}
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+
+Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["page:home"] });
 ---
 
-<BaseLayout title={siteConfig.name}>
-  <main class="mx-auto max-w-page px-4 py-24">
+<BaseLayout
+  seo={{ title: t("meta.home.title"), description: t("meta.home.description") }}
+  schema={[organizationSchema(), websiteSchema(lang)]}
+>
+  <main id="main" class="mx-auto max-w-page px-4 py-24">
     <h1 class="text-4xl font-bold text-primary">{siteConfig.name}</h1>
-    <p class="mt-4 text-muted-foreground">locale: {lang}</p>
+    <p class="mt-4 text-muted-foreground">{t("meta.home.description")}</p>
   </main>
 </BaseLayout>

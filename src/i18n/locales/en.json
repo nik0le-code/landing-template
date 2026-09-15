@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "home": {
+      "title": "Home",
+      "description": "Acme helps businesses grow with modern solutions."
+    }
+  },
+  "common": {
+    "skipToContent": "Skip to content",
+    "language": "Language",
+    "home": "Home",
+    "readMore": "Read more",
+    "backToHome": "Back to home"
+  },
+  "localeNames": {
+    "el": "Ελληνικά",
+    "en": "English"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has been moved."
+  }
+}

@@ -55,8 +55,9 @@ export default defineConfig({
 
   env: {
     schema: {
-      SITE_URL: envField.string({ context: "server", access: "public", optional: true }),
-      NOINDEX: envField.boolean({ context: "server", access: "public", default: false }),
+      // "secret" = read at runtime, so one image can serve staging and production.
+      SITE_URL: envField.string({ context: "server", access: "secret", optional: true }),
+      NOINDEX: envField.boolean({ context: "server", access: "secret", default: false }),
       DATABASE_URL: envField.string({ context: "server", access: "secret", default: "file:./data/site.db" }),
       DATABASE_AUTH_TOKEN: envField.string({ context: "server", access: "secret", optional: true }),
       UPLOADS_DIR: envField.string({ context: "server", access: "secret", default: "./data/uploads" }),

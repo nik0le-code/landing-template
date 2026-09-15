@@ -1,0 +1,91 @@
+---
+/**
+ * All per-page SEO tags. Rendered by BaseLayout from its `seo` prop — pages
+ * don't use this directly.
+ */
+import { siteConfig, type Locale } from "@site-config";
+import { localeAlternates, localeRegions } from "@/i18n";
+import { absoluteUrl, isNoindexDeployment } from "@/lib/site";
+
+export interface SeoProps {
+  /** Page title; the site title template is applied unless `rawTitle` is set. */
+  title: string;
+  rawTitle?: boolean;
+  /** 120–160 characters works best in search results. */
+  description?: string;
+  /** Site-relative or absolute URL, ideally 1200×630. */
+  image?: string;
+  imageAlt?: string;
+  /** Defaults to the current path (query string dropped). */
+  canonicalPath?: string;
+  /**
+   * Equivalent URL per locale for hreflang. Defaults to the same path under every
+   * locale; pass a map when slugs differ, or `null` for single-language pages.
+   */
+  alternates?: Partial<Record<Locale, string>> | null;
+  noindex?: boolean;
+  type?: "website" | "article";
+  publishedTime?: Date;
+  modifiedTime?: Date;
+}
+
+type Props = SeoProps;
+
+const {
+  title,
+  rawTitle = false,
+  description,
+  image = siteConfig.ogImage,
+  imageAlt = siteConfig.name,
+  canonicalPath = Astro.url.pathname,
+  alternates = localeAlternates(Astro.url.pathname),
+  noindex = false,
+  type = "website",
+  publishedTime,
+  modifiedTime,
+} = Astro.props;
+
+const lang = Astro.locals.lang;
+const fullTitle = rawTitle ? title : siteConfig.titleTemplate.replace("%s", title);
+const metaDescription = description ?? siteConfig.description[lang];
+const canonical = absoluteUrl(canonicalPath);
+const imageUrl = absoluteUrl(image);
+const robots = noindex || isNoindexDeployment() ? "noindex, nofollow" : "index, follow, max-image-preview:large";
+
+const hreflangs = alternates
+  ? (Object.entries(alternates) as [Locale, string][]).map(([locale, path]) => ({
+      hreflang: locale,
+      href: absoluteUrl(path),
+    }))
+  : [];
+const xDefault = alternates?.[siteConfig.defaultLocale];
+const ogLocale = (l: Locale) => localeRegions[l].replace("-", "_");
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={metaDescription} />
+<meta name="robots" content={robots} />
+<link rel="canonical" href={canonical} />
+{hreflangs.map((alt) => <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />)}
+{xDefault && <link rel="alternate" hreflang="x-default" href={absoluteUrl(xDefault)} />}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={siteConfig.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={metaDescription} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:alt" content={imageAlt} />
+<meta property="og:locale" content={ogLocale(lang)} />
+{
+  hreflangs
+    .filter((alt) => alt.hreflang !== lang)
+    .map((alt) => <meta property="og:locale:alternate" content={ogLocale(alt.hreflang as Locale)} />)
+}
+{publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+{modifiedTime && <meta property="article:modified_time" content={modifiedTime.toISOString()} />}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={metaDescription} />
+<meta name="twitter:image" content={imageUrl} />
