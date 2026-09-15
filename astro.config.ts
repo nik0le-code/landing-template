@@ -16,10 +16,9 @@ export default defineConfig({
   i18n: {
     locales: [...siteConfig.locales],
     defaultLocale: siteConfig.defaultLocale,
-    routing: {
-      prefixDefaultLocale: true,
-      redirectToDefaultLocale: false,
-    },
+    // Locale routing is handled by src/middleware.ts + src/pages/index.ts. Astro's
+    // built-in prefix-always strategy 404s every unprefixed page (/admin, /dev/…).
+    routing: "manual",
   },
 
   // Rendered pages are cached in memory per pod; admin mutations invalidate by tag.
@@ -27,9 +26,10 @@ export default defineConfig({
     provider: memoryCache({ max: 2000 }),
   },
 
-  // Tap/hover prefetch keeps navigation instant without eager downloads on low-end devices.
+  // Internal links prefetch on hover/focus (desktop) — instant navigations without
+  // eager downloads. Astro skips prefetching on Save-Data and slow connections.
   prefetch: {
-    prefetchAll: false,
+    prefetchAll: true,
     defaultStrategy: "hover",
   },
 

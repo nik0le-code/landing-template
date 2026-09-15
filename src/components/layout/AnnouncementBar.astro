@@ -1,0 +1,25 @@
+---
+import ArrowRight from "@lucide/astro/icons/arrow-right";
+
+interface Props {
+  text: string;
+  href?: string;
+  linkText?: string;
+}
+
+const { text, href, linkText } = Astro.props;
+---
+
+<div class="bg-primary text-primary-foreground">
+  <p class="mx-auto flex max-w-page flex-wrap items-center justify-center gap-x-3 gap-y-1 px-4 py-2 text-center text-sm">
+    <span>{text}</span>
+    {
+      href && linkText && (
+        <a href={href} class="inline-flex items-center gap-1 font-semibold underline-offset-4 hover:underline">
+          {linkText}
+          <ArrowRight class="size-3.5" aria-hidden="true" />
+        </a>
+      )
+    }
+  </p>
+</div>

@@ -1,0 +1,33 @@
+---
+/**
+ * Renders an <a> when `href` is set, otherwise a <button>.
+ * Links to other locales/pages should already be localized (see localizePath).
+ */
+import type { HTMLAttributes } from "astro/types";
+import { buttonClasses, type ButtonSize, type ButtonVariant } from "./variants";
+
+type Props = {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  href?: string;
+  /** Opens in a new tab with rel="noopener". */
+  external?: boolean;
+} & Omit<HTMLAttributes<"button"> & HTMLAttributes<"a">, "type"> & {
+    type?: "button" | "submit" | "reset";
+  };
+
+const { variant, size, href, external = false, class: className, type = "button", ...rest } = Astro.props;
+const classes = buttonClasses(variant, size, className ?? undefined);
+---
+
+{
+  href ? (
+    <a href={href} class={classes} {...(external && { target: "_blank", rel: "noopener noreferrer" })} {...rest}>
+      <slot />
+    </a>
+  ) : (
+    <button type={type} class={classes} {...rest}>
+      <slot />
+    </button>
+  )
+}

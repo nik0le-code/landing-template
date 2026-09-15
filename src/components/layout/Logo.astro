@@ -1,0 +1,19 @@
+---
+import { siteConfig } from "@site-config";
+import { localizePath } from "@/i18n";
+import { cn } from "@/lib/cn";
+
+interface Props {
+  class?: string;
+  /** Hide the wordmark text (e.g. when the logo image already contains it). */
+  iconOnly?: boolean;
+}
+
+const { class: className, iconOnly = false } = Astro.props;
+const lang = Astro.locals.lang;
+---
+
+<a href={localizePath("/", lang)} class={cn("flex items-center gap-2.5 font-semibold", className)}>
+  <img src={siteConfig.organization.logo} alt={iconOnly ? siteConfig.name : ""} width="32" height="32" class="size-8" />
+  {!iconOnly && <span class="text-lg tracking-tight">{siteConfig.name}</span>}
+</a>

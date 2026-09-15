@@ -29,3 +29,42 @@
     @apply outline-2 outline-offset-2 outline-primary;
   }
 }
+
+/*
+ * Scroll reveal — pure CSS scroll-driven animation, no JavaScript.
+ * Browsers without `animation-timeline` (or users preferring reduced motion)
+ * simply see the content, never an invisible element.
+ */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    translate: 0 2rem;
+  }
+}
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes reveal-zoom {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry calc(0% + var(--reveal-offset, 0%)) cover calc(25% + var(--reveal-offset, 0%));
+    }
+    [data-reveal="fade"] {
+      animation-name: reveal-fade;
+    }
+    [data-reveal="zoom"] {
+      animation-name: reveal-zoom;
+    }
+  }
+}

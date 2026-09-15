@@ -1,0 +1,158 @@
+---
+/**
+ * Sticky header. Desktop: inline links + dropdowns. Mobile: a full-screen panel
+ * using the native Popover API — no JavaScript, Escape/back-gesture close it,
+ * and focus returns to the trigger automatically.
+ */
+import type { Locale } from "@site-config";
+import Menu from "@lucide/astro/icons/menu";
+import X from "@lucide/astro/icons/x";
+import { mainNav, navCta } from "@/config/navigation";
+import { useTranslations } from "@/i18n";
+import { ariaCurrent, navHref } from "@/lib/nav";
+import Button from "@/components/ui/Button.astro";
+import Container from "@/components/ui/Container.astro";
+import Dropdown from "./Dropdown.astro";
+import LanguageSwitcher from "./LanguageSwitcher.astro";
+import Logo from "./Logo.astro";
+
+interface Props {
+  alternates: Partial<Record<Locale, string>>;
+}
+
+const { alternates } = Astro.props;
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const pathname = Astro.url.pathname;
+const linkClass =
+  "rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground aria-[current]:text-primary";
+---
+
+<header class="sticky top-0 z-40 border-b border-border bg-background/95 supports-[backdrop-filter]:bg-background/85">
+  <Container class="flex h-16 items-center justify-between gap-4">
+    <Logo />
+
+    <nav aria-label={t("nav.main")} class="hidden lg:block">
+      <ul class="flex items-center gap-1">
+        {
+          mainNav.map((link) =>
+            link.children ? (
+              <li>
+                <Dropdown label={t(link.label)} class="text-foreground/80">
+                  <ul>
+                    {[link, ...link.children].map((child) => (
+                      <li>
+                        <a
+                          href={navHref(child, lang)}
+                          aria-current={ariaCurrent(child, pathname)}
+                          class="block rounded-md px-3 py-2 text-sm hover:bg-muted aria-[current]:text-primary"
+                        >
+                          {t(child.label)}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </Dropdown>
+              </li>
+            ) : (
+              <li>
+                <a href={navHref(link, lang)} aria-current={ariaCurrent(link, pathname)} class={linkClass}>
+                  {t(link.label)}
+                </a>
+              </li>
+            ),
+          )
+        }
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <div class="hidden lg:block"><LanguageSwitcher alternates={alternates} /></div>
+      <Button href={navHref(navCta, lang)} size="sm" class="hidden sm:inline-flex">{t(navCta.label)}</Button>
+      <button
+        type="button"
+        popovertarget="mobile-menu"
+        class="inline-flex size-10 items-center justify-center rounded-md hover:bg-muted lg:hidden"
+      >
+        <Menu class="size-6" aria-hidden="true" />
+        <span class="sr-only">{t("nav.openMenu")}</span>
+      </button>
+    </div>
+  </Container>
+</header>
+
+<div id="mobile-menu" popover class="mobile-menu m-0 h-dvh max-h-none w-full max-w-none overflow-y-auto bg-background p-0 text-foreground">
+  <Container class="flex h-16 items-center justify-between">
+    <Logo />
+    <button
+      type="button"
+      popovertarget="mobile-menu"
+      popovertargetaction="hide"
+      class="inline-flex size-10 items-center justify-center rounded-md hover:bg-muted"
+    >
+      <X class="size-6" aria-hidden="true" />
+      <span class="sr-only">{t("nav.closeMenu")}</span>
+    </button>
+  </Container>
+  <Container class="pt-4 pb-10">
+    <nav aria-label={t("nav.main")}>
+      <ul class="divide-y divide-border">
+        {
+          mainNav.map((link) => (
+            <li class="py-1">
+              <a
+                href={navHref(link, lang)}
+                aria-current={ariaCurrent(link, pathname)}
+                class="block py-3 text-lg font-medium aria-[current]:text-primary"
+              >
+                {t(link.label)}
+              </a>
+              {link.children && (
+                <ul class="mb-2 space-y-1 border-l border-border pl-4">
+                  {link.children.map((child) => (
+                    <li>
+                      <a href={navHref(child, lang)} class="block py-2 text-muted-foreground">
+                        {t(child.label)}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <Button href={navHref(navCta, lang)} size="lg" class="mt-8 w-full">{t(navCta.label)}</Button>
+    <div class="mt-8"><LanguageSwitcher alternates={alternates} variant="list" /></div>
+  </Container>
+</div>
+
+<style>
+  .mobile-menu {
+    opacity: 0;
+    translate: 0 -0.5rem;
+    transition:
+      opacity 0.2s ease,
+      translate 0.2s ease,
+      overlay 0.2s allow-discrete,
+      display 0.2s allow-discrete;
+  }
+  .mobile-menu:popover-open {
+    opacity: 1;
+    translate: 0 0;
+  }
+  @starting-style {
+    .mobile-menu:popover-open {
+      opacity: 0;
+      translate: 0 -0.5rem;
+    }
+  }
+</style>
+
+<script>
+  const menu = document.getElementById("mobile-menu");
+  menu?.addEventListener("click", (event) => {
+    if ((event.target as Element).closest("a")) menu.hidePopover();
+  });
+</script>

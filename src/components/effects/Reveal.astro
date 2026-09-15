@@ -1,0 +1,23 @@
+---
+/**
+ * Animates children into view on scroll using CSS scroll-driven animations
+ * (zero JS, compositor-only). See `[data-reveal]` in global.css.
+ *
+ * `stagger` shifts the animation range so items in a grid appear one after another
+ * (pass the item index).
+ */
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+  effect?: "up" | "fade" | "zoom";
+  stagger?: number;
+  as?: "div" | "li" | "article";
+}
+
+const { effect = "up", stagger = 0, as: Tag = "div", style, ...rest } = Astro.props;
+const offset = stagger ? `--reveal-offset: ${Math.min(stagger, 6) * 4}%;` : "";
+---
+
+<Tag data-reveal={effect === "up" ? "" : effect} style={`${offset}${style ?? ""}`} {...rest}>
+  <slot />
+</Tag>

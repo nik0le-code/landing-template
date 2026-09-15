@@ -1,0 +1,95 @@
+---
+/**
+ * Dev-only showcase of the UI kit (404 in production builds). Not in the sitemap
+ * because it lives outside src/pages/[lang]/.
+ */
+import ArrowRight from "@lucide/astro/icons/arrow-right";
+import Sparkles from "@lucide/astro/icons/sparkles";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import Card from "@/components/ui/Card.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+import Prose from "@/components/ui/Prose.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import Select from "@/components/ui/Select.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import GlowBackground from "@/components/effects/GlowBackground.astro";
+import GridBackground from "@/components/effects/GridBackground.astro";
+import Marquee from "@/components/effects/Marquee.astro";
+import Reveal from "@/components/effects/Reveal.astro";
+
+if (!import.meta.env.DEV) return Astro.rewrite("/404");
+---
+
+<PageLayout
+  seo={{ title: "UI kit", noindex: true, alternates: null }}
+  breadcrumbs={[{ name: "UI kit" }]}
+  announcement={{ text: "Announcement bar example", href: "#", linkText: "Learn more" }}
+>
+  <Section lazyRender={false}>
+    <GridBackground slot="background" />
+    <GlowBackground slot="background" />
+    <SectionHeading tag="h1" eyebrow="Eyebrow" title="Section heading" description="A description that explains the section in one or two sentences." />
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+      <Button>Primary <ArrowRight /></Button>
+      <Button variant="secondary">Secondary</Button>
+      <Button variant="outline">Outline</Button>
+      <Button variant="ghost">Ghost</Button>
+      <Button variant="link" href="#">Link</Button>
+      <Button variant="destructive" size="sm">Destructive</Button>
+      <Button size="lg" href="#"><Sparkles /> Large link</Button>
+    </div>
+    <div class="mt-6 flex flex-wrap justify-center gap-2">
+      <Badge>Default</Badge><Badge variant="secondary">Secondary</Badge><Badge variant="outline">Outline</Badge>
+      <Badge variant="success">Success</Badge><Badge variant="destructive">Destructive</Badge>
+    </div>
+  </Section>
+
+  <Section tone="muted">
+    <SectionHeading title="Cards + reveal" align="left" />
+    <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        Array.from({ length: 6 }, (_, i) => (
+          <Reveal stagger={i}>
+            <Card interactive>
+              <h3 class="font-semibold">Card {i + 1}</h3>
+              <p class="mt-2 text-sm text-muted-foreground">Cards reveal on scroll with CSS only.</p>
+            </Card>
+          </Reveal>
+        ))
+      }
+    </div>
+  </Section>
+
+  <Section>
+    <SectionHeading title="Marquee" />
+    <Marquee class="mt-10">
+      {["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta"].map((name) => <span class="text-2xl font-bold text-muted-foreground">{name}</span>)}
+    </Marquee>
+  </Section>
+
+  <Section tone="muted" width="sm">
+    <SectionHeading title="Form fields" align="left" />
+    <form class="mt-8 space-y-5">
+      <Field id="name" label="Name" required hint="As it appears on your ID"><Input id="name" name="name" required /></Field>
+      <Field id="email" label="Email" error="Please enter a valid email"><Input id="email" type="email" invalid /></Field>
+      <Field id="topic" label="Topic">
+        <Select id="topic"><option>General</option><option>Sales</option></Select>
+      </Field>
+      <Field id="message" label="Message"><Textarea id="message" /></Field>
+      <Button type="submit">Send</Button>
+    </form>
+  </Section>
+
+  <Section>
+    <Prose>
+      <h2>Prose heading</h2>
+      <p>Long-form text with <a href="#">a link</a>, <strong>bold</strong> and <code>code</code>.</p>
+      <ul><li>First item</li><li>Second item</li></ul>
+      <blockquote>A quote.</blockquote>
+    </Prose>
+  </Section>
+</PageLayout>

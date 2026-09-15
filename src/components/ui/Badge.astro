@@ -1,0 +1,12 @@
+---
+import { badgeClasses, type BadgeVariant } from "./variants";
+
+interface Props {
+  variant?: BadgeVariant;
+  class?: string;
+}
+
+const { variant, class: className } = Astro.props;
+---
+
+<span class={badgeClasses(variant, className)}><slot /></span>

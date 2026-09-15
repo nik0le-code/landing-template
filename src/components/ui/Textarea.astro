@@ -1,0 +1,15 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { cn } from "@/lib/cn";
+import { inputClasses } from "./variants";
+
+interface Props extends HTMLAttributes<"textarea"> {
+  id: string;
+  invalid?: boolean;
+}
+
+const { id, invalid = false, class: className, ...rest } = Astro.props;
+const describedBy = `${id}-hint ${id}-error`;
+---
+
+<textarea id={id} rows={5} class={cn(inputClasses, "resize-y", className)} aria-describedby={describedBy} aria-invalid={invalid ? "true" : undefined} {...rest}><slot /></textarea>

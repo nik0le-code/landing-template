@@ -1,0 +1,51 @@
+---
+/**
+ * Vertical rhythm + background for page sections. Content goes through a Container.
+ * `content-visibility: auto` lets the browser skip rendering off-screen sections —
+ * a large win on long landing pages on low-end phones.
+ */
+import type { HTMLAttributes } from "astro/types";
+import { cn } from "@/lib/cn";
+import Container from "./Container.astro";
+
+interface Props extends HTMLAttributes<"section"> {
+  tone?: "default" | "muted" | "primary" | "dark";
+  spacing?: "none" | "sm" | "md" | "lg";
+  width?: "sm" | "md" | "page";
+  /** Disable for above-the-fold sections (the hero) so they paint immediately. */
+  lazyRender?: boolean;
+}
+
+const {
+  tone = "default",
+  spacing = "md",
+  width = "page",
+  lazyRender = true,
+  class: className,
+  ...rest
+} = Astro.props;
+
+const tones = {
+  default: "bg-background text-foreground",
+  muted: "bg-muted text-foreground",
+  primary: "bg-primary text-primary-foreground",
+  dark: "bg-foreground text-background",
+};
+const spacings = { none: "", sm: "py-12 sm:py-16", md: "py-16 sm:py-24", lg: "py-24 sm:py-32" };
+---
+
+<section
+  class={cn(
+    "relative",
+    tones[tone],
+    spacings[spacing],
+    lazyRender && "[content-visibility:auto] [contain-intrinsic-size:auto_800px]",
+    className,
+  )}
+  {...rest}
+>
+  <slot name="background" />
+  <Container size={width} class="relative">
+    <slot />
+  </Container>
+</section>

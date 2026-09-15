@@ -1,0 +1,66 @@
+---
+import Globe from "@lucide/astro/icons/globe";
+import { siteConfig, type Locale } from "@site-config";
+import { localizePath, useTranslations } from "@/i18n";
+import Dropdown from "./Dropdown.astro";
+
+interface Props {
+  /** Equivalent URL per locale; locales without a translation link to their home page. */
+  alternates: Partial<Record<Locale, string>>;
+  /** "dropdown" for the navbar, "list" for the mobile menu. */
+  variant?: "dropdown" | "list";
+}
+
+const { alternates, variant = "dropdown" } = Astro.props;
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+
+const options = siteConfig.locales.map((locale) => ({
+  locale,
+  href: alternates[locale] ?? localizePath("/", locale),
+  name: t(`localeNames.${locale}`),
+  current: locale === lang,
+}));
+---
+
+{
+  siteConfig.locales.length > 1 &&
+    (variant === "dropdown" ? (
+      <Dropdown label={lang.toUpperCase()} srLabel={t("common.language")} align="right">
+        <Globe slot="icon" class="size-4" aria-hidden="true" />
+        <ul>
+          {options.map((option) => (
+            <li>
+              <a
+                href={option.href}
+                hreflang={option.locale}
+                lang={option.locale}
+                aria-current={option.current ? "true" : undefined}
+                class="block rounded-md px-3 py-2 text-sm hover:bg-muted aria-[current]:font-semibold aria-[current]:text-primary"
+              >
+                {option.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Dropdown>
+    ) : (
+      <nav aria-label={t("common.language")}>
+        <ul class="flex flex-wrap gap-2">
+          {options.map((option) => (
+            <li>
+              <a
+                href={option.href}
+                hreflang={option.locale}
+                lang={option.locale}
+                aria-current={option.current ? "true" : undefined}
+                class="block rounded-md border border-border px-3 py-1.5 text-sm aria-[current]:border-primary aria-[current]:text-primary"
+              >
+                {option.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    ))
+}

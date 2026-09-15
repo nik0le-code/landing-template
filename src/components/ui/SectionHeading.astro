@@ -1,0 +1,25 @@
+---
+import { cn } from "@/lib/cn";
+
+interface Props {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  align?: "left" | "center";
+  /** Use h1 only for the single main heading of a page. */
+  tag?: "h1" | "h2" | "h3";
+  class?: string;
+}
+
+const { eyebrow, title, description, align = "center", tag: Tag = "h2", class: className } = Astro.props;
+const headingSize = Tag === "h1" ? "text-4xl sm:text-5xl" : undefined;
+---
+
+<div class={cn("max-w-2xl", align === "center" && "mx-auto text-center", className)}>
+  {eyebrow && <p class="text-sm font-semibold uppercase tracking-wider text-primary">{eyebrow}</p>}
+  <Tag class={cn("mt-2 text-3xl font-bold tracking-tight text-balance sm:text-4xl", headingSize)}>
+    {title}
+  </Tag>
+  {description && <p class="mt-4 text-lg text-pretty opacity-80">{description}</p>}
+  <slot />
+</div>

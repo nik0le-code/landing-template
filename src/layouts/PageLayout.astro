@@ -1,0 +1,62 @@
+---
+/**
+ * Standard public page: skip link, optional announcement, navbar, <main>, footer.
+ *
+ * ```astro
+ * <PageLayout seo={{ title: t("meta.about.title") }} breadcrumbs={[…]}>
+ *   <Hero … />
+ * </PageLayout>
+ * ```
+ */
+import type { Locale } from "@site-config";
+import type { SeoProps } from "@/components/seo/Seo.astro";
+import { localeAlternates, localizePath, useTranslations } from "@/i18n";
+import { breadcrumbSchema, type BreadcrumbItem } from "@/lib/seo/schema";
+import AnnouncementBar from "@/components/layout/AnnouncementBar.astro";
+import Breadcrumbs from "@/components/layout/Breadcrumbs.astro";
+import Container from "@/components/ui/Container.astro";
+import Footer from "@/components/layout/Footer.astro";
+import Navbar from "@/components/layout/Navbar.astro";
+import SkipLink from "@/components/layout/SkipLink.astro";
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  seo: SeoProps;
+  schema?: Record<string, unknown>[];
+  /**
+   * Trail after "Home" (added automatically). The last item is the current page.
+   * Rendered visually and as BreadcrumbList JSON-LD.
+   */
+  breadcrumbs?: BreadcrumbItem[];
+  announcement?: { text: string; href?: string; linkText?: string };
+}
+
+const { seo, schema = [], breadcrumbs, announcement } = Astro.props;
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+
+// Pages with per-locale slugs pass `seo.alternates`; the switcher uses the same map.
+const alternates: Partial<Record<Locale, string>> =
+  seo.alternates === null ? { [lang]: Astro.url.pathname } : (seo.alternates ?? localeAlternates(Astro.url.pathname));
+
+const trail = breadcrumbs ? [{ name: t("common.home"), path: localizePath("/", lang) }, ...breadcrumbs] : undefined;
+const pageSchema = trail ? [...schema, breadcrumbSchema(trail)] : schema;
+---
+
+<BaseLayout seo={seo} schema={pageSchema}>
+  <slot name="head" slot="head" />
+  <SkipLink />
+  {announcement && <AnnouncementBar {...announcement} />}
+  <Navbar alternates={alternates} />
+  <main id="main" tabindex="-1" class="outline-none">
+    {
+      trail && (
+        <Container class="pt-6">
+          <Breadcrumbs items={trail} />
+        </Container>
+      )
+    }
+    <slot />
+  </main>
+  <Footer />
+</BaseLayout>

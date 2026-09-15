@@ -1,0 +1,64 @@
+---
+/**
+ * Infinite horizontal scroller (logos, testimonials). CSS-only; content is
+ * duplicated once for a seamless loop and the copy is hidden from assistive tech.
+ * Pauses on hover/focus and stops entirely for reduced-motion users.
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  /** Seconds per loop. */
+  duration?: number;
+  gap?: string;
+  reverse?: boolean;
+  /** Fade the edges out. */
+  fade?: boolean;
+  class?: string;
+}
+
+const { duration = 40, gap = "3rem", reverse = false, fade = true, class: className } = Astro.props;
+const content = await Astro.slots.render("default");
+---
+
+<div
+  class={cn("marquee group relative flex overflow-hidden", fade && "marquee-fade", className)}
+  style={`--marquee-duration: ${duration}s; --marquee-gap: ${gap};`}
+>
+  <div class={cn("marquee-track flex w-max shrink-0", reverse && "marquee-reverse")}>
+    <div class="flex shrink-0 items-center" style="gap: var(--marquee-gap); padding-right: var(--marquee-gap);">
+      <Fragment set:html={content} />
+    </div>
+    <div class="flex shrink-0 items-center" style="gap: var(--marquee-gap); padding-right: var(--marquee-gap);" aria-hidden="true" inert>
+      <Fragment set:html={content} />
+    </div>
+  </div>
+</div>
+
+<style>
+  .marquee-track {
+    animation: marquee var(--marquee-duration) linear infinite;
+  }
+  .marquee-reverse {
+    animation-direction: reverse;
+  }
+  .marquee:hover .marquee-track,
+  .marquee:focus-within .marquee-track {
+    animation-play-state: paused;
+  }
+  .marquee-fade {
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+  @keyframes marquee {
+    to {
+      translate: -50% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+    }
+    .marquee {
+      overflow-x: auto;
+    }
+  }
+</style>

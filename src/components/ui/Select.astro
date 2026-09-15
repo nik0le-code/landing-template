@@ -1,0 +1,27 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import { cn } from "@/lib/cn";
+import { inputClasses } from "./variants";
+
+interface Props extends HTMLAttributes<"select"> {
+  id: string;
+  invalid?: boolean;
+}
+
+const { id, invalid = false, class: className, ...rest } = Astro.props;
+const describedBy = `${id}-hint ${id}-error`;
+---
+
+<div class="relative">
+  <select
+    id={id}
+    class={cn(inputClasses, "appearance-none pr-10", className)}
+    aria-describedby={describedBy}
+    aria-invalid={invalid ? "true" : undefined}
+    {...rest}
+  >
+    <slot />
+  </select>
+  <ChevronDown class="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+</div>

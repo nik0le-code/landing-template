@@ -1,5 +1,7 @@
 ---
-import BaseLayout from "@/layouts/BaseLayout.astro";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
 import { useTranslations } from "@/i18n";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@site-config";
@@ -10,12 +12,11 @@ const t = useTranslations(lang);
 Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["page:home"] });
 ---
 
-<BaseLayout
+<PageLayout
   seo={{ title: t("meta.home.title"), description: t("meta.home.description") }}
   schema={[organizationSchema(), websiteSchema(lang)]}
 >
-  <main id="main" class="mx-auto max-w-page px-4 py-24">
-    <h1 class="text-4xl font-bold text-primary">{siteConfig.name}</h1>
-    <p class="mt-4 text-muted-foreground">{t("meta.home.description")}</p>
-  </main>
-</BaseLayout>
+  <Section lazyRender={false} spacing="lg">
+    <SectionHeading tag="h1" title={siteConfig.name} description={t("meta.home.description")} />
+  </Section>
+</PageLayout>

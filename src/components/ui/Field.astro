@@ -1,0 +1,29 @@
+---
+/**
+ * Label + control + hint/error wrapper. The control goes in the default slot and
+ * should use the same `id`, plus `aria-describedby={`${id}-hint ${id}-error`}`
+ * (Input/Textarea/Select do this automatically when given `id`).
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+  class?: string;
+}
+
+const { id, label, hint, error, required = false, class: className } = Astro.props;
+---
+
+<div class={cn("space-y-1.5", className)}>
+  <label for={id} class="block text-sm font-medium">
+    {label}
+    {required && <span class="text-destructive" aria-hidden="true">*</span>}
+  </label>
+  <slot />
+  {hint && <p id={`${id}-hint`} class="text-sm text-muted-foreground">{hint}</p>}
+  <p id={`${id}-error`} class="text-sm text-destructive empty:hidden" data-field-error aria-live="polite">{error}</p>
+</div>

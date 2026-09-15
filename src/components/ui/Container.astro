@@ -1,0 +1,16 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { cn } from "@/lib/cn";
+
+interface Props extends HTMLAttributes<"div"> {
+  as?: "div" | "section" | "header" | "footer" | "nav";
+  size?: "sm" | "md" | "page";
+}
+
+const { as: Tag = "div", size = "page", class: className, ...rest } = Astro.props;
+const sizes = { sm: "max-w-3xl", md: "max-w-5xl", page: "max-w-page" };
+---
+
+<Tag class={cn("mx-auto w-full px-4 sm:px-6 lg:px-8", sizes[size], className)} {...rest}>
+  <slot />
+</Tag>

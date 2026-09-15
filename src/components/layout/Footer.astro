@@ -1,0 +1,94 @@
+---
+import Mail from "@lucide/astro/icons/mail";
+import MapPin from "@lucide/astro/icons/map-pin";
+import Phone from "@lucide/astro/icons/phone";
+import { siteConfig, type SiteConfig } from "@site-config";
+import { footerColumns } from "@/config/navigation";
+import { useTranslations } from "@/i18n";
+import { navHref } from "@/lib/nav";
+import Container from "@/components/ui/Container.astro";
+import Logo from "./Logo.astro";
+import SocialIcon from "./SocialIcon.astro";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const { contact } = siteConfig;
+const socials = Object.entries(siteConfig.socials).filter(([, url]) => url) as [keyof SiteConfig["socials"], string][];
+const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : undefined;
+---
+
+<footer class="border-t border-border bg-muted/40 [content-visibility:auto] [contain-intrinsic-size:auto_400px]">
+  <Container class="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[2fr_repeat(3,1fr)]">
+    <div class="space-y-4">
+      <Logo />
+      <p class="max-w-xs text-sm text-muted-foreground">{siteConfig.description[lang]}</p>
+      {
+        socials.length > 0 && (
+          <ul class="flex gap-2" aria-label={t("footer.followUs")}>
+            {socials.map(([network, url]) => (
+              <li>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <SocialIcon network={network} class="size-4" />
+                  <span class="sr-only">{network}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+
+    {
+      footerColumns.map((column) => (
+        <nav aria-label={t(column.title)}>
+          <h2 class="text-sm font-semibold">{t(column.title)}</h2>
+          <ul class="mt-4 space-y-3">
+            {column.links.map((link) => (
+              <li>
+                <a href={navHref(link, lang)} class="text-sm text-muted-foreground hover:text-foreground">
+                  {t(link.label)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+
+    <address class="space-y-3 text-sm not-italic text-muted-foreground">
+      <a href={`mailto:${contact.email}`} class="flex items-center gap-2 hover:text-foreground">
+        <Mail class="size-4 shrink-0" aria-hidden="true" />{contact.email}
+      </a>
+      {
+        telHref && (
+          <a href={telHref} class="flex items-center gap-2 hover:text-foreground">
+            <Phone class="size-4 shrink-0" aria-hidden="true" />
+            {contact.phone}
+          </a>
+        )
+      }
+      {
+        contact.address && (
+          <p class="flex gap-2">
+            <MapPin class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <span>
+              {contact.address.street}, {contact.address.postalCode} {contact.address.city}
+            </span>
+          </p>
+        )
+      }
+    </address>
+  </Container>
+
+  <div class="border-t border-border">
+    <Container class="flex flex-col gap-3 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <p>{t("footer.rights", { year: new Date().getFullYear(), name: siteConfig.organization.legalName })}</p>
+      <slot name="bottom" />
+    </Container>
+  </div>
+</footer>

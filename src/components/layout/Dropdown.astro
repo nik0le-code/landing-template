@@ -1,0 +1,73 @@
+---
+/**
+ * Disclosure dropdown built on <details>: works without JS; the shared script
+ * below adds close-on-outside-click, close-on-Escape and one-open-at-a-time.
+ */
+import ChevronDown from "@lucide/astro/icons/chevron-down";
+import { cn } from "@/lib/cn";
+
+interface Props {
+  label: string;
+  /** Extra classes for the summary button. */
+  class?: string;
+  align?: "left" | "right";
+  /** Visually hidden label for icon-style triggers. */
+  srLabel?: string;
+}
+
+const { label, class: className, align = "left", srLabel } = Astro.props;
+---
+
+<details class="group relative" data-dropdown>
+  <summary
+    class={cn(
+      "flex cursor-pointer list-none items-center gap-1 rounded-md px-3 py-2 text-sm font-medium hover:bg-muted [&::-webkit-details-marker]:hidden",
+      className,
+    )}
+  >
+    <slot name="icon" />
+    <span>{label}</span>
+    {srLabel && <span class="sr-only">{srLabel}</span>}
+    <ChevronDown class="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />
+  </summary>
+  <div
+    class={cn(
+      "absolute top-full z-50 mt-2 min-w-48 rounded-lg border border-border bg-card p-1.5 shadow-lg",
+      align === "right" ? "right-0" : "left-0",
+    )}
+  >
+    <slot />
+  </div>
+</details>
+
+<script>
+  const dropdowns = () => document.querySelectorAll<HTMLDetailsElement>("details[data-dropdown]");
+
+  document.addEventListener("click", (event) => {
+    for (const dropdown of dropdowns()) {
+      const target = event.target as Node;
+      const clickedLink = target instanceof Element && target.closest("a") && dropdown.contains(target);
+      if (dropdown.open && (!dropdown.contains(target) || clickedLink)) dropdown.open = false;
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    for (const dropdown of dropdowns()) {
+      if (dropdown.open) {
+        dropdown.open = false;
+        dropdown.querySelector("summary")?.focus();
+      }
+    }
+  });
+
+  document.addEventListener(
+    "toggle",
+    (event) => {
+      const opened = event.target as HTMLDetailsElement;
+      if (!opened.matches?.("details[data-dropdown]") || !opened.open) return;
+      for (const dropdown of dropdowns()) if (dropdown !== opened) dropdown.open = false;
+    },
+    true,
+  );
+</script>

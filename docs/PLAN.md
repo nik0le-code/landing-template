@@ -97,7 +97,7 @@ before moving on.
 
 - [x] 0 Foundation
 - [x] 1 i18n + SEO core
-- [ ] 2 UI kit + layout shell
+- [x] 2 UI kit + layout shell
 - [ ] 3 Sections library + demo pages
 - [ ] 4 Tracking & consent
 - [ ] 5 Data layer + module system

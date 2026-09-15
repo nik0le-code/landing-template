@@ -1,0 +1,39 @@
+---
+/**
+ * Visible breadcrumb trail. PageLayout also emits the matching BreadcrumbList
+ * JSON-LD from the same items, so markup and schema never drift apart.
+ */
+import ChevronRight from "@lucide/astro/icons/chevron-right";
+import type { BreadcrumbItem } from "@/lib/seo/schema";
+import { useTranslations } from "@/i18n";
+import { cn } from "@/lib/cn";
+
+interface Props {
+  items: BreadcrumbItem[];
+  class?: string;
+}
+
+const { items, class: className } = Astro.props;
+const t = useTranslations(Astro.locals.lang);
+---
+
+<nav aria-label={t("breadcrumbs.label")} class={cn("text-sm text-muted-foreground", className)}>
+  <ol class="flex flex-wrap items-center gap-1.5">
+    {
+      items.map((item, index) => (
+        <li class="flex items-center gap-1.5">
+          {index > 0 && <ChevronRight class="size-3.5" aria-hidden="true" />}
+          {item.path && index < items.length - 1 ? (
+            <a href={item.path} class="hover:text-foreground">
+              {item.name}
+            </a>
+          ) : (
+            <span aria-current="page" class="text-foreground">
+              {item.name}
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</nav>

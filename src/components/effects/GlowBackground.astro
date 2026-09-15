@@ -1,0 +1,23 @@
+---
+/**
+ * Soft colored glow behind a section. Uses radial gradients rather than
+ * `filter: blur()`, which is expensive to paint on low-end GPUs.
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  class?: string;
+  /** CSS colors; defaults to the primary and accent tokens. */
+  from?: string;
+  to?: string;
+}
+
+const { class: className, from = "var(--color-primary)", to = "var(--color-accent)" } = Astro.props;
+---
+
+<div
+  aria-hidden="true"
+  class={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+  style={`background: radial-gradient(40rem 24rem at 20% 0%, color-mix(in oklch, ${from} 18%, transparent), transparent 70%), radial-gradient(36rem 22rem at 85% 10%, color-mix(in oklch, ${to} 16%, transparent), transparent 70%);`}
+>
+</div>
