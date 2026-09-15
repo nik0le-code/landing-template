@@ -15,6 +15,7 @@ export default defineModulesConfig({
     example: false,
     leads: false,
     media: false,
+    settings: false,
   },
 
   options: {

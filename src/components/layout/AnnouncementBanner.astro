@@ -1,0 +1,65 @@
+---
+/**
+ * Admin-editable announcement (settings module), rendered as a server island.
+ * Floats at the bottom instead of pushing the page down, so appearing after load
+ * causes no layout shift. Dismissal is remembered per announcement text.
+ *
+ * Usage (PageLayout does this): `<AnnouncementBanner server:defer lang={lang} />`
+ */
+import X from "@lucide/astro/icons/x";
+import type { Locale } from "@site-config";
+import { localizePath, translateDynamic } from "@/i18n";
+import { getSiteSettings } from "@/lib/settings";
+import { modules } from "@/modules/registry";
+
+interface Props {
+  /** Islands don't see the page URL's locale, so it's passed explicitly. */
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const { announcement } = await getSiteSettings();
+const text = announcement.text[lang]?.trim();
+const linkText = announcement.linkText[lang]?.trim();
+const href = announcement.href.startsWith("/") ? localizePath(announcement.href, lang) : announcement.href;
+const dismissLabel = translateDynamic(lang, modules.find((m) => m.name === "settings")?.i18n ?? {}, "dismiss");
+const id = text ? `announcement-${[...`${text}${href}`].reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) | 0, 7).toString(36)}` : "";
+
+Astro.cache.set({ maxAge: 30, swr: 60, tags: ["settings"] });
+---
+
+{
+  announcement.enabled && text && (
+    <aside
+      id={id}
+      data-announcement
+      class="fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-2xl items-center gap-3 rounded-xl bg-foreground px-4 py-3 text-sm text-background shadow-2xl sm:bottom-5"
+    >
+      <p class="flex-1">
+        {text}
+        {href && linkText && (
+          <a href={href} class="ml-2 font-semibold underline underline-offset-4">
+            {linkText}
+          </a>
+        )}
+      </p>
+      <button type="button" data-dismiss class="inline-flex size-8 shrink-0 items-center justify-center rounded-md hover:bg-background/10">
+        <X class="size-4" aria-hidden="true" />
+        <span class="sr-only">{dismissLabel}</span>
+      </button>
+      <script is:inline>
+        (function (el) {
+          try {
+            if (localStorage.getItem("dismissed:" + el.id)) return el.remove();
+          } catch (e) {}
+          el.querySelector("[data-dismiss]").addEventListener("click", function () {
+            try {
+              localStorage.setItem("dismissed:" + el.id, "1");
+            } catch (e) {}
+            el.remove();
+          });
+        })(document.currentScript.parentElement);
+      </script>
+    </aside>
+  )
+}

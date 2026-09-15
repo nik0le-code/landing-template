@@ -1,6 +1,7 @@
 import { defineAction } from "astro:actions";
 import { z } from "astro/zod";
 import { requireUser } from "@/admin/auth/guard";
+import { formText } from "@/lib/form-schema";
 import { updateAlt } from "./lib/queries";
 import { deleteMedia } from "./lib/upload";
 
@@ -8,7 +9,7 @@ import { deleteMedia } from "./lib/upload";
 export const actions = {
   updateAlt: defineAction({
     accept: "form",
-    input: z.object({ id: z.uuid(), alt: z.string().trim().max(300) }),
+    input: z.object({ id: z.uuid(), alt: formText(300) }),
     handler: async ({ id, alt }, context) => {
       requireUser(context, "editor");
       await updateAlt(id, alt);

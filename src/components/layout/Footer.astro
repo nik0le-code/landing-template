@@ -2,19 +2,19 @@
 import Mail from "@lucide/astro/icons/mail";
 import MapPin from "@lucide/astro/icons/map-pin";
 import Phone from "@lucide/astro/icons/phone";
-import { siteConfig, type SiteConfig } from "@site-config";
+import { siteConfig } from "@site-config";
 import { footerColumns } from "@/config/navigation";
 import { useTranslations } from "@/i18n";
 import { navHref } from "@/lib/nav";
 import { consentBannerEnabled } from "@/lib/tracking/config";
 import Container from "@/components/ui/Container.astro";
 import Logo from "./Logo.astro";
-import SocialIcon from "./SocialIcon.astro";
+import SocialLinks from "./SocialLinks.astro";
+import { hasEditableSettings } from "@/lib/settings";
 
 const lang = Astro.locals.lang;
 const t = useTranslations(lang);
 const { contact } = siteConfig;
-const socials = Object.entries(siteConfig.socials).filter(([, url]) => url) as [keyof SiteConfig["socials"], string][];
 const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : undefined;
 ---
 
@@ -24,22 +24,12 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : 
       <Logo />
       <p class="max-w-xs text-sm text-muted-foreground">{siteConfig.description[lang]}</p>
       {
-        socials.length > 0 && (
-          <ul class="flex gap-2" aria-label={t("footer.followUs")}>
-            {socials.map(([network, url]) => (
-              <li>
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  <SocialIcon network={network} class="size-4" />
-                  <span class="sr-only">{network}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
+        hasEditableSettings ? (
+          <SocialLinks server:defer lang={lang}>
+            <SocialLinks slot="fallback" lang={lang} socials={siteConfig.socials} />
+          </SocialLinks>
+        ) : (
+          <SocialLinks lang={lang} socials={siteConfig.socials} />
         )
       }
     </div>

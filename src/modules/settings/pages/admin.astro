@@ -1,0 +1,88 @@
+---
+import { actions } from "astro:actions";
+import { siteConfig } from "@site-config";
+import { useTranslations } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import Panel from "@/admin/components/Panel.astro";
+import { hasRole } from "@/admin/auth/roles";
+import { formErrors } from "@/admin/lib/forms";
+import SocialIcon from "@/components/layout/SocialIcon.astro";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import { getSettings } from "../lib/store";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const tm = (key: string, params?: Record<string, string>) => translateModule(lang, "settings", key, params);
+if (!hasRole(Astro.locals.user!.role, "admin")) return Astro.redirect("/admin?flash=forbidden", 302);
+
+const result = Astro.getActionResult(actions.settings.save);
+if (result && !result.error) return Astro.redirect("/admin/settings?flash=saved", 303);
+const errors = formErrors(t, result?.error);
+const settings = await getSettings();
+const networks = ["facebook", "instagram", "linkedin", "x", "youtube", "tiktok"] as const;
+const localeName = (l: string) => t(`common.localeNames.${l as "el"}`);
+---
+
+<AdminLayout title={tm("title")} description={tm("description")}>
+  <form method="POST" action={actions.settings.save} class="grid max-w-3xl gap-6">
+    <FormAlert message={errors.form} />
+
+    <Panel title={tm("announcement")} description={tm("announcementHint")}>
+      <div class="space-y-5">
+        <label class="flex items-center gap-2 text-sm font-medium">
+          <input type="checkbox" name="enabled" checked={settings.announcement.enabled} class="size-4 accent-primary" />
+          {tm("enabled")}
+        </label>
+        <div class="grid gap-5 sm:grid-cols-2">
+          {
+            siteConfig.locales.map((l) => (
+              <Field id={`text_${l}`} label={tm("text", { lang: localeName(l) })} error={errors.fields[`text_${l}`]}>
+                <Input id={`text_${l}`} name={`text_${l}`} value={settings.announcement.text[l] ?? ""} maxlength={300} lang={l} />
+              </Field>
+            ))
+          }
+        </div>
+        <Field id="href" label={tm("link")} hint={tm("linkHint")} error={errors.fields.href}>
+          <Input id="href" name="href" value={settings.announcement.href} placeholder="/contact" />
+        </Field>
+        <div class="grid gap-5 sm:grid-cols-2">
+          {
+            siteConfig.locales.map((l) => (
+              <Field id={`linkText_${l}`} label={tm("linkText", { lang: localeName(l) })} error={errors.fields[`linkText_${l}`]}>
+                <Input id={`linkText_${l}`} name={`linkText_${l}`} value={settings.announcement.linkText[l] ?? ""} maxlength={60} lang={l} />
+              </Field>
+            ))
+          }
+        </div>
+      </div>
+    </Panel>
+
+    <Panel title={tm("socials")} description={tm("socialsHint")}>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {
+          networks.map((network) => (
+            <Field id={network} label={network} error={errors.fields[network]} class="[&>label]:capitalize">
+              <div class="flex items-center gap-2">
+                <SocialIcon network={network} class="size-4 shrink-0 text-muted-foreground" />
+                <Input id={network} name={network} type="url" value={settings.socials[network] ?? ""} placeholder="https://" />
+              </div>
+            </Field>
+          ))
+        }
+      </div>
+    </Panel>
+
+    <Panel title={tm("notifications")}>
+      <Field id="notifyEmails" label={tm("notifyEmails")} hint={tm("notifyEmailsHint")} error={errors.fields.notifyEmails}>
+        <Textarea id="notifyEmails" name="notifyEmails" rows={3}>{settings.notifyEmails.join("\n")}</Textarea>
+      </Field>
+    </Panel>
+
+    <div><Button type="submit">{t("admin.common.save")}</Button></div>
+  </form>
+</AdminLayout>

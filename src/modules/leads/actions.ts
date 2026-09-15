@@ -2,13 +2,14 @@ import { ActionError, defineAction } from "astro:actions";
 import { z } from "astro/zod";
 import { eq } from "drizzle-orm";
 import { requireUser } from "@/admin/auth/guard";
+import { formCheckbox, formText } from "@/lib/form-schema";
 import { getDb } from "@/db";
 import { leadSubmissions } from "./db/schema";
 import { LEAD_FIELDS, LEAD_STATUSES } from "./options";
 import { ATTRIBUTION_KEYS, submitLead } from "./lib/submit";
 
-const text = z.string().max(6000).optional().default("");
-const attribution = z.string().max(300).optional().default("");
+const text = formText(6000);
+const attribution = formText(300);
 
 /** `actions.leads.*` */
 export const actions = {
@@ -23,11 +24,11 @@ export const actions = {
       company: text,
       subject: text,
       message: text,
-      consent: z.coerce.boolean().default(false),
+      consent: formCheckbox(),
       website: text,
       startedAt: z.coerce.number().optional(),
-      locale: z.string().max(10).default(""),
-      page: z.string().max(300).default(""),
+      locale: formText(10),
+      page: formText(300),
       utm_source: attribution,
       utm_medium: attribution,
       utm_campaign: attribution,
@@ -64,7 +65,7 @@ export const actions = {
 
   update: defineAction({
     accept: "form",
-    input: z.object({ id: z.uuid(), status: z.enum(LEAD_STATUSES), notes: z.string().max(5000).default("") }),
+    input: z.object({ id: z.uuid(), status: z.enum(LEAD_STATUSES), notes: formText(5000) }),
     handler: async ({ id, status, notes }, context) => {
       requireUser(context, "editor");
       await getDb().update(leadSubmissions).set({ status, notes }).where(eq(leadSubmissions.id, id));

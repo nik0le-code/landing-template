@@ -46,7 +46,10 @@
     "ownerOnly": "Only an owner can manage owners.",
     "invalidSetupToken": "Invalid setup token.",
     "setupDone": "Initial setup has already been completed.",
-    "generic": "Something went wrong. Please try again."
+    "generic": "Something went wrong. Please try again.",
+    "invalidUrl": "Enter a full URL (https://…) or a path (/…).",
+    "invalidEmail": "Invalid email address: {minutes}",
+    "required": "This field is required."
   },
   "login": {
     "title": "Sign in",

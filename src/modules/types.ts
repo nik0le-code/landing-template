@@ -100,4 +100,11 @@ export interface ModuleRuntime {
   adminNav?: AdminNavItem[];
   /** Module translations: `translateModule(lang, "blog", "list.title")`. */
   i18n?: Partial<Record<Locale, Record<string, unknown>>>;
+  /**
+   * Implementations of core services. Loaded lazily; core falls back to
+   * site.config defaults when no enabled module provides a service.
+   */
+  provides?: {
+    siteSettings?: () => Promise<{ getSettings(): Promise<import("../lib/settings").SiteSettings> }>;
+  };
 }

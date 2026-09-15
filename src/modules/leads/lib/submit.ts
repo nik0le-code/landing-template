@@ -6,6 +6,7 @@ import { z } from "astro/zod";
 import { siteConfig } from "@site-config";
 import { getDb } from "@/db";
 import { consume } from "@/lib/rate-limit";
+import { getSiteSettings } from "@/lib/settings";
 import { getModuleOptions } from "@/modules/registry";
 import { leadSubmissions } from "../db/schema";
 import { leadsDefaults, type LeadField } from "../options";
@@ -106,7 +107,9 @@ export async function submitLead(input: SubmitInput): Promise<SubmitResult> {
     })
     .returning();
 
-  // Don't make the visitor wait for the email provider; failures are logged.
-  if (!spamReason && options.notifyEmails.length) void notifyNewLead(lead!, options.notifyEmails);
+  // Recipients: module options plus admin-editable settings. Don't make the
+  // visitor wait for the email provider; failures are logged.
+  const recipients = [...new Set([...options.notifyEmails, ...(await getSiteSettings()).notifyEmails])];
+  if (!spamReason && recipients.length) void notifyNewLead(lead!, recipients);
   return { ok: true };
 }

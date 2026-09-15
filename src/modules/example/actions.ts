@@ -3,13 +3,14 @@ import { z } from "astro/zod";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { requireUser } from "@/admin/auth/guard";
+import { formRequiredText } from "@/lib/form-schema";
 import { exampleMessages } from "./db/schema";
 
 /** Exposed as `actions.example.addMessage` / `actions.example.deleteMessage`. */
 export const actions = {
   addMessage: defineAction({
     accept: "form",
-    input: z.object({ text: z.string().trim().min(1).max(280) }),
+    input: z.object({ text: formRequiredText(280) }),
     handler: async ({ text }, context) => {
       const [row] = await getDb().insert(exampleMessages).values({ text }).returning();
       // Cached pages that show messages must be refreshed.

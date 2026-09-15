@@ -109,7 +109,7 @@ before moving on.
 - [x] 6 Admin core
 - [x] 7 Media library
 - [x] 8 Module: leads
-- [ ] 9 Module: settings
+- [x] 9 Module: settings
 - [ ] 10 Module: blog
 - [ ] 11 Module: catalog
 - [ ] 12 Module: bookings

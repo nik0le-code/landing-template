@@ -1,0 +1,7 @@
+{
+  "name": "settings",
+  "description": "Lets admins edit the announcement bar, social links and notification recipients without a redeploy. Dynamic parts of static pages render as server islands.",
+  "admin": true,
+  "dependsOn": [],
+  "routes": [{ "pattern": "/admin/settings", "entrypoint": "./pages/admin.astro" }]
+}

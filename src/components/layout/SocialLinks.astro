@@ -1,0 +1,41 @@
+---
+/**
+ * Social icons. Pass `socials` for a static render, or omit it to read the
+ * admin-editable values (used as a server island when the settings module is on).
+ */
+import type { Locale, SiteConfig } from "@site-config";
+import { useTranslations } from "@/i18n";
+import { getSiteSettings } from "@/lib/settings";
+import SocialIcon from "./SocialIcon.astro";
+
+interface Props {
+  lang: Locale;
+  socials?: SiteConfig["socials"];
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const socials = Astro.props.socials ?? (await getSiteSettings()).socials;
+const entries = Object.entries(socials).filter(([, url]) => url) as [keyof SiteConfig["socials"], string][];
+if (!Astro.props.socials) Astro.cache.set({ maxAge: 30, swr: 60, tags: ["settings"] });
+---
+
+{
+  entries.length > 0 && (
+    <ul class="flex gap-2" aria-label={t("footer.followUs")}>
+      {entries.map(([network, url]) => (
+        <li>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <SocialIcon network={network} class="size-4" />
+            <span class="sr-only">{network}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}

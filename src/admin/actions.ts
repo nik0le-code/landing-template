@@ -10,6 +10,7 @@ import { z } from "astro/zod";
 import { and, count, eq, ne } from "drizzle-orm";
 import { timingSafeEqual } from "node:crypto";
 import { getDb } from "@/db";
+import { formCheckbox, formRequiredText } from "@/lib/form-schema";
 import { USER_ROLES, users } from "@/db/schema/core";
 import { requireUser } from "./auth/guard";
 import { DUMMY_HASH, hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from "./auth/password";
@@ -19,7 +20,7 @@ import { createSession, invalidateSession, invalidateUserSessions } from "./auth
 
 const email = z.string().trim().toLowerCase().pipe(z.email());
 const password = z.string().min(MIN_PASSWORD_LENGTH, "passwordTooShort").max(256);
-const name = z.string().trim().min(1).max(120);
+const name = formRequiredText(120);
 
 const fail = (code: ActionError["code"], message: string): never => {
   throw new ActionError({ code, message });
@@ -154,7 +155,7 @@ export const actions = {
       name,
       email,
       role: z.enum(USER_ROLES),
-      disabled: z.coerce.boolean().default(false),
+      disabled: formCheckbox(),
       password: z.union([z.literal(""), password]).optional(),
     }),
     handler: async (input, context) => {

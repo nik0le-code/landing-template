@@ -73,12 +73,19 @@ disabled; copy it when writing a new module.
 | Admin sidebar entry | `adminNav` in index.ts |
 | Fresh data after a write | `Astro.cache.set({ tags: ["<name>"] })` on pages, `context.cache.invalidate({ tags: ["<name>"] })` in actions |
 | Options per site | `options.ts` + `getModuleOptions("<name>", defaults)` |
+| Admin-editable values on static pages | Render the component with `server:defer` (server island) and read `getSiteSettings()` |
 
 Core slots: `contact.form`, `home.afterHero`, `home.beforeCta`, `layout.beforeFooter`.
 Add new ones by placing `<ModuleSlot name="…" />` in a core page and extending
 `SlotName` in `types.ts`.
 
 ## Rules
+
+- Form actions (`accept: "form"`): use the helpers in `src/lib/form-schema.ts`
+  (`formText`, `formRequiredText`, `formUrl`, `formLink`, `formCheckbox`) for every
+  text/checkbox field. Astro turns empty fields into `null` unless the outermost
+  schema is `.optional()`, so `z.string().default("")` rejects an empty input, and
+  it treats any present checkbox field as checked.
 
 - Core code never imports from a module folder. Modules may import core code.
 - A module may import another module only if it lists it in `dependsOn`.

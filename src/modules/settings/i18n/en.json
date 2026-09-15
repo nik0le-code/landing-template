@@ -1,0 +1,17 @@
+{
+  "title": "Settings",
+  "description": "Changes that appear immediately, without a new release of the website.",
+  "announcement": "Announcement",
+  "announcementHint": "A small bar at the bottom of every page. Visitors can dismiss it.",
+  "enabled": "Show announcement",
+  "text": "Text ({lang})",
+  "link": "Link",
+  "linkHint": "A path like /contact or a full URL.",
+  "linkText": "Link text ({lang})",
+  "socials": "Social networks",
+  "socialsHint": "Leave empty to hide.",
+  "notifications": "Notifications",
+  "notifyEmails": "Extra email recipients",
+  "notifyEmailsHint": "One email per line. They receive notifications for new leads and bookings.",
+  "dismiss": "Dismiss announcement"
+}

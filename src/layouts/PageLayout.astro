@@ -13,6 +13,8 @@ import type { SeoProps } from "@/components/seo/Seo.astro";
 import { localeAlternates, localizePath, useTranslations } from "@/i18n";
 import { breadcrumbSchema, type BreadcrumbItem } from "@/lib/seo/schema";
 import AnnouncementBar from "@/components/layout/AnnouncementBar.astro";
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner.astro";
+import { hasEditableSettings } from "@/lib/settings";
 import Breadcrumbs from "@/components/layout/Breadcrumbs.astro";
 import Container from "@/components/ui/Container.astro";
 import Footer from "@/components/layout/Footer.astro";
@@ -61,4 +63,5 @@ const pageSchema = trail ? [...schema, breadcrumbSchema(trail)] : schema;
     <ModuleSlot name="layout.beforeFooter" />
   </main>
   <Footer />
+  {hasEditableSettings && <AnnouncementBanner server:defer lang={lang} />}
 </BaseLayout>
