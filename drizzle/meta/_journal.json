@@ -15,6 +15,13 @@
       "when": 1789496007719,
       "tag": "0001_hot_johnny_blaze",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789497752453,
+      "tag": "0002_pretty_silver_surfer",
+      "breakpoints": true
     }
   ]
 }

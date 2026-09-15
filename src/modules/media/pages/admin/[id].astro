@@ -1,0 +1,91 @@
+---
+import { actions } from "astro:actions";
+import { useTranslations } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import Panel from "@/admin/components/Panel.astro";
+import { formErrors } from "@/admin/lib/forms";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import MediaImage from "../../components/MediaImage.astro";
+import { getMedia } from "../../lib/queries";
+import { mediaUrl } from "../../lib/urls";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const tm = (key: string) => translateModule(lang, "media", key);
+
+const saved = Astro.getActionResult(actions.media.updateAlt);
+const removed = Astro.getActionResult(actions.media.delete);
+if (saved && !saved.error) return Astro.redirect(`/admin/media/${Astro.params.id}?flash=saved`, 303);
+if (removed && !removed.error) return Astro.redirect("/admin/media?flash=deleted", 303);
+
+const media = await getMedia(Astro.params.id!);
+if (!media) return Astro.rewrite("/404");
+
+const errors = formErrors(t, saved?.error);
+const kb = (bytes: number) => `${Math.round(bytes / 1024).toLocaleString()} KB`;
+const largest = [...media.variants].sort((a, b) => b.width - a.width).find((v) => v.format === "webp")!;
+---
+
+<AdminLayout title={media.filename} back={{ href: "/admin/media", label: tm("title") }}>
+  <div class="grid gap-6 lg:grid-cols-[3fr_2fr]">
+    <Panel class="p-3">
+      <MediaImage media={media} sizes="(min-width: 1024px) 60vw, 100vw" class="h-auto w-full rounded-md" priority />
+    </Panel>
+
+    <div class="space-y-6">
+      <Panel title={tm("details")}>
+        <form method="POST" action={actions.media.updateAlt} class="space-y-4">
+          <FormAlert message={errors.form} />
+          <input type="hidden" name="id" value={media.id} />
+          <Field id="alt" label={tm("alt")} hint={tm("altHint")} error={errors.fields.alt}>
+            <Textarea id="alt" name="alt" rows={3} maxlength={300}>{media.alt}</Textarea>
+          </Field>
+          <Button type="submit">{t("admin.common.save")}</Button>
+        </form>
+
+        <dl class="mt-6 space-y-2 border-t border-border pt-4 text-sm">
+          <div class="flex justify-between gap-4"><dt class="text-muted-foreground">{tm("dimensions")}</dt><dd>{media.width} × {media.height}</dd></div>
+          <div class="flex justify-between gap-4"><dt class="text-muted-foreground">{tm("original")}</dt><dd>{kb(media.bytes)}</dd></div>
+          <div>
+            <dt class="text-muted-foreground">{tm("url")}</dt>
+            <dd class="mt-1 flex gap-2">
+              <input readonly value={mediaUrl(largest.key)} class="min-w-0 flex-1 rounded-md border border-border bg-muted px-2 py-1 font-mono text-xs" aria-label={tm("url")} />
+              <button type="button" data-copy={mediaUrl(largest.key)} data-copied={tm("copied")} class="rounded-md border border-border px-2 text-xs hover:bg-muted">{tm("copy")}</button>
+            </dd>
+          </div>
+        </dl>
+      </Panel>
+
+      <Panel title={tm("variants")}>
+        <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          {
+            media.variants.map((variant) => (
+              <li class="flex justify-between">
+                <a href={mediaUrl(variant.key)} target="_blank" class="hover:text-foreground">{variant.format.toUpperCase()} {variant.width}w</a>
+                <span>{kb(variant.bytes)}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </Panel>
+
+      <form method="POST" action={actions.media.delete} data-confirm={t("admin.common.confirmDelete")}>
+        <input type="hidden" name="id" value={media.id} />
+        <Button type="submit" variant="destructive">{t("admin.common.delete")}</Button>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  document.addEventListener("click", async (event) => {
+    const button = (event.target as Element).closest<HTMLButtonElement>("[data-copy]");
+    if (!button) return;
+    await navigator.clipboard.writeText(new URL(button.dataset.copy!, location.origin).href);
+    button.textContent = button.dataset.copied ?? "✓";
+  });
+</script>

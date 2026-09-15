@@ -1,0 +1,44 @@
+---
+/**
+ * Renders an uploaded image as <picture> with AVIF + WebP srcsets, a JPEG/PNG
+ * fallback, intrinsic width/height (no layout shift) and the dominant color as a
+ * placeholder background.
+ *
+ * ```astro
+ * const media = await getMedia(post.coverId);
+ * {media && <MediaImage media={media} sizes="(min-width: 1024px) 50vw, 100vw" priority />}
+ * ```
+ * Load many at once with `getMediaMap(ids)` to avoid N queries.
+ */
+import type { MediaFile } from "../db/schema";
+import { mediaUrl, srcset } from "../lib/urls";
+
+interface Props {
+  media: MediaFile;
+  /** Overrides the stored alt text. */
+  alt?: string;
+  sizes?: string;
+  /** Set on the single above-the-fold image (LCP). */
+  priority?: boolean;
+  class?: string;
+}
+
+const { media, alt = media.alt, sizes = "100vw", priority = false, class: className } = Astro.props;
+const fallback = media.variants.find((v) => v.format === "jpeg" || v.format === "png") ?? media.variants.at(-1)!;
+---
+
+<picture>
+  <source type="image/avif" srcset={srcset(media, "avif")} sizes={sizes} />
+  <source type="image/webp" srcset={srcset(media, "webp")} sizes={sizes} />
+  <img
+    src={mediaUrl(fallback.key)}
+    alt={alt}
+    width={media.width}
+    height={media.height}
+    loading={priority ? "eager" : "lazy"}
+    fetchpriority={priority ? "high" : "auto"}
+    decoding="async"
+    class={className}
+    style={`background-color: ${media.color}`}
+  />
+</picture>

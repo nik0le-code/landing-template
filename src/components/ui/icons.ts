@@ -20,6 +20,7 @@ import Gauge from "@lucide/astro/icons/gauge";
 import Globe from "@lucide/astro/icons/globe";
 import Headphones from "@lucide/astro/icons/headphones";
 import Heart from "@lucide/astro/icons/heart";
+import Image from "@lucide/astro/icons/image";
 import Layers from "@lucide/astro/icons/layers";
 import LayoutDashboard from "@lucide/astro/icons/layout-dashboard";
 import Leaf from "@lucide/astro/icons/leaf";
@@ -62,6 +63,7 @@ export const icons = {
   "globe": Globe,
   "headphones": Headphones,
   "heart": Heart,
+  "image": Image,
   "layers": Layers,
   "layout-dashboard": LayoutDashboard,
   "leaf": Leaf,

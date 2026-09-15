@@ -1,0 +1,80 @@
+---
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import Panel from "@/admin/components/Panel.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import Button from "@/components/ui/Button.astro";
+import Input from "@/components/ui/Input.astro";
+import { listMedia } from "../../lib/queries";
+import { mediaOptions } from "../../lib/upload";
+import { pickVariant, mediaUrl } from "../../lib/urls";
+import UploadForm from "../../components/UploadForm.astro";
+
+const lang = Astro.locals.lang;
+const tm = (key: string, params?: Record<string, string | number>) => translateModule(lang, "media", key, params);
+
+const query = (Astro.url.searchParams.get("q") ?? "").slice(0, 100);
+const page = Math.max(1, Number(Astro.url.searchParams.get("page")) || 1);
+const { items, total, pageSize } = await listMedia({ query, page, pageSize: 40 });
+const pages = Math.max(1, Math.ceil(total / pageSize));
+const errorCode = Astro.url.searchParams.get("error");
+const pageHref = (p: number) => `/admin/media?${new URLSearchParams({ ...(query && { q: query }), page: String(p) })}`;
+---
+
+<AdminLayout title={tm("title")} description={tm("description")}>
+  <div class="space-y-6">
+    {errorCode && <FormAlert message={tm(`errors.${errorCode}`)} />}
+
+    <Panel title={tm("upload")} description={tm("uploadHint", { mb: mediaOptions().maxUploadMb })}>
+      <UploadForm />
+    </Panel>
+
+    <form method="GET" class="flex max-w-md gap-2">
+      <Input id="media-search" name="q" type="search" value={query} placeholder={tm("search")} aria-label={tm("search")} />
+      <Button type="submit" variant="outline">{tm("search")}</Button>
+    </form>
+
+    {
+      items.length === 0 ? (
+        <Panel>
+          <p class="text-muted-foreground">{tm("empty")}</p>
+        </Panel>
+      ) : (
+        <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {items.map((item) => (
+            <li>
+              <a href={`/admin/media/${item.id}`} class="group block overflow-hidden rounded-lg border border-border bg-card">
+                <img
+                  src={mediaUrl(pickVariant(item, 320).key)}
+                  alt={item.alt}
+                  width={item.width}
+                  height={item.height}
+                  loading="lazy"
+                  class="aspect-square w-full object-cover transition group-hover:scale-105"
+                  style={`background-color: ${item.color}`}
+                />
+                <div class="px-3 py-2 text-xs">
+                  <p class="truncate font-medium">{item.filename}</p>
+                  <p class="text-muted-foreground">
+                    {item.width}×{item.height}
+                    {!item.alt && <span class="text-destructive"> · {tm("missingAlt")}</span>}
+                  </p>
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      pages > 1 && (
+        <nav class="flex items-center justify-between text-sm">
+          {page > 1 ? <Button href={pageHref(page - 1)} variant="outline" size="sm">← {tm("previous")}</Button> : <span />}
+          <span class="text-muted-foreground">{page} / {pages}</span>
+          {page < pages ? <Button href={pageHref(page + 1)} variant="outline" size="sm">{tm("next")} →</Button> : <span />}
+        </nav>
+      )
+    }
+  </div>
+</AdminLayout>

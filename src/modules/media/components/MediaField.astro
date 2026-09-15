@@ -1,0 +1,42 @@
+---
+/**
+ * Form field for choosing an uploaded image in any module's admin form:
+ *
+ * ```astro
+ * <MediaField name="coverId" label="Cover image" value={post.coverId} />
+ * ```
+ * Submits the media id (or "" when cleared). Modules using it must list
+ * "media" in `dependsOn`.
+ */
+import { translateModule } from "@/modules/registry";
+import MediaPicker, { type MediaPickerLabels } from "./MediaPicker";
+import { getMedia } from "../lib/queries";
+import { toPublic } from "../lib/urls";
+
+interface Props {
+  name: string;
+  label: string;
+  value?: string | null;
+  hint?: string;
+  error?: string;
+  required?: boolean;
+}
+
+const { name, label, value, hint, error, required = false } = Astro.props;
+const tm = (key: string) => translateModule(Astro.locals.lang, "media", key);
+const initial = value ? await getMedia(value) : null;
+const labelKeys: (keyof MediaPickerLabels)[] = [
+  "choose", "change", "remove", "select", "close", "search", "upload", "uploading", "loadMore", "empty", "missingAlt",
+];
+const labels = Object.fromEntries(labelKeys.map((key) => [key, tm(key)])) as unknown as MediaPickerLabels;
+---
+
+<fieldset class="space-y-1.5">
+  <legend class="text-sm font-medium">
+    {label}
+    {required && <span class="text-destructive" aria-hidden="true">*</span>}
+  </legend>
+  <MediaPicker client:visible name={name} initial={initial ? toPublic(initial) : null} labels={labels} required={required} />
+  {hint && <p class="text-sm text-muted-foreground">{hint}</p>}
+  {error && <p class="text-sm text-destructive">{error}</p>}
+</fieldset>

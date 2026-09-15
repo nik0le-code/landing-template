@@ -1,0 +1,33 @@
+{
+  "title": "Media",
+  "description": "Images for your pages, posts and products.",
+  "upload": "Upload images",
+  "uploadHint": "JPEG, PNG, WebP, GIF, HEIC · up to {mb} MB each. AVIF/WebP versions are generated automatically at every size.",
+  "dropHere": "Drop images here or click to choose",
+  "uploading": "Uploading…",
+  "search": "Search",
+  "empty": "No images yet.",
+  "details": "Image details",
+  "alt": "Alternative text (alt)",
+  "altHint": "Describe the image for screen readers and search engines. Leave empty if it's decorative.",
+  "dimensions": "Dimensions",
+  "original": "Original size",
+  "variants": "Versions",
+  "url": "URL",
+  "copy": "Copy",
+  "copied": "Copied",
+  "choose": "Choose image",
+  "change": "Change",
+  "remove": "Remove",
+  "select": "Select",
+  "close": "Close",
+  "loadMore": "Load more",
+  "missingAlt": "no alt",
+  "previous": "Previous",
+  "next": "Next",
+  "errors": {
+    "tooLarge": "The file is too large.",
+    "unsupported": "Unsupported image format.",
+    "invalid": "The file is not a valid image."
+  }
+}

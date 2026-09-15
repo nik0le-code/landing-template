@@ -1,0 +1,61 @@
+---
+/**
+ * Multi-file upload. Works as a plain form (POST + redirect); with JavaScript it
+ * becomes a drop zone that uploads via fetch and reloads when done.
+ */
+import Upload from "@lucide/astro/icons/upload";
+import { translateModule } from "@/modules/registry";
+import Button from "@/components/ui/Button.astro";
+
+const tm = (key: string) => translateModule(Astro.locals.lang, "media", key);
+---
+
+<form method="POST" action="/api/admin/media" enctype="multipart/form-data" data-media-upload class="space-y-4">
+  <label
+    data-dropzone
+    class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground transition hover:border-primary/50 data-[dragging]:border-primary data-[dragging]:bg-primary/5"
+  >
+    <Upload class="size-6" aria-hidden="true" />
+    <span data-label>{tm("dropHere")}</span>
+    <input type="file" name="files" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif" multiple required class="sr-only" />
+  </label>
+  <Button type="submit" data-submit>{tm("upload")}</Button>
+  <p data-status data-uploading={tm("uploading")} class="text-sm text-muted-foreground" aria-live="polite"></p>
+</form>
+
+<script>
+  for (const form of document.querySelectorAll<HTMLFormElement>("form[data-media-upload]")) {
+    const zone = form.querySelector<HTMLElement>("[data-dropzone]")!;
+    const input = form.querySelector<HTMLInputElement>('input[type="file"]')!;
+    const status = form.querySelector<HTMLElement>("[data-status]")!;
+    const submit = form.querySelector<HTMLButtonElement>("[data-submit]")!;
+
+    const upload = async (files: FileList | File[]) => {
+      if (!files.length) return;
+      const body = new FormData();
+      for (const file of files) body.append("files", file);
+      submit.disabled = true;
+      status.textContent = `${status.dataset.uploading} (${files.length})`;
+      const response = await fetch(form.action, { method: "POST", body, headers: { Accept: "application/json" } });
+      const result = (await response.json().catch(() => ({}))) as { errors?: { error: string }[] };
+      const error = result.errors?.[0]?.error;
+      location.href = `/admin/media?flash=created${error ? `&error=${error}` : ""}`;
+    };
+
+    input.addEventListener("change", () => input.files && upload(input.files));
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (input.files) upload(input.files);
+    });
+    zone.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      zone.dataset.dragging = "";
+    });
+    zone.addEventListener("dragleave", () => delete zone.dataset.dragging);
+    zone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      delete zone.dataset.dragging;
+      if (event.dataTransfer?.files) upload(event.dataTransfer.files);
+    });
+  }
+</script>

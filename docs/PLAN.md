@@ -66,7 +66,7 @@ before moving on.
 - Admin shell layout (sidebar from module registry), dashboard, account/password, user management
 - `npm run admin:create` CLI
 
-### 7. Media library
+### 7. Media library (module `media`)
 - Storage interface + local-volume driver, upload endpoint, sharp variants, `/media/*` serving with long cache
 - `<MediaImage>` (srcset/sizes), admin media picker (React island)
 
@@ -94,6 +94,7 @@ before moving on.
 
 ### 14. Production + docs
 - Dockerfile (multi-stage, non-root, `/data` volume), `/api/health`
+- Memory: glibc allocator tuning for sharp in Docker (`MALLOC_ARENA_MAX=2` or jemalloc); measure idle RSS (~205 MB locally)
 - Custom Node entry (adapter `middleware` mode) so security headers, `X-Robots-Tag` on NOINDEX deployments and long-lived cache headers also apply to prerendered/static files
 - Performance pass (Lighthouse on demo pages, JS budget), `CLAUDE.md` + README
 
@@ -106,7 +107,7 @@ before moving on.
 - [x] 4 Tracking & consent
 - [x] 5 Data layer + module system
 - [x] 6 Admin core
-- [ ] 7 Media library
+- [x] 7 Media library
 - [ ] 8 Module: leads
 - [ ] 9 Module: settings
 - [ ] 10 Module: blog

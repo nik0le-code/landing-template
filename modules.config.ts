@@ -13,9 +13,11 @@ import { defineModulesConfig } from "./src/modules/define";
 export default defineModulesConfig({
   modules: {
     example: false,
+    media: false,
   },
 
   options: {
     example: { pageSize: 20 },
+    media: { maxUploadMb: 15 },
   },
 });
