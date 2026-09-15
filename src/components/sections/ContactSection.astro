@@ -1,7 +1,7 @@
 ---
 /**
- * Contact details + a form area. The default slot receives the form (the `leads`
- * module provides one); without it a mailto button is shown.
+ * Contact details + a form area. The form comes from whichever enabled module fills
+ * the "contact.form" slot (e.g. `leads`); with none enabled, a mailto button is shown.
  */
 import Clock from "@lucide/astro/icons/clock";
 import Mail from "@lucide/astro/icons/mail";
@@ -12,6 +12,7 @@ import Button from "@/components/ui/Button.astro";
 import Card from "@/components/ui/Card.astro";
 import Section from "@/components/ui/Section.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
+import ModuleSlot from "@/components/modules/ModuleSlot.astro";
 
 interface Props {
   id?: string;
@@ -28,7 +29,6 @@ interface Props {
 const { id = "contact", eyebrow, title, description, labels, mapEmbedUrl, headingTag = "h2", tone = "default" } = Astro.props;
 const { contact } = siteConfig;
 const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : undefined;
-const hasForm = Astro.slots.has("default");
 const iconBox = "flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary";
 ---
 
@@ -82,18 +82,14 @@ const iconBox = "flex size-10 shrink-0 items-center justify-center rounded-md bg
       </dl>
     </div>
     <Card padding="lg" class="self-start">
-      {
-        hasForm ? (
-          <slot />
-        ) : (
-          <div class="flex flex-col items-start gap-4">
-            <p class="text-lg font-semibold">{labels.writeUs}</p>
-            <Button href={`mailto:${contact.email}`}>
-              <Mail /> {contact.email}
-            </Button>
-          </div>
-        )
-      }
+      <ModuleSlot name="contact.form">
+        <div slot="fallback" class="flex flex-col items-start gap-4">
+          <p class="text-lg font-semibold">{labels.writeUs}</p>
+          <Button href={`mailto:${contact.email}`}>
+            <Mail /> {contact.email}
+          </Button>
+        </div>
+      </ModuleSlot>
     </Card>
   </div>
   {

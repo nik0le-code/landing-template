@@ -1,0 +1,38 @@
+---
+import { actions } from "astro:actions";
+import { desc } from "drizzle-orm";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Button from "@/components/ui/Button.astro";
+import Input from "@/components/ui/Input.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import { getDb } from "@/db";
+import { getModuleOptions, translateModule } from "@/modules/registry";
+import { exampleMessages } from "../db/schema";
+import { exampleDefaults } from "../options";
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "example", key);
+const { pageSize } = getModuleOptions("example", exampleDefaults);
+
+// Server-rendered + cached; the addMessage action invalidates the "example" tag.
+const result = Astro.getActionResult(actions.example.addMessage);
+if (result && !result.error) return Astro.redirect(Astro.url.pathname, 303);
+Astro.cache.set({ maxAge: 600, swr: 60, tags: ["example"] });
+
+const messages = await getDb().select().from(exampleMessages).orderBy(desc(exampleMessages.id)).limit(pageSize);
+---
+
+<PageLayout seo={{ title: t("title"), noindex: true }}>
+  <Section width="sm">
+    <SectionHeading tag="h1" title={t("title")} align="left" />
+    <form method="POST" action={actions.example.addMessage} class="mt-8 flex gap-2">
+      <Input id="text" name="text" required maxlength={280} />
+      <Button type="submit">{t("add")}</Button>
+    </form>
+    <ul class="mt-8 space-y-2">
+      {messages.map((message) => <li class="rounded-md border border-border p-3">{message.text}</li>)}
+      {messages.length === 0 && <li class="text-muted-foreground">{t("empty")}</li>}
+    </ul>
+  </Section>
+</PageLayout>

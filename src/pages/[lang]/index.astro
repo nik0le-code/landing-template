@@ -1,5 +1,6 @@
 ---
 import PageLayout from "@/layouts/PageLayout.astro";
+import ModuleSlot from "@/components/modules/ModuleSlot.astro";
 import Bento, { type BentoItem } from "@/components/sections/Bento.astro";
 import Cta from "@/components/sections/Cta.astro";
 import Faq from "@/components/sections/Faq.astro";
@@ -66,6 +67,7 @@ const plans: Plan[] = copy.pricing.plans.map((plan) => ({
   <Testimonials {...copy.testimonials} />
   <Pricing {...copy.pricing} plans={plans} billingLabels={copy.pricing.billing} tone="muted" />
   <Faq {...copy.faq} />
+  <ModuleSlot name="home.beforeCta" />
   <Cta
     title={copy.cta.title}
     description={copy.cta.description}

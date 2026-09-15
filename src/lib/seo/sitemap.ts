@@ -1,5 +1,6 @@
 import { siteConfig, type Locale } from "@site-config";
 import { localizePath } from "@/i18n";
+import { modules } from "@/modules/registry";
 
 /** One logical page, available under one or more locales. */
 export interface SitemapEntry {
@@ -35,12 +36,8 @@ export function staticPageEntries(): SitemapEntry[] {
     }));
 }
 
-const sources: SitemapSource[] = [staticPageEntries];
-
-/** Called by modules to add their dynamic pages (blog posts, catalog items, …). */
-export function registerSitemapSource(source: SitemapSource) {
-  sources.push(source);
-}
+/** Static pages plus every enabled module's `sitemap()` (blog posts, catalog items, …). */
+const sources: SitemapSource[] = [staticPageEntries, ...modules.flatMap((module) => (module.sitemap ? [module.sitemap] : []))];
 
 export async function collectSitemapEntries(): Promise<SitemapEntry[]> {
   const results = await Promise.all(sources.map((source) => source()));

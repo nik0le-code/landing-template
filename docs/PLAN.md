@@ -17,7 +17,7 @@ plug/unplug modules and a small admin backend. Sibling of `frontend-template`.
 | Email | Resend (optional — submissions are always stored in DB) |
 | Tracking | GA4 / Google Ads + conversions, loaded after consent, Consent Mode v2 banner (can be disabled) |
 | i18n | All URLs prefixed (`/el/…`, `/en/…`), `/` redirects to default (`el`); hreflang + x-default |
-| Modules | `src/modules/<name>/` self-contained; `npm run module:add/remove/new` |
+| Modules | `src/modules/<name>/` self-contained; switched on/off only in `modules.config.ts` (one boolean per module, options separate). Disabled modules are never imported (generated registry), so they add nothing to the build. Migrations cover every module's tables, so toggling needs no DB step. CLI for scaffolding/cleanup |
 | Package manager | npm |
 | k8s manifests | Out of scope for now (Dockerfile only) |
 
@@ -88,7 +88,8 @@ before moving on.
 - Public booking request form (optionally linked to catalog items), admin list with status workflow, email notification
 
 ### 13. Module CLI
-- `module:remove <name>` (delete folder + unregister), `module:add <name>` (restore from template remote/path), `module:new <name>` (CRUD scaffold)
+- `module:list` (available vs enabled), `module:new <name>` (scaffold from the example module / CRUD template)
+- `module:remove <name>` (disable in config + delete the folder for projects that will never use it), `module:add <name>` (restore a folder from the template remote/path)
 
 ### 14. Production + docs
 - Dockerfile (multi-stage, non-root, `/data` volume), `/api/health`
@@ -102,7 +103,7 @@ before moving on.
 - [x] 2 UI kit + layout shell
 - [x] 3 Sections library + demo pages
 - [x] 4 Tracking & consent
-- [ ] 5 Data layer + module system
+- [x] 5 Data layer + module system
 - [ ] 6 Admin core
 - [ ] 7 Media library
 - [ ] 8 Module: leads

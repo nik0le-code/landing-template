@@ -1,0 +1,25 @@
+---
+/**
+ * Renders whatever enabled modules registered for a named slot — core pages stay
+ * unaware of which modules exist. Renders `fallback` slot content when no module
+ * fills it.
+ *
+ * ```astro
+ * <ModuleSlot name="contact.form" props={{ source: "contact-page" }}>
+ *   <a slot="fallback" href="mailto:…">Email us</a>
+ * </ModuleSlot>
+ * ```
+ */
+import { getSlotLoaders } from "@/modules/registry";
+import type { SlotName } from "@/modules/types";
+
+interface Props {
+  name: SlotName;
+  props?: Record<string, unknown>;
+}
+
+const { name, props = {} } = Astro.props;
+const components = await Promise.all(getSlotLoaders(name).map(async (load) => (await load()).default as any));
+---
+
+{components.length > 0 ? components.map((Component) => <Component {...props} />) : <slot name="fallback" />}

@@ -3,13 +3,15 @@ import node from "@astrojs/node";
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import { siteConfig } from "./site.config";
+import modulesConfig from "./modules.config";
+import { modulesIntegration } from "./src/integrations/modules";
 
 export default defineConfig({
   site: process.env.SITE_URL ?? siteConfig.url,
   output: "server",
   trailingSlash: "never",
   adapter: node({ mode: "standalone" }),
-  integrations: [react()],
+  integrations: [react(), modulesIntegration(modulesConfig)],
   // Admin auth uses its own DB-backed sessions; Astro sessions would write to the pod filesystem.
   session: false,
 
@@ -60,6 +62,7 @@ export default defineConfig({
       NOINDEX: envField.boolean({ context: "server", access: "secret", default: false }),
       DATABASE_URL: envField.string({ context: "server", access: "secret", default: "file:./data/site.db" }),
       DATABASE_AUTH_TOKEN: envField.string({ context: "server", access: "secret", optional: true }),
+      DB_MIGRATE_ON_START: envField.boolean({ context: "server", access: "secret", default: true }),
       UPLOADS_DIR: envField.string({ context: "server", access: "secret", default: "./data/uploads" }),
       RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
       EMAIL_FROM: envField.string({ context: "server", access: "secret", optional: true }),

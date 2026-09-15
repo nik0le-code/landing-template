@@ -5,6 +5,9 @@ dist/
 # dependencies
 node_modules/
 
+# generated from modules.config.ts on every dev/build/check
+src/modules/.generated/
+
 # runtime data (SQLite DB, uploads)
 data/
 

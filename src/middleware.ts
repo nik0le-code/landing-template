@@ -2,6 +2,7 @@ import { defineMiddleware, sequence } from "astro:middleware";
 import { siteConfig } from "@site-config";
 import { isLocale, splitLocale } from "@/i18n";
 import { isNoindexDeployment } from "@/lib/site";
+import { ensureMigrated } from "@/db";
 
 /** Resolves `locals.lang` and 404s unknown locale prefixes on `/[lang]/…` routes. */
 const locale = defineMiddleware(async (context, next) => {
@@ -11,6 +12,12 @@ const locale = defineMiddleware(async (context, next) => {
   if (context.routePattern.startsWith("/[lang]") && !isLocale(context.params.lang)) {
     return context.rewrite("/404");
   }
+  return next();
+});
+
+/** Apply pending DB migrations before the first server-rendered request is handled. */
+const database = defineMiddleware(async (context, next) => {
+  if (!context.isPrerendered) await ensureMigrated();
   return next();
 });
 
@@ -29,4 +36,4 @@ const robots = defineMiddleware(async (_context, next) => {
   }
 });
 
-export const onRequest = sequence(locale, robots);
+export const onRequest = sequence(locale, database, robots);

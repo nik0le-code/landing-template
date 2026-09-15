@@ -1,0 +1,39 @@
+/**
+ * Runtime access to enabled modules. Everything here reads the generated
+ * registry, which only imports modules enabled in modules.config.ts.
+ */
+import type { Locale } from "@site-config";
+import { translateDynamic, type TranslateParams } from "@/i18n";
+import { enabledModules, moduleOptions, moduleRuntimes } from "./.generated/registry";
+import type { AdminNavItem, ModuleOptionsMap, ModuleRuntime, SlotLoader, SlotName } from "./types";
+
+export const modules: readonly ModuleRuntime[] = moduleRuntimes;
+
+export function isModuleEnabled(name: string): boolean {
+  return (enabledModules as readonly string[]).includes(name);
+}
+
+/** Options from modules.config.ts, merged over the module's own defaults. */
+export function getModuleOptions<Name extends keyof ModuleOptionsMap & string>(
+  name: Name,
+  defaults: ModuleOptionsMap[Name],
+): ModuleOptionsMap[Name] {
+  return { ...(defaults as object), ...moduleOptions[name] } as unknown as ModuleOptionsMap[Name];
+}
+
+export function getSlotLoaders(name: SlotName): SlotLoader[] {
+  return modules.flatMap((module) => {
+    const entry = module.slots?.[name];
+    return entry ? (Array.isArray(entry) ? entry : [entry]) : [];
+  });
+}
+
+export function getAdminNav(): AdminNavItem[] {
+  return modules.flatMap((module) => module.adminNav ?? []).sort((a, b) => (a.order ?? 50) - (b.order ?? 50));
+}
+
+/** Translation lookup inside a module's `i18n` dictionaries. */
+export function translateModule(lang: Locale, moduleName: string, key: string, params?: TranslateParams): string {
+  const module = modules.find((m) => m.name === moduleName);
+  return module?.i18n ? translateDynamic(lang, module.i18n, key, params) : key;
+}

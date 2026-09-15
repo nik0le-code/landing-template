@@ -1,0 +1,14 @@
+---
+import { localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import Container from "@/components/ui/Container.astro";
+
+const lang = Astro.locals.lang;
+---
+
+<Container class="py-6">
+  <p class="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-4 text-sm">
+    {translateModule(lang, "example", "notice")}
+    <a href={localizePath("/example", lang)} class="font-medium text-primary underline">→</a>
+  </p>
+</Container>

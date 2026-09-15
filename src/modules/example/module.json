@@ -1,0 +1,6 @@
+{
+  "name": "example",
+  "description": "Reference module showing every extension point: a table, an Astro Action, a server-rendered page, a slot component, sitemap entries and translations. Keep it disabled; copy it when writing a new module.",
+  "dependsOn": [],
+  "routes": [{ "pattern": "/[lang]/example", "entrypoint": "./pages/index.astro" }]
+}

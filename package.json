@@ -14,7 +14,11 @@
     "check": "astro check",
     "astro": "astro",
     "brand:assets": "tsx scripts/brand-assets.mjs",
-    "demo:images": "node scripts/demo-images.mjs"
+    "demo:images": "node scripts/demo-images.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.5",
