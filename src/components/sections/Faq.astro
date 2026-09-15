@@ -1,0 +1,43 @@
+---
+/**
+ * Accordion FAQ. Answers are in the HTML (crawlable) inside native <details>;
+ * `name` makes it an exclusive accordion in supporting browsers — no JS.
+ * Emits FAQPage JSON-LD for the same items.
+ */
+import Plus from "@lucide/astro/icons/plus";
+import JsonLd from "@/components/seo/JsonLd.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import { faqSchema, type FaqItem } from "@/lib/seo/schema";
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  items: FaqItem[];
+  /** Set false if another FAQPage schema already exists on the page. */
+  schema?: boolean;
+  tone?: "default" | "muted";
+}
+
+const { id = "faq", eyebrow, title, description, items, schema = true, tone = "default" } = Astro.props;
+---
+
+<Section id={id} tone={tone} width="md">
+  <SectionHeading eyebrow={eyebrow} title={title} description={description} />
+  <div class="mx-auto mt-12 max-w-3xl divide-y divide-border border-y border-border">
+    {
+      items.map((item, i) => (
+        <details name={`${id}-accordion`} class="group" open={i === 0}>
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-5 text-left font-medium [&::-webkit-details-marker]:hidden">
+            <h3 class="text-base sm:text-lg">{item.question}</h3>
+            <Plus class="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-45" aria-hidden="true" />
+          </summary>
+          <div class="pb-6 text-muted-foreground" set:html={item.answer} />
+        </details>
+      ))
+    }
+  </div>
+  {schema && <JsonLd data={{ "@context": "https://schema.org", ...faqSchema(items) }} />}
+</Section>

@@ -1,0 +1,58 @@
+---
+import Star from "@lucide/astro/icons/star";
+import Card from "@/components/ui/Card.astro";
+import Img from "@/components/ui/Img.astro";
+import { cn } from "@/lib/cn";
+import type { ImageSource } from "./types";
+
+export interface Testimonial {
+  quote: string;
+  name: string;
+  role?: string;
+  avatar?: ImageSource;
+  /** 1–5; omit to hide stars. */
+  rating?: number;
+}
+
+interface Props {
+  item: Testimonial;
+  class?: string;
+}
+
+const { item, class: className } = Astro.props;
+const initials = item.name
+  .split(/\s+/)
+  .map((part) => part[0])
+  .slice(0, 2)
+  .join("")
+  .toUpperCase();
+---
+
+<Card as="article" class={cn("flex h-full flex-col", className)}>
+  {
+    item.rating && (
+      <p class="mb-3 flex gap-0.5 text-amber-500">
+        {Array.from({ length: 5 }, (_, i) => (
+          <Star class={cn("size-4", i < item.rating! ? "fill-current" : "opacity-30")} aria-hidden="true" />
+        ))}
+        <span class="sr-only">{item.rating}/5</span>
+      </p>
+    )
+  }
+  <blockquote class="flex-1 text-pretty">“{item.quote}”</blockquote>
+  <footer class="mt-5 flex items-center gap-3">
+    {
+      item.avatar ? (
+        <Img src={item.avatar} alt="" width={40} height={40} class="size-10 rounded-full object-cover" />
+      ) : (
+        <span class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary" aria-hidden="true">
+          {initials}
+        </span>
+      )
+    }
+    <div>
+      <p class="font-semibold">{item.name}</p>
+      {item.role && <p class="text-sm text-muted-foreground">{item.role}</p>}
+    </div>
+  </footer>
+</Card>

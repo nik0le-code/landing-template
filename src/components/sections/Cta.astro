@@ -1,0 +1,48 @@
+---
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import GridBackground from "@/components/effects/GridBackground.astro";
+import { cn } from "@/lib/cn";
+import type { CtaLink } from "./types";
+
+interface Props {
+  title: string;
+  description?: string;
+  actions: CtaLink[];
+  /** "banner" = full-width colored band; "card" = rounded panel inside the page. */
+  variant?: "banner" | "card";
+}
+
+const { title, description, actions, variant = "card" } = Astro.props;
+const isBanner = variant === "banner";
+---
+
+<Section tone={isBanner ? "primary" : "default"} spacing={isBanner ? "md" : "sm"}>
+  <div
+    class={cn(
+      "relative overflow-hidden text-center",
+      !isBanner && "rounded-2xl bg-primary px-6 py-16 text-primary-foreground sm:px-16",
+    )}
+  >
+    <GridBackground class="text-primary-foreground/10" />
+    <div class="relative mx-auto max-w-2xl">
+      <h2 class="text-3xl font-bold tracking-tight text-balance sm:text-4xl">{title}</h2>
+      {description && <p class="mt-4 text-lg text-pretty opacity-85">{description}</p>}
+      <div class="mt-8 flex flex-wrap justify-center gap-3">
+        {
+          actions.map((action, i) => (
+            <Button
+              href={action.href}
+              external={action.external}
+              size="lg"
+              variant={action.variant ?? (i === 0 ? "secondary" : "ghost")}
+              class={cn(i > 0 && !action.variant && "text-primary-foreground hover:bg-primary-foreground/10")}
+            >
+              {action.label}
+            </Button>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</Section>

@@ -1,0 +1,61 @@
+---
+/**
+ * Renders a legal Markdown document (src/content/legal/<lang>/<slug>.md) with a
+ * sticky table of contents. Use from a page: `<LegalPage slug="privacy" />`.
+ */
+import { getEntry, render } from "astro:content";
+import { localeRegions, localizePath, useTranslations } from "@/i18n";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Container from "@/components/ui/Container.astro";
+import Prose from "@/components/ui/Prose.astro";
+
+interface Props {
+  slug: string;
+}
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const entry = await getEntry("legal", `${lang}/${Astro.props.slug}`);
+if (!entry) return Astro.rewrite("/404");
+
+const { Content, headings } = await render(entry);
+const toc = headings.filter((heading) => heading.depth === 2);
+const updated = new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "long" }).format(entry.data.updatedAt);
+---
+
+<PageLayout
+  seo={{ title: entry.data.title, description: entry.data.description, modifiedTime: entry.data.updatedAt }}
+  breadcrumbs={[{ name: entry.data.title, path: localizePath(`/${Astro.props.slug}`, lang) }]}
+>
+  <Container class="py-12 sm:py-16">
+    <header class="max-w-3xl">
+      <h1 class="text-4xl font-bold tracking-tight">{entry.data.title}</h1>
+      <p class="mt-3 text-sm text-muted-foreground">
+        {t("legal.lastUpdated", { date: updated })}
+      </p>
+    </header>
+    <div class="mt-12 grid gap-12 lg:grid-cols-[1fr_16rem]">
+      <Prose><Content /></Prose>
+      {
+        toc.length > 0 && (
+          <nav aria-labelledby="toc-title" class="order-first lg:order-last">
+            <div class="lg:sticky lg:top-24">
+              <p id="toc-title" class="text-sm font-semibold">
+                {t("legal.onThisPage")}
+              </p>
+              <ul class="mt-3 space-y-2 border-l border-border text-sm">
+                {toc.map((heading) => (
+                  <li>
+                    <a href={`#${heading.slug}`} class="-ml-px block border-l border-transparent pl-4 text-muted-foreground hover:border-primary hover:text-foreground">
+                      {heading.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </nav>
+        )
+      }
+    </div>
+  </Container>
+</PageLayout>

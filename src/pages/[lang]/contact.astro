@@ -1,0 +1,24 @@
+---
+import PageLayout from "@/layouts/PageLayout.astro";
+import ContactSection from "@/components/sections/ContactSection.astro";
+import Faq from "@/components/sections/Faq.astro";
+import { getDictionary, localeStaticPaths, localizePath } from "@/i18n";
+import { organizationSchema } from "@/lib/seo/schema";
+
+// Static content → rendered once at build time (HTML + optimized images on disk).
+export const prerender = true;
+export const getStaticPaths = () => localeStaticPaths();
+
+const lang = Astro.locals.lang;
+const dict = getDictionary(lang);
+const copy = dict.contact;
+---
+
+<PageLayout
+  seo={{ title: copy.meta.title, description: copy.meta.description }}
+  schema={[organizationSchema()]}
+  breadcrumbs={[{ name: copy.meta.title, path: localizePath("/contact", lang) }]}
+>
+  <ContactSection title={copy.title} description={copy.description} labels={copy.labels} headingTag="h1" />
+  <Faq {...dict.home.faq} tone="muted" />
+</PageLayout>

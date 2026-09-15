@@ -1,0 +1,44 @@
+---
+import Img from "@/components/ui/Img.astro";
+import Section from "@/components/ui/Section.astro";
+import Marquee from "@/components/effects/Marquee.astro";
+import type { ImageSource } from "./types";
+
+interface Props {
+  title?: string;
+  logos: { src: ImageSource; alt: string; href?: string }[];
+  /** "marquee" scrolls continuously; "grid" is static. */
+  variant?: "grid" | "marquee";
+  tone?: "default" | "muted";
+}
+
+const { title, logos, variant = "marquee", tone = "default" } = Astro.props;
+const logoClass = "h-8 w-auto opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0";
+---
+
+<Section tone={tone} spacing="sm">
+  {title && <p class="mb-8 text-center text-sm font-medium text-muted-foreground">{title}</p>}
+  {
+    variant === "marquee" ? (
+      <Marquee duration={35} gap="4rem">
+        {logos.map((logo) => (
+          <Img src={logo.src} alt={logo.alt} height={32} class={logoClass} />
+        ))}
+      </Marquee>
+    ) : (
+      <ul class="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
+        {logos.map((logo) => (
+          <li>
+            {logo.href ? (
+              <a href={logo.href} target="_blank" rel="noopener noreferrer">
+                <Img src={logo.src} alt={logo.alt} height={32} class={logoClass} />
+              </a>
+            ) : (
+              <Img src={logo.src} alt={logo.alt} height={32} class={logoClass} />
+            )}
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Section>

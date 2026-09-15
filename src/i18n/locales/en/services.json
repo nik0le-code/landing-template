@@ -1,0 +1,64 @@
+{
+  "meta": {
+    "title": "Services",
+    "description": "Consulting, design and development of digital solutions for businesses of every size."
+  },
+  "hero": {
+    "title": "Services tailored to your business",
+    "description": "From strategy to delivery and maintenance, we take care of the whole cycle.",
+    "primary": "Request a quote"
+  },
+  "consulting": {
+    "eyebrow": "Consulting",
+    "title": "Strategy that drives results",
+    "description": "We analyse your processes and recommend the solutions with the highest return.",
+    "items": [
+      {
+        "icon": "search",
+        "title": "Needs analysis",
+        "description": "Process mapping and identifying opportunities."
+      },
+      {
+        "icon": "file-text",
+        "title": "Technical proposal",
+        "description": "A clear plan with cost and timeline."
+      },
+      {
+        "icon": "trending-up",
+        "title": "Digital transformation",
+        "description": "Gradual transition with zero downtime."
+      }
+    ]
+  },
+  "development": {
+    "eyebrow": "Development",
+    "title": "Solutions built to last",
+    "description": "Websites, apps and integrations with a focus on speed and security.",
+    "items": [
+      {
+        "icon": "code",
+        "title": "Websites & e-shops",
+        "description": "Fast and optimised for search engines."
+      },
+      {
+        "icon": "smartphone",
+        "title": "Mobile apps",
+        "description": "iOS and Android from a single codebase."
+      },
+      {
+        "icon": "cloud",
+        "title": "Cloud & hosting",
+        "description": "Reliable infrastructure with 24/7 monitoring."
+      },
+      {
+        "icon": "wrench",
+        "title": "Maintenance",
+        "description": "Security updates and improvements every month."
+      }
+    ]
+  },
+  "gallery": {
+    "eyebrow": "Work",
+    "title": "Our recent work"
+  }
+}

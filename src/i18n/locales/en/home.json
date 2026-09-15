@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "title": "Home",
+    "description": "Acme helps businesses grow with modern digital solutions: strategy, development and support from a single team."
+  },
+  "hero": {
+    "badge": "New: AI services for small businesses",
+    "title": "Grow your business without the complexity",
+    "description": "We design, build and support the digital tools you need — so you can focus on what you do best.",
+    "primary": "Start for free",
+    "secondary": "See how it works",
+    "imageAlt": "Acme platform dashboard"
+  },
+  "logos": {
+    "title": "Trusted by more than 500 businesses"
+  },
+  "features": {
+    "eyebrow": "Why Acme",
+    "title": "Everything you need, in one place",
+    "description": "Tools designed for teams that want results, not extra work.",
+    "items": [
+      {
+        "icon": "zap",
+        "title": "Fast delivery",
+        "description": "From idea to production in weeks, not months."
+      },
+      {
+        "icon": "shield-check",
+        "title": "Security & GDPR",
+        "description": "Your data is hosted in the EU with full compliance."
+      },
+      {
+        "icon": "chart-column",
+        "title": "Measurable results",
+        "description": "Real-time reporting for every action."
+      },
+      {
+        "icon": "users",
+        "title": "Team collaboration",
+        "description": "Roles, permissions and shared workspaces."
+      },
+      {
+        "icon": "smartphone",
+        "title": "Everywhere, on any device",
+        "description": "Mobile-first and fast even on slow networks."
+      },
+      {
+        "icon": "headphones",
+        "title": "Human support",
+        "description": "Real people, not bots, ready to help."
+      }
+    ]
+  },
+  "bento": {
+    "eyebrow": "Platform",
+    "title": "Built to grow with you",
+    "description": "Start with the essentials and add capabilities when you need them.",
+    "items": [
+      {
+        "icon": "layout-dashboard",
+        "title": "One dashboard",
+        "description": "All your business data at a glance.",
+        "size": "large"
+      },
+      {
+        "icon": "globe",
+        "title": "Multilingual",
+        "description": "Greek, English and any other language you need."
+      },
+      {
+        "icon": "lock",
+        "title": "Secure access",
+        "description": "Encryption and role-based access control.",
+        "highlight": true
+      },
+      {
+        "icon": "rocket",
+        "title": "Automations",
+        "description": "Let repetitive tasks run by themselves.",
+        "size": "wide"
+      }
+    ]
+  },
+  "steps": {
+    "eyebrow": "How it works",
+    "title": "Three steps to results",
+    "items": [
+      {
+        "title": "Discovery",
+        "description": "We discuss your goals in a free 30-minute call."
+      },
+      {
+        "title": "Proposal",
+        "description": "You get a clear plan, timeline and cost."
+      },
+      {
+        "title": "Delivery",
+        "description": "We ship in short cycles with continuous updates."
+      }
+    ]
+  },
+  "stats": {
+    "items": [
+      {
+        "value": "500+",
+        "label": "Active clients"
+      },
+      {
+        "value": "98%",
+        "label": "Client satisfaction"
+      },
+      {
+        "value": "12",
+        "label": "Years of experience"
+      },
+      {
+        "value": "24/7",
+        "label": "Monitoring"
+      }
+    ]
+  },
+  "testimonials": {
+    "eyebrow": "Reviews",
+    "title": "What our clients say",
+    "items": [
+      {
+        "quote": "Within two months we had a new website and twice as many enquiries.",
+        "name": "Maria Papadopoulou",
+        "role": "Owner, Anthos Florist",
+        "rating": 5
+      },
+      {
+        "quote": "Finally a team that explains technical things in plain language.",
+        "name": "George Nikolaou",
+        "role": "Director, Nikolaou Logistics",
+        "rating": 5
+      },
+      {
+        "quote": "Support always answers the same day. For us, that makes the difference.",
+        "name": "Eleni Konstantinou",
+        "role": "COO, Ygeia+ Clinic",
+        "rating": 5
+      }
+    ]
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "title": "Simple, transparent pricing",
+    "description": "No hidden fees. Cancel anytime.",
+    "billing": {
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "note": "-20%"
+    },
+    "plans": [
+      {
+        "name": "Starter",
+        "description": "For freelancers.",
+        "price": {
+          "monthly": "€19",
+          "yearly": "€15"
+        },
+        "period": {
+          "monthly": "/month",
+          "yearly": "/month, billed yearly"
+        },
+        "features": [
+          "1 user",
+          "Basic reports",
+          "Email support"
+        ],
+        "cta": "Get started"
+      },
+      {
+        "name": "Business",
+        "description": "For growing teams.",
+        "price": {
+          "monthly": "€49",
+          "yearly": "€39"
+        },
+        "period": {
+          "monthly": "/month",
+          "yearly": "/month, billed yearly"
+        },
+        "features": [
+          "Up to 10 users",
+          "Automations",
+          "Priority support",
+          "Integrations"
+        ],
+        "cta": "Try for free",
+        "featured": true,
+        "badge": "Most popular"
+      },
+      {
+        "name": "Enterprise",
+        "description": "For organisations with special needs.",
+        "price": {
+          "monthly": "Contact us"
+        },
+        "features": [
+          "Unlimited users",
+          "SLA & dedicated manager",
+          "On-premise installation"
+        ],
+        "cta": "Contact sales"
+      }
+    ]
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Have questions?",
+    "items": [
+      {
+        "question": "How quickly can we get started?",
+        "answer": "Usually within a week of signing the proposal."
+      },
+      {
+        "question": "Is there a minimum commitment?",
+        "answer": "No. Monthly plans can be cancelled at any time at no cost."
+      },
+      {
+        "question": "Where is my data hosted?",
+        "answer": "In data centres within the European Union, in line with GDPR."
+      },
+      {
+        "question": "Do you issue invoices?",
+        "answer": "Yes, we issue an electronic invoice for every payment."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to take the next step?",
+    "description": "Book a free intro meeting and see what we can achieve together.",
+    "primary": "Book a meeting",
+    "secondary": "View pricing"
+  }
+}

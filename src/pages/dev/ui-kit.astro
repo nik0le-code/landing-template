@@ -29,7 +29,7 @@ if (!import.meta.env.DEV) return Astro.rewrite("/404");
   breadcrumbs={[{ name: "UI kit" }]}
   announcement={{ text: "Announcement bar example", href: "#", linkText: "Learn more" }}
 >
-  <Section lazyRender={false}>
+  <Section>
     <GridBackground slot="background" />
     <GlowBackground slot="background" />
     <SectionHeading tag="h1" eyebrow="Eyebrow" title="Section heading" description="A description that explains the section in one or two sentences." />

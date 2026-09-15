@@ -1,0 +1,114 @@
+---
+/**
+ * Pricing plans with an optional monthly/yearly switch. The switch is two radio
+ * inputs + CSS `:has()` — no JavaScript, and both prices are in the HTML for crawlers.
+ */
+import Check from "@lucide/astro/icons/check";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import Reveal from "@/components/effects/Reveal.astro";
+import { cn } from "@/lib/cn";
+import type { CtaLink } from "./types";
+
+export interface Plan {
+  name: string;
+  description?: string;
+  /** Preformatted, e.g. "€29". Omit yearly to hide the switch for this plan. */
+  price: { monthly: string; yearly?: string };
+  /** e.g. "/month". */
+  period?: { monthly: string; yearly?: string };
+  features: string[];
+  cta: CtaLink;
+  featured?: boolean;
+  badge?: string;
+}
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  plans: Plan[];
+  /** Labels for the billing switch; omit to hide it. */
+  billingLabels?: { monthly: string; yearly: string; note?: string };
+  tone?: "default" | "muted";
+}
+
+const { id = "pricing", eyebrow, title, description, plans, billingLabels, tone = "default" } = Astro.props;
+const name = `${id}-billing`;
+---
+
+<Section id={id} tone={tone}>
+  <div class="pricing">
+    <SectionHeading eyebrow={eyebrow} title={title} description={description} />
+    {
+      billingLabels && (
+        <fieldset class="mx-auto mt-8 flex w-fit items-center gap-1 rounded-full border border-border bg-card p-1 text-sm font-medium">
+          <legend class="sr-only">{title}</legend>
+          <label class="cursor-pointer rounded-full px-4 py-1.5 has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:outline-2 has-focus-visible:outline-primary">
+            <input type="radio" name={name} value="monthly" class="sr-only" checked />
+            {billingLabels.monthly}
+          </label>
+          <label class="cursor-pointer rounded-full px-4 py-1.5 has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:outline-2 has-focus-visible:outline-primary">
+            <input type="radio" name={name} value="yearly" class="sr-only" />
+            {billingLabels.yearly}
+            {billingLabels.note && <span class="ml-1 text-xs opacity-80">{billingLabels.note}</span>}
+          </label>
+        </fieldset>
+      )
+    }
+    <ul class={cn("mx-auto mt-12 grid max-w-5xl gap-6", plans.length >= 3 ? "lg:grid-cols-3" : "md:grid-cols-2")}>
+      {
+        plans.map((plan, i) => (
+          <Reveal
+            as="li"
+            stagger={i}
+            class={cn(
+              "relative flex flex-col rounded-xl border bg-card p-8",
+              plan.featured ? "border-primary shadow-xl shadow-primary/10 lg:-my-4 lg:py-12" : "border-border",
+            )}
+          >
+            {plan.badge && <Badge class="absolute -top-3 left-8">{plan.badge}</Badge>}
+            <h3 class="text-lg font-semibold">{plan.name}</h3>
+            {plan.description && <p class="mt-2 text-sm text-muted-foreground">{plan.description}</p>}
+            <p class="mt-6 flex items-baseline gap-1">
+              <span class="price-monthly text-4xl font-bold tracking-tight">{plan.price.monthly}</span>
+              {plan.price.yearly && <span class="price-yearly text-4xl font-bold tracking-tight">{plan.price.yearly}</span>}
+              {plan.period && (
+                <span class="text-sm text-muted-foreground">
+                  <span class="price-monthly">{plan.period.monthly}</span>
+                  {plan.period.yearly && <span class="price-yearly">{plan.period.yearly}</span>}
+                </span>
+              )}
+            </p>
+            <ul class="mt-8 flex-1 space-y-3 text-sm">
+              {plan.features.map((feature) => (
+                <li class="flex gap-2">
+                  <Check class="size-5 shrink-0 text-primary" aria-hidden="true" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <Button href={plan.cta.href} variant={plan.cta.variant ?? (plan.featured ? "primary" : "outline")} class="mt-8 w-full">
+              {plan.cta.label}
+            </Button>
+          </Reveal>
+        ))
+      }
+    </ul>
+  </div>
+</Section>
+
+<style>
+  .price-yearly {
+    display: none;
+  }
+  .pricing:has(input[value="yearly"]:checked) .price-yearly {
+    display: inline;
+  }
+  .pricing:has(input[value="yearly"]:checked) .price-monthly:has(+ .price-yearly) {
+    display: none;
+  }
+</style>

@@ -17,7 +17,7 @@ const { items, class: className } = Astro.props;
 const t = useTranslations(Astro.locals.lang);
 ---
 
-<nav aria-label={t("breadcrumbs.label")} class={cn("text-sm text-muted-foreground", className)}>
+<nav aria-label={t("common.breadcrumbs.label")} class={cn("text-sm text-muted-foreground", className)}>
   <ol class="flex flex-wrap items-center gap-1.5">
     {
       items.map((item, index) => (

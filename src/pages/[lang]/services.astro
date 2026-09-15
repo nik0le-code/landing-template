@@ -1,0 +1,38 @@
+---
+import PageLayout from "@/layouts/PageLayout.astro";
+import Cta from "@/components/sections/Cta.astro";
+import FeatureGrid from "@/components/sections/FeatureGrid.astro";
+import Gallery from "@/components/sections/Gallery.astro";
+import HeroCentered from "@/components/sections/HeroCentered.astro";
+import Steps from "@/components/sections/Steps.astro";
+import type { FeatureItem } from "@/components/sections/types";
+import { getDictionary, localeStaticPaths, localizePath } from "@/i18n";
+import g1 from "@/assets/demo/gallery-1.jpg";
+import g2 from "@/assets/demo/gallery-2.jpg";
+import g3 from "@/assets/demo/gallery-3.jpg";
+import g4 from "@/assets/demo/gallery-4.jpg";
+import g5 from "@/assets/demo/gallery-5.jpg";
+import g6 from "@/assets/demo/gallery-6.jpg";
+
+// Static content → rendered once at build time (HTML + optimized images on disk).
+export const prerender = true;
+export const getStaticPaths = () => localeStaticPaths();
+
+const lang = Astro.locals.lang;
+const dict = getDictionary(lang);
+const copy = dict.services;
+const contactHref = localizePath("/contact", lang);
+const gallery = [g1, g2, g3, g4, g5, g6].map((src, i) => ({ src, alt: `${copy.gallery.title} ${i + 1}` }));
+---
+
+<PageLayout
+  seo={{ title: copy.meta.title, description: copy.meta.description }}
+  breadcrumbs={[{ name: copy.meta.title, path: localizePath("/services", lang) }]}
+>
+  <HeroCentered title={copy.hero.title} description={copy.hero.description} actions={[{ label: copy.hero.primary, href: contactHref }]} background="glow" />
+  <FeatureGrid id="consulting" {...copy.consulting} items={copy.consulting.items as FeatureItem[]} tone="muted" />
+  <FeatureGrid id="development" {...copy.development} items={copy.development.items as FeatureItem[]} columns={4} />
+  <Steps {...dict.home.steps} steps={dict.home.steps.items} tone="muted" />
+  <Gallery {...copy.gallery} images={gallery} closeLabel={dict.common.close} />
+  <Cta title={dict.home.cta.title} description={dict.home.cta.description} actions={[{ label: dict.home.cta.primary, href: contactHref }]} />
+</PageLayout>

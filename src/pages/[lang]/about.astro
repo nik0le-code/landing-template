@@ -1,0 +1,40 @@
+---
+import PageLayout from "@/layouts/PageLayout.astro";
+import Cta from "@/components/sections/Cta.astro";
+import FeatureGrid from "@/components/sections/FeatureGrid.astro";
+import HeroSplit from "@/components/sections/HeroSplit.astro";
+import Stats from "@/components/sections/Stats.astro";
+import Team from "@/components/sections/Team.astro";
+import Timeline from "@/components/sections/Timeline.astro";
+import type { FeatureItem } from "@/components/sections/types";
+import { getDictionary, localeStaticPaths, localizePath } from "@/i18n";
+import aboutImage from "@/assets/demo/about.jpg";
+
+// Static content → rendered once at build time (HTML + optimized images on disk).
+export const prerender = true;
+export const getStaticPaths = () => localeStaticPaths();
+
+const lang = Astro.locals.lang;
+const dict = getDictionary(lang);
+const copy = dict.about;
+const contactHref = localizePath("/contact", lang);
+---
+
+<PageLayout
+  seo={{ title: copy.meta.title, description: copy.meta.description }}
+  breadcrumbs={[{ name: copy.meta.title, path: localizePath("/about", lang) }]}
+>
+  <HeroSplit
+    badge={copy.hero.badge}
+    title={copy.hero.title}
+    description={copy.hero.description}
+    bullets={copy.hero.bullets}
+    actions={[{ label: copy.hero.cta, href: contactHref }]}
+    image={{ src: aboutImage, alt: copy.hero.imageAlt }}
+  />
+  <Stats items={dict.home.stats.items} tone="dark" />
+  <FeatureGrid {...copy.values} items={copy.values.items as FeatureItem[]} variant="plain" />
+  <Timeline {...copy.timeline} tone="muted" />
+  <Team {...copy.team} />
+  <Cta title={copy.cta.title} description={copy.cta.description} actions={[{ label: copy.cta.primary, href: contactHref }]} variant="banner" />
+</PageLayout>

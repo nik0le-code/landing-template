@@ -1,0 +1,81 @@
+---
+/**
+ * Asymmetric feature grid. Each item can span columns/rows and carry an image;
+ * put custom visuals in a named slot matching `item.slot`.
+ */
+import Icon from "@/components/ui/Icon.astro";
+import Img from "@/components/ui/Img.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import Reveal from "@/components/effects/Reveal.astro";
+import { cn } from "@/lib/cn";
+import type { FeatureItem, ImageProps } from "./types";
+
+export interface BentoItem extends FeatureItem {
+  size?: "normal" | "wide" | "tall" | "large";
+  image?: ImageProps;
+  /** Name of a slot rendered as the card's visual. */
+  slot?: string;
+  highlight?: boolean;
+}
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  items: BentoItem[];
+  tone?: "default" | "muted";
+}
+
+const { id, eyebrow, title, description, items, tone = "default" } = Astro.props;
+const sizes = {
+  normal: "",
+  wide: "lg:col-span-2",
+  tall: "lg:row-span-2",
+  large: "lg:col-span-2 lg:row-span-2",
+};
+
+const slots = await Promise.all(
+  items.map((item) => (item.slot && Astro.slots.has(item.slot) ? Astro.slots.render(item.slot) : null)),
+);
+---
+
+<Section id={id} tone={tone}>
+  <SectionHeading eyebrow={eyebrow} title={title} description={description} />
+  <ul class="mt-14 grid auto-rows-[minmax(14rem,auto)] gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      items.map((item, i) => (
+        <Reveal
+          as="li"
+          effect="zoom"
+          stagger={i % 3}
+          class={cn(
+            "relative flex flex-col overflow-hidden rounded-xl border border-border p-6",
+            item.highlight ? "bg-primary text-primary-foreground" : "bg-card",
+            sizes[item.size ?? "normal"],
+          )}
+        >
+          {item.icon && (
+            <span
+              class={cn(
+                "mb-4 inline-flex size-10 items-center justify-center rounded-md",
+                item.highlight ? "bg-primary-foreground/15" : "bg-primary/10 text-primary",
+              )}
+            >
+              <Icon name={item.icon} />
+            </span>
+          )}
+          <h3 class="text-lg font-semibold">{item.title}</h3>
+          <p class={cn("mt-2", item.highlight ? "opacity-85" : "text-muted-foreground")}>{item.description}</p>
+          {slots[i] && <div class="mt-6 flex-1" set:html={slots[i]} />}
+          {item.image && (
+            <div class="mt-6 flex-1 overflow-hidden rounded-lg">
+              <Img src={item.image.src} alt={item.image.alt} sizes="(min-width: 1024px) 33vw, 100vw" class="size-full object-cover" />
+            </div>
+          )}
+        </Reveal>
+      ))
+    }
+  </ul>
+</Section>

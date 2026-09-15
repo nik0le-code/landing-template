@@ -9,6 +9,7 @@
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+    "exactOptionalPropertyTypes": false
   }
 }

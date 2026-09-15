@@ -18,7 +18,7 @@ const t = useTranslations(lang);
 const options = siteConfig.locales.map((locale) => ({
   locale,
   href: alternates[locale] ?? localizePath("/", locale),
-  name: t(`localeNames.${locale}`),
+  name: t(`common.localeNames.${locale}`),
   current: locale === lang,
 }));
 ---

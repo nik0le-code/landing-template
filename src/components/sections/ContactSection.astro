@@ -1,0 +1,110 @@
+---
+/**
+ * Contact details + a form area. The default slot receives the form (the `leads`
+ * module provides one); without it a mailto button is shown.
+ */
+import Clock from "@lucide/astro/icons/clock";
+import Mail from "@lucide/astro/icons/mail";
+import MapPin from "@lucide/astro/icons/map-pin";
+import Phone from "@lucide/astro/icons/phone";
+import { siteConfig } from "@site-config";
+import Button from "@/components/ui/Button.astro";
+import Card from "@/components/ui/Card.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  labels: { email: string; phone: string; address: string; hours: string; writeUs: string };
+  /** Embed a map (e.g. Google Maps embed URL). Loaded lazily. */
+  mapEmbedUrl?: string;
+  headingTag?: "h1" | "h2";
+  tone?: "default" | "muted";
+}
+
+const { id = "contact", eyebrow, title, description, labels, mapEmbedUrl, headingTag = "h2", tone = "default" } = Astro.props;
+const { contact } = siteConfig;
+const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : undefined;
+const hasForm = Astro.slots.has("default");
+const iconBox = "flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary";
+---
+
+<Section id={id} tone={tone}>
+  <div class="grid gap-12 lg:grid-cols-[2fr_3fr]">
+    <div>
+      <SectionHeading eyebrow={eyebrow} title={title} description={description} align="left" tag={headingTag} />
+      <dl class="mt-10 space-y-6">
+        <div class="flex gap-4">
+          <span class={iconBox}><Mail class="size-5" aria-hidden="true" /></span>
+          <div>
+            <dt class="text-sm text-muted-foreground">{labels.email}</dt>
+            <dd><a href={`mailto:${contact.email}`} class="font-medium hover:text-primary">{contact.email}</a></dd>
+          </div>
+        </div>
+        {
+          telHref && (
+            <div class="flex gap-4">
+              <span class={iconBox}><Phone class="size-5" aria-hidden="true" /></span>
+              <div>
+                <dt class="text-sm text-muted-foreground">{labels.phone}</dt>
+                <dd><a href={telHref} class="font-medium hover:text-primary">{contact.phone}</a></dd>
+              </div>
+            </div>
+          )
+        }
+        {
+          contact.address && (
+            <div class="flex gap-4">
+              <span class={iconBox}><MapPin class="size-5" aria-hidden="true" /></span>
+              <div>
+                <dt class="text-sm text-muted-foreground">{labels.address}</dt>
+                <dd class="font-medium">
+                  {contact.address.street}, {contact.address.postalCode} {contact.address.city}
+                </dd>
+              </div>
+            </div>
+          )
+        }
+        {
+          contact.openingHours && (
+            <div class="flex gap-4">
+              <span class={iconBox}><Clock class="size-5" aria-hidden="true" /></span>
+              <div>
+                <dt class="text-sm text-muted-foreground">{labels.hours}</dt>
+                {contact.openingHours.map((hours) => <dd class="font-medium">{hours}</dd>)}
+              </div>
+            </div>
+          )
+        }
+      </dl>
+    </div>
+    <Card padding="lg" class="self-start">
+      {
+        hasForm ? (
+          <slot />
+        ) : (
+          <div class="flex flex-col items-start gap-4">
+            <p class="text-lg font-semibold">{labels.writeUs}</p>
+            <Button href={`mailto:${contact.email}`}>
+              <Mail /> {contact.email}
+            </Button>
+          </div>
+        )
+      }
+    </Card>
+  </div>
+  {
+    mapEmbedUrl && (
+      <iframe
+        src={mapEmbedUrl}
+        title={labels.address}
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        class="mt-12 aspect-[16/7] w-full rounded-xl border border-border"
+      />
+    )
+  }
+</Section>

@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "title": "About us",
+    "description": "Meet the Acme team, our story and the values that guide every project."
+  },
+  "hero": {
+    "badge": "Since 2014",
+    "title": "Building technology with a human face",
+    "description": "We're a team of 25 people in Athens who believe good technology should be simple, fast and accessible to every business.",
+    "bullets": [
+      "More than 300 completed projects",
+      "Team based in Greece",
+      "Certified cloud partners"
+    ],
+    "cta": "Meet us",
+    "imageAlt": "The Acme team at the office"
+  },
+  "values": {
+    "eyebrow": "Our values",
+    "title": "What guides us",
+    "items": [
+      {
+        "icon": "target",
+        "title": "Focus on outcomes",
+        "description": "We measure success by your growth."
+      },
+      {
+        "icon": "heart",
+        "title": "Honesty",
+        "description": "We say what can and can't be done, from day one."
+      },
+      {
+        "icon": "leaf",
+        "title": "Sustainability",
+        "description": "Lightweight solutions that use less energy."
+      }
+    ]
+  },
+  "timeline": {
+    "eyebrow": "Our story",
+    "title": "From two people to a whole team",
+    "items": [
+      {
+        "date": "2014",
+        "title": "The beginning",
+        "description": "Two friends start Acme in a small office in Pagrati."
+      },
+      {
+        "date": "2018",
+        "title": "100 clients",
+        "description": "We expand across Greece and Cyprus."
+      },
+      {
+        "date": "2022",
+        "title": "New platform",
+        "description": "We launch our management platform for small businesses."
+      },
+      {
+        "date": "2026",
+        "title": "Today",
+        "description": "25 people, 500+ clients and the same enthusiasm."
+      }
+    ]
+  },
+  "team": {
+    "eyebrow": "The team",
+    "title": "The people behind Acme",
+    "members": [
+      {
+        "name": "Nikos Alexiou",
+        "role": "Co-founder & CEO",
+        "bio": "15 years leading technology projects."
+      },
+      {
+        "name": "Anna Dimitriou",
+        "role": "Co-founder & CTO",
+        "bio": "Software architect with a passion for performance."
+      },
+      {
+        "name": "Kostas Ioannou",
+        "role": "Head of Design",
+        "bio": "Designs experiences anyone can understand."
+      },
+      {
+        "name": "Sofia Markopoulou",
+        "role": "Customer Success",
+        "bio": "Makes sure every client reaches their goals."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Want to work together?",
+    "description": "Tell us about your project and we'll get back to you within one business day.",
+    "primary": "Contact us"
+  }
+}

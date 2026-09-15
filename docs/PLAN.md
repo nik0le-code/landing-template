@@ -8,7 +8,7 @@ plug/unplug modules and a small admin backend. Sibling of `frontend-template`.
 | Topic | Decision |
 |---|---|
 | Framework | Astro 7 + `@astrojs/node` (standalone), shipped as a Docker image for Kubernetes |
-| Rendering | Public pages server-rendered with Astro's built-in route cache (`memoryCache` + tags, invalidated on admin edits); purely static pages prerendered |
+| Rendering | Content pages prerendered at build (static HTML + build-time optimized images — on-demand `/_image` costs 100–400 ms CPU per request). DB-driven routes (blog, catalog, admin) server-rendered with Astro's route cache (`memoryCache` + tags, invalidated on admin edits); small dynamic bits on static pages via server islands |
 | Islands | React, only where interactivity is needed. Default is `.astro` = zero JS |
 | Styling | Tailwind 4, per-client theme tokens in one CSS file |
 | Data | Drizzle + `@libsql/client` — `file:` URL (single replica + PVC) or `libsql://` (sqld/Turso, multi-replica) |
@@ -74,7 +74,8 @@ before moving on.
 - Resend notification, admin inbox (list, detail, status, CSV export), conversion event on success
 
 ### 9. Module: settings
-- Editable contact info, socials, announcement bar, notification recipients; `getSettings()` merges DB over `site.config`
+- Editable announcement bar, socials, notification recipients; `getSettings()` merges DB over `site.config`
+- Values shown on prerendered pages render through server islands (`server:defer`) so edits apply without a rebuild; SEO-critical NAP data stays in `site.config`
 
 ### 10. Module: blog
 - Per-locale posts linked by translation group, markdown editor with preview, cover image, draft/publish
@@ -90,7 +91,8 @@ before moving on.
 - `module:remove <name>` (delete folder + unregister), `module:add <name>` (restore from template remote/path), `module:new <name>` (CRUD scaffold)
 
 ### 14. Production + docs
-- Dockerfile (multi-stage, non-root, `/data` volume), `/api/health`, security headers
+- Dockerfile (multi-stage, non-root, `/data` volume), `/api/health`
+- Custom Node entry (adapter `middleware` mode) so security headers, `X-Robots-Tag` on NOINDEX deployments and long-lived cache headers also apply to prerendered/static files
 - Performance pass (Lighthouse on demo pages, JS budget), `CLAUDE.md` + README
 
 ## Progress
@@ -98,7 +100,7 @@ before moving on.
 - [x] 0 Foundation
 - [x] 1 i18n + SEO core
 - [x] 2 UI kit + layout shell
-- [ ] 3 Sections library + demo pages
+- [x] 3 Sections library + demo pages
 - [ ] 4 Tracking & consent
 - [ ] 5 Data layer + module system
 - [ ] 6 Admin core

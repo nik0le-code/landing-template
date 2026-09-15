@@ -13,7 +13,8 @@
     "start": "node ./dist/server/entry.mjs",
     "check": "astro check",
     "astro": "astro",
-    "brand:assets": "tsx scripts/brand-assets.mjs"
+    "brand:assets": "tsx scripts/brand-assets.mjs",
+    "demo:images": "node scripts/demo-images.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.5",

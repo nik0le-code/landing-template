@@ -1,0 +1,69 @@
+---
+import Check from "@lucide/astro/icons/check";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import Img from "@/components/ui/Img.astro";
+import Section from "@/components/ui/Section.astro";
+import GlowBackground from "@/components/effects/GlowBackground.astro";
+import { cn } from "@/lib/cn";
+import type { CtaLink, ImageProps } from "./types";
+
+interface Props {
+  badge?: string;
+  title: string;
+  description?: string;
+  /** Short proof points under the description. */
+  bullets?: string[];
+  actions?: CtaLink[];
+  image: ImageProps;
+  imagePosition?: "left" | "right";
+  /** Use "h2" when this isn't the page's main heading. */
+  headingTag?: "h1" | "h2";
+}
+
+const { badge, title, description, bullets = [], actions = [], image, imagePosition = "right", headingTag: Heading = "h1" } = Astro.props;
+---
+
+<Section spacing="lg" class="overflow-hidden">
+  <GlowBackground slot="background" />
+  <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+    <div class={cn(imagePosition === "left" && "lg:order-2")}>
+      {badge && <Badge class="mb-6">{badge}</Badge>}
+      <Heading class="text-4xl font-bold tracking-tight text-balance sm:text-5xl">{title}</Heading>
+      {description && <p class="mt-6 text-lg text-pretty text-muted-foreground">{description}</p>}
+      {
+        bullets.length > 0 && (
+          <ul class="mt-6 space-y-2">
+            {bullets.map((bullet) => (
+              <li class="flex items-start gap-2">
+                <Check class="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+                <span>{bullet}</span>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      {
+        actions.length > 0 && (
+          <div class="mt-8 flex flex-wrap gap-3">
+            {actions.map((action, i) => (
+              <Button href={action.href} external={action.external} variant={action.variant ?? (i === 0 ? "primary" : "outline")} size="lg">
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        )
+      }
+      <slot />
+    </div>
+    <div class={cn(imagePosition === "left" && "lg:order-1")}>
+      <Img
+        src={image.src}
+        alt={image.alt}
+        priority={Heading === "h1"}
+        sizes="(min-width: 1024px) 50vw, 100vw"
+        class="aspect-[4/3] w-full rounded-xl object-cover shadow-xl"
+      />
+    </div>
+  </div>
+</Section>

@@ -1,0 +1,40 @@
+---
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import Marquee from "@/components/effects/Marquee.astro";
+import Reveal from "@/components/effects/Reveal.astro";
+import TestimonialCard, { type Testimonial } from "./TestimonialCard.astro";
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  items: Testimonial[];
+  variant?: "grid" | "marquee";
+  tone?: "default" | "muted";
+}
+
+const { id, eyebrow, title, description, items, variant = "grid", tone = "muted" } = Astro.props;
+---
+
+<Section id={id} tone={tone}>
+  <SectionHeading eyebrow={eyebrow} title={title} description={description} />
+  {
+    variant === "grid" ? (
+      <ul class="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item, i) => (
+          <Reveal as="li" stagger={i % 3}>
+            <TestimonialCard item={item} />
+          </Reveal>
+        ))}
+      </ul>
+    ) : (
+      <Marquee class="mt-14" duration={60} gap="1.5rem">
+        {items.map((item) => (
+          <TestimonialCard item={item} class="w-80 shrink-0" />
+        ))}
+      </Marquee>
+    )
+  }
+</Section>

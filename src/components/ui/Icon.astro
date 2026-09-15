@@ -1,0 +1,15 @@
+---
+import { icons, type IconName } from "./icons";
+
+interface Props {
+  name: IconName;
+  class?: string;
+  /** Accessible label; omit for decorative icons (default). */
+  label?: string;
+}
+
+const { name, class: className = "size-5", label } = Astro.props;
+const Component = icons[name];
+---
+
+<Component class={className} aria-hidden={label ? undefined : "true"} aria-label={label} role={label ? "img" : undefined} />

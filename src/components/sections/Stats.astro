@@ -1,0 +1,32 @@
+---
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import Reveal from "@/components/effects/Reveal.astro";
+import { cn } from "@/lib/cn";
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  items: { value: string; label: string }[];
+  tone?: "default" | "muted" | "primary" | "dark";
+}
+
+const { id, eyebrow, title, description, items, tone = "primary" } = Astro.props;
+const onColor = tone === "primary" || tone === "dark";
+---
+
+<Section id={id} tone={tone} spacing="sm">
+  {title && <SectionHeading eyebrow={eyebrow} title={title} description={description} class="mb-12" />}
+  <dl class="grid grid-cols-2 gap-8 text-center lg:grid-cols-4">
+    {
+      items.map((item, i) => (
+        <Reveal stagger={i} class="flex flex-col-reverse gap-1">
+          <dt class={cn("text-sm sm:text-base", onColor ? "opacity-80" : "text-muted-foreground")}>{item.label}</dt>
+          <dd class="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">{item.value}</dd>
+        </Reveal>
+      ))
+    }
+  </dl>
+</Section>

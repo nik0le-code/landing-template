@@ -1,0 +1,36 @@
+---
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import Reveal from "@/components/effects/Reveal.astro";
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  steps: { title: string; description: string }[];
+  tone?: "default" | "muted";
+}
+
+const { id, eyebrow, title, description, steps, tone = "default" } = Astro.props;
+---
+
+<Section id={id} tone={tone}>
+  <SectionHeading eyebrow={eyebrow} title={title} description={description} />
+  <ol class="relative mt-14 grid gap-10 md:grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]">
+    {
+      steps.map((step, i) => (
+        <Reveal as="li" stagger={i} class="relative">
+          <div class="flex items-center gap-4">
+            <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+              {i + 1}
+            </span>
+            {i < steps.length - 1 && <span class="hidden h-px flex-1 bg-border md:block" aria-hidden="true" />}
+          </div>
+          <h3 class="mt-5 text-lg font-semibold">{step.title}</h3>
+          <p class="mt-2 text-muted-foreground">{step.description}</p>
+        </Reveal>
+      ))
+    }
+  </ol>
+</Section>

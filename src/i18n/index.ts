@@ -1,6 +1,6 @@
 import { siteConfig, type Locale } from "@site-config";
-import el from "./locales/el.json";
-import en from "./locales/en.json";
+import el from "./locales/el";
+import en from "./locales/en";
 
 export type { Locale };
 
@@ -14,9 +14,11 @@ export type Dictionary = typeof el;
 const dictionaries: Record<Locale, Dictionary> = { el, en };
 
 type Leaves<T, Prefix extends string = ""> = {
-  [K in keyof T & string]: T[K] extends Record<string, unknown>
-    ? Leaves<T[K], `${Prefix}${K}.`>
-    : `${Prefix}${K}`;
+  [K in keyof T & string]: T[K] extends readonly unknown[]
+    ? never
+    : T[K] extends Record<string, unknown>
+      ? Leaves<T[K], `${Prefix}${K}.`>
+      : `${Prefix}${K}`;
 }[keyof T & string];
 
 export type TranslationKey = Leaves<Dictionary>;
@@ -48,7 +50,7 @@ function interpolate(template: string, params?: TranslateParams): string {
  *
  * ```astro
  * const t = useTranslations(lang);
- * t("notFound.title");
+ * t("common.notFound.title");
  * t("blog.postedOn", { date });
  * ```
  */
@@ -60,10 +62,34 @@ export function useTranslations(lang: Locale) {
   };
 }
 
+/**
+ * The whole typed dictionary for a locale — for structured copy (lists of
+ * features, FAQ items, plans) that doesn't fit single-string `t()` lookups.
+ *
+ * ```astro
+ * const { hero, features } = getDictionary(lang).home;
+ * ```
+ */
+export function getDictionary(lang: Locale): Dictionary {
+  return dictionaries[lang];
+}
+
 /** Untyped variant for keys contributed by modules (see src/modules). */
 export function translateDynamic(lang: Locale, dict: Partial<Record<Locale, unknown>>, key: string, params?: TranslateParams) {
   const value = lookup(dict[lang], key) ?? lookup(dict[siteConfig.defaultLocale], key) ?? key;
   return interpolate(value, params);
+}
+
+/**
+ * `getStaticPaths` result for prerendered `[lang]` pages:
+ *
+ * ```astro
+ * export const prerender = true;
+ * export const getStaticPaths = () => localeStaticPaths();
+ * ```
+ */
+export function localeStaticPaths() {
+  return siteConfig.locales.map((lang) => ({ params: { lang } }));
 }
 
 /** `/about` + `en` → `/en/about`; `/` + `en` → `/en`. */

@@ -1,0 +1,32 @@
+---
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import Reveal from "@/components/effects/Reveal.astro";
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  items: { date: string; title: string; description: string }[];
+  tone?: "default" | "muted";
+}
+
+const { id, eyebrow, title, description, items, tone = "default" } = Astro.props;
+---
+
+<Section id={id} tone={tone} width="md">
+  <SectionHeading eyebrow={eyebrow} title={title} description={description} />
+  <ol class="relative mx-auto mt-14 max-w-2xl border-l border-border">
+    {
+      items.map((item) => (
+        <Reveal as="li" class="relative pb-10 pl-8 last:pb-0">
+          <span class="absolute top-1.5 -left-[7px] size-3.5 rounded-full border-2 border-background bg-primary" aria-hidden="true" />
+          <p class="text-sm font-semibold text-primary">{item.date}</p>
+          <h3 class="mt-1 text-lg font-semibold">{item.title}</h3>
+          <p class="mt-2 text-muted-foreground">{item.description}</p>
+        </Reveal>
+      ))
+    }
+  </ol>
+</Section>

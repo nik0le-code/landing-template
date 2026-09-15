@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "title": "Contact",
+    "description": "Contact Acme for a free intro meeting or any question."
+  },
+  "title": "Let's talk",
+  "description": "Fill in the form or use our contact details. We reply within one business day.",
+  "labels": {
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "hours": "Opening hours",
+    "writeUs": "Send us a message"
+  }
+}
