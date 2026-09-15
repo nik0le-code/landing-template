@@ -1,0 +1,14 @@
+---
+/** Delegated handler for `data-track` / `data-track-conversion` attributes. */
+---
+
+<script>
+  import { trackConversion, trackEvent } from "@/lib/tracking";
+
+  document.addEventListener("click", (event) => {
+    const el = (event.target as Element).closest<HTMLElement>("[data-track], [data-track-conversion]");
+    if (!el) return;
+    if (el.dataset.track) trackEvent(el.dataset.track, { label: el.dataset.trackLabel });
+    if (el.dataset.trackConversion) trackConversion(el.dataset.trackConversion);
+  });
+</script>

@@ -4,6 +4,7 @@
  */
 import about from "./about.json";
 import common from "./common.json";
+import consent from "./consent.json";
 import contact from "./contact.json";
 import footer from "./footer.json";
 import home from "./home.json";
@@ -11,4 +12,4 @@ import legal from "./legal.json";
 import nav from "./nav.json";
 import services from "./services.json";
 
-export default { about, common, contact, footer, home, legal, nav, services };
+export default { about, common, consent, contact, footer, home, legal, nav, services };

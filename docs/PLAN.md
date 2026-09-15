@@ -101,7 +101,7 @@ before moving on.
 - [x] 1 i18n + SEO core
 - [x] 2 UI kit + layout shell
 - [x] 3 Sections library + demo pages
-- [ ] 4 Tracking & consent
+- [x] 4 Tracking & consent
 - [ ] 5 Data layer + module system
 - [ ] 6 Admin core
 - [ ] 7 Media library

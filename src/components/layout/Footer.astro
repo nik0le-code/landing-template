@@ -6,6 +6,7 @@ import { siteConfig, type SiteConfig } from "@site-config";
 import { footerColumns } from "@/config/navigation";
 import { useTranslations } from "@/i18n";
 import { navHref } from "@/lib/nav";
+import { consentBannerEnabled } from "@/lib/tracking/config";
 import Container from "@/components/ui/Container.astro";
 import Logo from "./Logo.astro";
 import SocialIcon from "./SocialIcon.astro";
@@ -88,7 +89,16 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : 
   <div class="border-t border-border">
     <Container class="flex flex-col gap-3 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
       <p>{t("footer.rights", { year: new Date().getFullYear(), name: siteConfig.organization.legalName })}</p>
-      <slot name="bottom" />
+      <div class="flex items-center gap-4">
+        {
+          consentBannerEnabled && (
+            <button type="button" data-consent-open class="hover:text-foreground">
+              {t("consent.settings")}
+            </button>
+          )
+        }
+        <slot name="bottom" />
+      </div>
     </Container>
   </div>
 </footer>

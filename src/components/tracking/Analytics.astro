@@ -1,0 +1,113 @@
+---
+/**
+ * Google tag bootstrap (GA4 + Google Ads) with Consent Mode v2, "basic" mode:
+ * consent defaults to denied and gtag.js is not even downloaded until the visitor
+ * opts in. After opting in it loads on idle, once the page has finished loading,
+ * so it never competes with rendering. Renders nothing when no ids are configured.
+ *
+ * Exposes `window.siteConsent` (used by ConsentBanner) and handles declarative
+ * `data-track` / `data-track-conversion` attributes.
+ */
+import { siteConfig } from "@site-config";
+import { consentBannerEnabled, trackingEnabled, trackingIds } from "@/lib/tracking/config";
+import TrackClicks from "./TrackClicks.astro";
+
+const config = {
+  ids: trackingIds,
+  required: consentBannerEnabled,
+  version: siteConfig.consent.version,
+  maxAgeMs: siteConfig.consent.maxAgeDays * 86_400_000,
+};
+---
+
+{
+  trackingEnabled && (
+    <script is:inline define:vars={{ config }}>
+      (function () {
+        var KEY = "site-consent";
+        var w = window;
+        var listeners = [];
+        var loaded = false;
+        w.dataLayer = w.dataLayer || [];
+        function gtag() {
+          w.dataLayer.push(arguments);
+        }
+        w.gtag = gtag;
+
+        function read() {
+          try {
+            var s = JSON.parse(localStorage.getItem(KEY) || "null");
+            return s && s.v === config.version && Date.now() - s.t < config.maxAgeMs ? s : null;
+          } catch (e) {
+            return null;
+          }
+        }
+        function toGoogle(c) {
+          var a = c && c.analytics ? "granted" : "denied";
+          var m = c && c.marketing ? "granted" : "denied";
+          return { analytics_storage: a, ad_storage: m, ad_user_data: m, ad_personalization: m };
+        }
+        function load() {
+          if (loaded) return;
+          loaded = true;
+          function inject() {
+            var s = document.createElement("script");
+            s.async = true;
+            s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(config.ids[0]);
+            document.head.appendChild(s);
+          }
+          function idle() {
+            "requestIdleCallback" in w ? requestIdleCallback(inject, { timeout: 3000 }) : setTimeout(inject, 1500);
+          }
+          document.readyState === "complete" ? idle() : w.addEventListener("load", idle, { once: true });
+        }
+        function clearCookies(pattern) {
+          document.cookie.split(";").forEach(function (c) {
+            var name = c.split("=")[0].trim();
+            if (!pattern.test(name)) return;
+            var parts = location.hostname.split(".");
+            for (var i = 0; i < parts.length; i++) {
+              document.cookie = name + "=; Max-Age=0; path=/; domain=" + parts.slice(i).join(".");
+            }
+            document.cookie = name + "=; Max-Age=0; path=/";
+          });
+        }
+
+        var state = config.required ? read() : { analytics: true, marketing: true };
+        var defaults = toGoogle(state);
+        defaults.functionality_storage = "granted";
+        defaults.security_storage = "granted";
+        gtag("consent", "default", defaults);
+        gtag("js", new Date());
+        config.ids.forEach(function (id) {
+          gtag("config", id);
+        });
+        if (state && (state.analytics || state.marketing)) load();
+
+        w.siteConsent = {
+          required: config.required,
+          get: read,
+          set: function (choice) {
+            var s = { v: config.version, t: Date.now(), analytics: !!choice.analytics, marketing: !!choice.marketing };
+            try {
+              localStorage.setItem(KEY, JSON.stringify(s));
+            } catch (e) {}
+            gtag("consent", "update", toGoogle(s));
+            if (s.analytics || s.marketing) load();
+            // Withdrawn consent: remove cookies that were already set.
+            if (!s.analytics) clearCookies(/^(_ga|_gid|_gat)/);
+            if (!s.marketing) clearCookies(/^(_gcl|_gac)/);
+            listeners.forEach(function (l) {
+              l(s);
+            });
+          },
+          onChange: function (l) {
+            listeners.push(l);
+          },
+        };
+      })();
+    </script>
+  )
+}
+
+{trackingEnabled && <TrackClicks />}

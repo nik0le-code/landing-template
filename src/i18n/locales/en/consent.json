@@ -1,0 +1,25 @@
+{
+  "title": "We respect your privacy",
+  "description": "We use necessary cookies to run this website and, with your consent, analytics and advertising cookies. You can change your choice at any time.",
+  "policy": "Privacy policy",
+  "acceptAll": "Accept all",
+  "rejectAll": "Reject all",
+  "customize": "Customize",
+  "save": "Save choices",
+  "settings": "Cookie settings",
+  "categories": {
+    "necessary": {
+      "title": "Necessary",
+      "description": "Required for the website to work and cannot be switched off."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Help us understand how the website is used (Google Analytics)."
+    },
+    "marketing": {
+      "title": "Advertising",
+      "description": "Measure how well our ads perform (Google Ads)."
+    }
+  },
+  "alwaysOn": "Always on"
+}

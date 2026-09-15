@@ -7,6 +7,9 @@ import { Font } from "astro:assets";
 import { siteConfig } from "@site-config";
 import Seo, { type SeoProps } from "@/components/seo/Seo.astro";
 import JsonLd from "@/components/seo/JsonLd.astro";
+import Analytics from "@/components/tracking/Analytics.astro";
+import ConsentBanner from "@/components/tracking/ConsentBanner.astro";
+import { consentBannerEnabled } from "@/lib/tracking/config";
 import { graph } from "@/lib/seo/schema";
 import { localeFontSubsets } from "@/i18n";
 import "@/styles/global.css";
@@ -35,9 +38,11 @@ const lang = Astro.locals.lang;
     <meta name="theme-color" content={siteConfig.themeColor} />
     <link rel="sitemap" href="/sitemap.xml" />
     {schema.length > 0 && <JsonLd data={graph(...schema)} />}
+    <Analytics />
     <slot name="head" />
   </head>
   <body>
     <slot />
+    {consentBannerEnabled && <ConsentBanner />}
   </body>
 </html>

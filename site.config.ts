@@ -48,10 +48,23 @@ export interface SiteConfig {
     ga4Id: string;
     /** Google Ads id, e.g. "AW-XXXXXXX". Empty disables it. */
     googleAdsId: string;
+    /**
+     * Google Ads conversion labels by name, fired with `trackConversion(name)`.
+     * Value is "AW-XXXXXXX/AbCdEfGh" (Ads → Goals → Conversions → Tag setup).
+     */
+    conversions: Record<string, string>;
   };
   consent: {
-    /** Show the cookie banner. Tracking scripts only load after consent when enabled. */
+    /**
+     * Show the cookie banner and keep tracking off until the visitor opts in
+     * (Google Consent Mode v2, "basic" implementation). Only disable for sites
+     * with no EU visitors. With no tracking ids configured, no banner is shown.
+     */
     enabled: boolean;
+    /** Bump to ask everyone again (e.g. after adding a new tracker). */
+    version: number;
+    /** Re-ask after this many days (Greek DPA guidance: at most 6 months). */
+    maxAgeDays: number;
   };
   seo: {
     /** Locale-less paths (e.g. "/thank-you") to leave out of sitemap.xml. */
@@ -95,9 +108,14 @@ export const siteConfig: SiteConfig = {
   tracking: {
     ga4Id: "",
     googleAdsId: "",
+    conversions: {
+      // lead: "AW-XXXXXXX/AbCdEfGh",
+    },
   },
   consent: {
     enabled: true,
+    version: 1,
+    maxAgeDays: 180,
   },
   seo: {
     sitemapExclude: [],
