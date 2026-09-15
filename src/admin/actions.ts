@@ -13,7 +13,7 @@ import { getDb } from "@/db";
 import { USER_ROLES, users } from "@/db/schema/core";
 import { requireUser } from "./auth/guard";
 import { DUMMY_HASH, hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from "./auth/password";
-import { consume, reset } from "./auth/rate-limit";
+import { consume, reset } from "@/lib/rate-limit";
 import { hasRole } from "./auth/roles";
 import { createSession, invalidateSession, invalidateUserSessions } from "./auth/session";
 

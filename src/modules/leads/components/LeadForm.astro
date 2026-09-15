@@ -1,0 +1,182 @@
+---
+/**
+ * Lead form driven by `options.forms[form]` in modules.config.ts.
+ *
+ * - Without JavaScript: posts to /[lang]/lead/submit and lands on the thank-you page.
+ * - With JavaScript: submits through `actions.leads.submit`, shows inline errors or
+ *   success, and fires the configured Google Ads conversion + `generate_lead` event.
+ *
+ * ```astro
+ * <LeadForm form="contact" />
+ * <LeadForm form="waitlist" layout="inline" />
+ * ```
+ */
+import { localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import { cn } from "@/lib/cn";
+import { ATTRIBUTION_KEYS, leadsOptions } from "../lib/submit";
+import type { LeadField } from "../options";
+
+interface Props {
+  form: string;
+  /** "inline" puts a single-field form (e.g. waitlist) and its button on one row. */
+  layout?: "stacked" | "inline";
+  submitLabel?: string;
+  successMessage?: string;
+  class?: string;
+}
+
+const { form, layout = "stacked", class: className } = Astro.props;
+const lang = Astro.locals.lang;
+const t = (key: string, params?: Record<string, string>) => translateModule(lang, "leads", key, params);
+const options = leadsOptions();
+const config = options.forms[form];
+if (!config) throw new Error(`[leads] Unknown form "${form}" — add it to options.leads.forms in modules.config.ts.`);
+
+const isWaitlist = config.fields.length === 1 && config.fields[0] === "email";
+const submitLabel = Astro.props.submitLabel ?? (isWaitlist ? t("form.waitlistSubmit") : t("form.submit"));
+const successMessage = Astro.props.successMessage ?? (isWaitlist ? t("form.waitlistSuccess") : t("form.success"));
+const formId = `lead-${form}`;
+
+const inputType: Partial<Record<LeadField, "email" | "tel">> = { email: "email", phone: "tel" };
+const autocomplete: Partial<Record<LeadField, string>> = { name: "name", email: "email", phone: "tel", company: "organization" };
+const errorMessages = Object.fromEntries(
+  ["required", "invalidEmail", "invalidPhone", "tooLong", "consentRequired", "rateLimited", "invalid", "unknownForm", "network"].map((key) => [
+    key,
+    t(`errors.${key}`),
+  ]),
+);
+const privacyLink = `<a href="${localizePath("/privacy", lang)}" class="underline underline-offset-2" target="_blank">${t("form.policy")}</a>`;
+---
+
+<div id={formId} class={cn("lead-form", className)} data-lead-form data-conversion={options.conversion} data-form-key={form}>
+  <form
+    method="POST"
+    action={`${localizePath("/lead/submit", lang)}`}
+    data-errors={JSON.stringify(errorMessages)}
+    class={cn(layout === "inline" ? "flex flex-col gap-3 sm:flex-row sm:items-start" : "space-y-5")}
+  >
+    <input type="hidden" name="form" value={form} />
+    <input type="hidden" name="locale" value={lang} />
+    <input type="hidden" name="page" value={Astro.url.pathname} />
+    <input type="hidden" name="startedAt" value="" />
+    {ATTRIBUTION_KEYS.map((key) => <input type="hidden" name={key} value="" />)}
+    <!-- Honeypot: hidden from people and assistive tech; bots tend to fill it. -->
+    <div aria-hidden="true" class="absolute -left-[9999px] h-px w-px overflow-hidden">
+      <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+    </div>
+
+    <p data-form-error role="alert" class="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive" hidden></p>
+
+    {
+      config.fields.map((field) => {
+        const id = `${formId}-${field}`;
+        const required = config.required.includes(field);
+        const common = { id, name: field, required, autocomplete: autocomplete[field] };
+        return (
+          <Field id={id} label={t(`fields.${field}`)} required={required} class={cn(layout === "inline" && "flex-1 [&_label]:sr-only")}>
+            {field === "message" ? (
+              <Textarea {...common} rows={5} maxlength={5000} />
+            ) : (
+              <Input {...common} type={inputType[field] ?? "text"} placeholder={layout === "inline" ? t(`fields.${field}`) : undefined} />
+            )}
+          </Field>
+        );
+      })
+    }
+
+    {
+      config.consent && (
+        <div class="space-y-1.5">
+          <label class="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="consent" id={`${formId}-consent`} required class="mt-0.5 size-4 shrink-0 accent-primary" aria-describedby={`${formId}-consent-error`} />
+            <span set:html={t("form.consent", { policy: privacyLink })} />
+          </label>
+          <p id={`${formId}-consent-error`} data-field-error class="text-sm text-destructive empty:hidden" aria-live="polite"></p>
+        </div>
+      )
+    }
+
+    <Button type="submit" data-sending={t("form.sending")} class={cn(layout === "inline" ? "sm:shrink-0" : "w-full sm:w-auto")}>
+      {submitLabel}
+    </Button>
+  </form>
+
+  <div data-form-success role="status" hidden class="rounded-lg border border-success/30 bg-success/10 p-6 text-center">
+    <p class="text-lg font-semibold">{t("form.successTitle")}</p>
+    <p class="mt-1 text-muted-foreground">{successMessage}</p>
+  </div>
+</div>
+
+<script>
+  import { actions, isInputError } from "astro:actions";
+  import { trackConversion, trackEvent } from "@/lib/tracking";
+  import { readAttribution } from "./attribution";
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-lead-form]")) {
+    const form = root.querySelector("form")!;
+    const formError = root.querySelector<HTMLElement>("[data-form-error]")!;
+    const success = root.querySelector<HTMLElement>("[data-form-success]")!;
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const messages = JSON.parse(form.dataset.errors ?? "{}") as Record<string, string>;
+    const set = (name: string, value: string) => {
+      const input = form.elements.namedItem(name);
+      if (input instanceof HTMLInputElement) input.value = value;
+    };
+
+    set("startedAt", String(Date.now()));
+    for (const [key, value] of Object.entries(readAttribution())) set(key, value);
+
+    const clearErrors = () => {
+      formError.hidden = true;
+      for (const el of form.querySelectorAll<HTMLElement>("[data-field-error]")) el.textContent = "";
+      for (const el of form.querySelectorAll("[aria-invalid]")) el.removeAttribute("aria-invalid");
+    };
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearErrors();
+      const label = submit.textContent;
+      submit.disabled = true;
+      submit.textContent = submit.dataset.sending ?? label;
+
+      const { error } = await actions.leads.submit(new FormData(form)).catch(() => ({ error: { message: '{"code":"network"}' } as Error }));
+      submit.disabled = false;
+      submit.textContent = label;
+
+      if (!error) {
+        form.hidden = true;
+        success.hidden = false;
+        success.focus?.();
+        trackEvent("generate_lead", { form: root.dataset.formKey });
+        if (root.dataset.conversion) trackConversion(root.dataset.conversion);
+        return;
+      }
+
+      let payload: { code?: string; fields?: Record<string, string> } = { code: "invalid" };
+      if (!isInputError(error)) {
+        try {
+          payload = JSON.parse(error.message);
+        } catch {
+          payload = { code: "network" };
+        }
+      }
+      let firstInvalid: HTMLElement | null = null;
+      for (const [field, code] of Object.entries(payload.fields ?? {})) {
+        const id = `${root.id}-${field}`;
+        const errorEl = document.getElementById(`${id}-error`);
+        if (errorEl) errorEl.textContent = messages[code] ?? code;
+        const control = document.getElementById(id);
+        control?.setAttribute("aria-invalid", "true");
+        firstInvalid ??= control;
+      }
+      formError.textContent = messages[payload.code ?? "invalid"] ?? messages.invalid ?? "";
+      formError.hidden = false;
+      (firstInvalid ?? formError).focus?.();
+    });
+  }
+</script>

@@ -1,7 +1,7 @@
 /**
- * Fixed-window limiter for login attempts, in memory per process. With several
- * replicas each keeps its own window, which still bounds brute force per pod.
- * Keys combine IP and email so one attacker can't lock a user out globally for long.
+ * Fixed-window rate limiter, in memory per process (login attempts, form
+ * submissions). With several replicas each pod keeps its own windows, which
+ * still bounds abuse per pod. Prefix keys by feature: `login:…`, `leads:…`.
  */
 interface Window {
   count: number;

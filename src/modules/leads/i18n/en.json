@@ -1,0 +1,78 @@
+{
+  "title": "Leads",
+  "description": "Messages from the website's forms.",
+  "fields": {
+    "name": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "company": "Company",
+    "subject": "Subject",
+    "message": "Message"
+  },
+  "form": {
+    "submit": "Send",
+    "sending": "Sending…",
+    "consent": "I agree to the {policy}.",
+    "policy": "privacy policy",
+    "successTitle": "Thank you!",
+    "success": "We received your message and will get back to you soon.",
+    "waitlistSubmit": "Notify me",
+    "waitlistSuccess": "You're on the list! We'll keep you posted."
+  },
+  "errors": {
+    "required": "This field is required.",
+    "invalidEmail": "Enter a valid email.",
+    "invalidPhone": "Enter a valid phone number.",
+    "tooLong": "The text is too long.",
+    "consentRequired": "Please accept the privacy policy.",
+    "rateLimited": "Too many submissions. Please try again in a few minutes.",
+    "invalid": "Please check the form fields.",
+    "unknownForm": "This form is not available.",
+    "network": "Sending failed. Check your connection and try again."
+  },
+  "thankYou": {
+    "title": "Thank you",
+    "description": "We received your message and will get back to you soon.",
+    "back": "Back to home"
+  },
+  "submitError": {
+    "title": "Your message wasn't sent",
+    "back": "Back to the form"
+  },
+  "statuses": {
+    "new": "New",
+    "contacted": "Contacted",
+    "qualified": "Qualified",
+    "won": "Won",
+    "lost": "Lost",
+    "spam": "Spam"
+  },
+  "admin": {
+    "all": "All",
+    "allForms": "All forms",
+    "search": "Search name, email, message",
+    "export": "Export CSV",
+    "empty": "No leads yet.",
+    "received": "Received",
+    "form": "Form",
+    "status": "Status",
+    "notes": "Internal notes",
+    "notesHint": "Only visible to admins.",
+    "page": "Page",
+    "language": "Language",
+    "attribution": "Attribution",
+    "spamReason": "Flagged as spam because",
+    "reply": "Reply by email",
+    "call": "Call",
+    "newThisWeek": "new this week",
+    "viewAll": "View all",
+    "previous": "Previous",
+    "next": "Next",
+    "filter": "Filter"
+  },
+  "email": {
+    "subject": "New lead from the “{form}” form",
+    "intro": "New lead from the website:",
+    "open": "Open in admin"
+  }
+}

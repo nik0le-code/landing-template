@@ -1,0 +1,14 @@
+---
+import { translateModule } from "@/modules/registry";
+import Panel from "@/admin/components/Panel.astro";
+import { countNewSince } from "../lib/queries";
+
+const tm = (key: string) => translateModule(Astro.locals.lang, "leads", key);
+const count = await countNewSince(new Date(Date.now() - 7 * 86_400_000));
+---
+
+<Panel title={tm("title")}>
+  <p class="text-3xl font-bold">{count}</p>
+  <p class="text-sm text-muted-foreground">{tm("admin.newThisWeek")}</p>
+  <a href="/admin/leads?status=new" class="mt-3 inline-block text-sm text-primary">{tm("admin.viewAll")} →</a>
+</Panel>

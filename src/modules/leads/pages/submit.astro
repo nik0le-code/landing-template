@@ -1,0 +1,62 @@
+---
+/**
+ * Form target when JavaScript is unavailable. Success → thank-you page (usable as
+ * a URL-based Google Ads conversion); errors → a page listing what went wrong.
+ */
+import { localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import { ATTRIBUTION_KEYS, submitLead, type SubmitResult } from "../lib/submit";
+import { LEAD_FIELDS } from "../options";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "leads", key);
+
+if (Astro.request.method !== "POST") return Astro.redirect(localizePath("/", lang), 303);
+
+const data = await Astro.request.formData();
+const text = (name: string) => String(data.get(name) ?? "");
+const form = text("form");
+
+const result: SubmitResult = await submitLead({
+  form,
+  values: Object.fromEntries(LEAD_FIELDS.map((field) => [field, text(field)])),
+  consent: text("consent") !== "",
+  honeypot: text("website"),
+  startedAt: Number(text("startedAt")) || null,
+  locale: lang,
+  pagePath: text("page"),
+  attribution: Object.fromEntries(ATTRIBUTION_KEYS.map((key) => [key, text(key)])),
+  clientAddress: Astro.clientAddress,
+});
+
+if (result.ok) return Astro.redirect(`${localizePath("/thank-you", lang)}?form=${encodeURIComponent(form)}`, 303);
+
+Astro.response.status = result.code === "rateLimited" ? 429 : 400;
+const page = text("page");
+const backHref = page.startsWith("/") && !page.startsWith("//") ? `${page}#lead-${form}` : localizePath("/", lang);
+const fieldErrors = Object.entries(result.fields ?? {});
+---
+
+<PageLayout seo={{ title: t("submitError.title"), noindex: true, alternates: null }}>
+  <Section width="sm">
+    <h1 class="text-3xl font-bold tracking-tight">{t("submitError.title")}</h1>
+    <p class="mt-4 text-muted-foreground">{t(`errors.${result.code}`)}</p>
+    {
+      fieldErrors.length > 0 && (
+        <ul class="mt-6 list-disc space-y-1 pl-5">
+          {fieldErrors.map(([field, code]) => (
+            <li>
+              <strong>{field === "consent" ? t("form.policy") : t(`fields.${field}`)}:</strong> {t(`errors.${code}`)}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    <Button href={backHref} class="mt-8">{t("submitError.back")}</Button>
+  </Section>
+</PageLayout>

@@ -1,0 +1,110 @@
+---
+import { actions } from "astro:actions";
+import Mail from "@lucide/astro/icons/mail";
+import Phone from "@lucide/astro/icons/phone";
+import { localeRegions, useTranslations } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import Panel from "@/admin/components/Panel.astro";
+import { hasRole } from "@/admin/auth/roles";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Select from "@/components/ui/Select.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import StatusBadge from "../../components/StatusBadge.astro";
+import { getLead } from "../../lib/queries";
+import { LEAD_FIELDS, LEAD_STATUSES } from "../../options";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const tm = (key: string) => translateModule(lang, "leads", key);
+
+const updated = Astro.getActionResult(actions.leads.update);
+const removed = Astro.getActionResult(actions.leads.delete);
+if (updated && !updated.error) return Astro.redirect(`/admin/leads/${Astro.params.id}?flash=saved`, 303);
+if (removed && !removed.error) return Astro.redirect("/admin/leads?flash=deleted", 303);
+
+const lead = await getLead(Astro.params.id!);
+if (!lead) return Astro.rewrite("/404");
+
+const fields = LEAD_FIELDS.filter((field) => field !== "message" && lead[field]);
+const telHref = lead.phone ? `tel:${lead.phone.replace(/[^+\d]/g, "")}` : null;
+const received = new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "full", timeStyle: "short" }).format(lead.createdAt);
+---
+
+<AdminLayout title={lead.name || lead.email || tm("title")} description={received} back={{ href: "/admin/leads", label: tm("title") }}>
+  <div slot="actions" class="flex gap-2">
+    {lead.email && <Button href={`mailto:${lead.email}`} variant="outline"><Mail /> {tm("admin.reply")}</Button>}
+    {telHref && <Button href={telHref} variant="outline"><Phone /> {tm("admin.call")}</Button>}
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[3fr_2fr]">
+    <div class="space-y-6">
+      <Panel>
+        <dl class="grid gap-4 sm:grid-cols-2">
+          {fields.map((field) => (
+            <div>
+              <dt class="text-sm text-muted-foreground">{tm(`fields.${field}`)}</dt>
+              <dd class="font-medium break-words">{lead[field]}</dd>
+            </div>
+          ))}
+        </dl>
+        {lead.message && (
+          <div class="mt-6 border-t border-border pt-4">
+            <p class="text-sm text-muted-foreground">{tm("fields.message")}</p>
+            <p class="mt-1 whitespace-pre-wrap">{lead.message}</p>
+          </div>
+        )}
+      </Panel>
+
+      <Panel>
+        <dl class="grid gap-3 text-sm sm:grid-cols-2">
+          <div><dt class="text-muted-foreground">{tm("admin.form")}</dt><dd>{lead.form}</dd></div>
+          <div><dt class="text-muted-foreground">{tm("admin.language")}</dt><dd>{lead.locale ?? "—"}</dd></div>
+          <div class="sm:col-span-2"><dt class="text-muted-foreground">{tm("admin.page")}</dt><dd class="break-all">{lead.pagePath ?? "—"}</dd></div>
+          {lead.spamReason && <div class="sm:col-span-2"><dt class="text-muted-foreground">{tm("admin.spamReason")}</dt><dd class="text-destructive">{lead.spamReason}</dd></div>}
+          {lead.attribution && (
+            <div class="sm:col-span-2">
+              <dt class="text-muted-foreground">{tm("admin.attribution")}</dt>
+              <dd class="mt-1 flex flex-wrap gap-1.5">
+                {Object.entries(lead.attribution).map(([key, value]) => (
+                  <span class="rounded bg-muted px-2 py-0.5 font-mono text-xs">{key}={value}</span>
+                ))}
+              </dd>
+            </div>
+          )}
+        </dl>
+      </Panel>
+    </div>
+
+    <div class="space-y-6">
+      <Panel>
+        <form method="POST" action={actions.leads.update} class="space-y-4">
+          <input type="hidden" name="id" value={lead.id} />
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-muted-foreground">{tm("admin.status")}</span>
+            <StatusBadge status={lead.status} />
+          </div>
+          <Field id="status" label={tm("admin.status")} class="[&>label]:sr-only">
+            <Select id="status" name="status">
+              {LEAD_STATUSES.map((status) => <option value={status} selected={lead.status === status}>{tm(`statuses.${status}`)}</option>)}
+            </Select>
+          </Field>
+          <Field id="notes" label={tm("admin.notes")} hint={tm("admin.notesHint")}>
+            <Textarea id="notes" name="notes" rows={5} maxlength={5000}>{lead.notes}</Textarea>
+          </Field>
+          <Button type="submit">{t("admin.common.save")}</Button>
+        </form>
+      </Panel>
+
+      {
+        hasRole(Astro.locals.user!.role, "admin") && (
+          <form method="POST" action={actions.leads.delete} data-confirm={t("admin.common.confirmDelete")}>
+            <input type="hidden" name="id" value={lead.id} />
+            <Button type="submit" variant="destructive">{t("admin.common.delete")}</Button>
+          </form>
+        )
+      }
+    </div>
+  </div>
+</AdminLayout>

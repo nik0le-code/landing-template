@@ -13,11 +13,19 @@ import { defineModulesConfig } from "./src/modules/define";
 export default defineModulesConfig({
   modules: {
     example: false,
+    leads: false,
     media: false,
   },
 
   options: {
     example: { pageSize: 20 },
+    leads: {
+      notifyEmails: [],
+      forms: {
+        contact: { fields: ["name", "email", "phone", "message"], required: ["name", "email", "message"], consent: true },
+        waitlist: { fields: ["email"], required: ["email"] },
+      },
+    },
     media: { maxUploadMb: 15 },
   },
 });

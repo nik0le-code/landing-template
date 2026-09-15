@@ -108,7 +108,7 @@ before moving on.
 - [x] 5 Data layer + module system
 - [x] 6 Admin core
 - [x] 7 Media library
-- [ ] 8 Module: leads
+- [x] 8 Module: leads
 - [ ] 9 Module: settings
 - [ ] 10 Module: blog
 - [ ] 11 Module: catalog

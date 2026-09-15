@@ -1,0 +1,13 @@
+{
+  "name": "leads",
+  "description": "Contact / waitlist forms that work with and without JavaScript, spam protection, email notifications (Resend), admin inbox with statuses and CSV export, and conversion tracking.",
+  "admin": true,
+  "dependsOn": [],
+  "routes": [
+    { "pattern": "/[lang]/lead/submit", "entrypoint": "./pages/submit.astro" },
+    { "pattern": "/[lang]/thank-you", "entrypoint": "./pages/thank-you.astro" },
+    { "pattern": "/admin/leads", "entrypoint": "./pages/admin/index.astro" },
+    { "pattern": "/admin/leads/export", "entrypoint": "./pages/admin/export.ts" },
+    { "pattern": "/admin/leads/[id]", "entrypoint": "./pages/admin/[id].astro" }
+  ]
+}

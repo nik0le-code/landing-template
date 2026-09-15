@@ -1,0 +1,13 @@
+---
+import { translateModule } from "@/modules/registry";
+import Badge from "@/components/ui/Badge.astro";
+import type { BadgeVariant } from "@/components/ui/variants";
+
+interface Props {
+  status: string;
+}
+const { status } = Astro.props;
+const variants: Record<string, BadgeVariant> = { new: "default", contacted: "secondary", qualified: "secondary", won: "success", lost: "outline", spam: "destructive" };
+---
+
+<Badge variant={variants[status] ?? "outline"}>{translateModule(Astro.locals.lang, "leads", `statuses.${status}`)}</Badge>
