@@ -1,0 +1,78 @@
+---
+import { siteConfig, type Locale } from "@site-config";
+import { localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import { getMedia, getMediaMap } from "@/modules/media/lib/queries";
+import { pickVariant, mediaUrl } from "@/modules/media/lib/urls";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Section from "@/components/ui/Section.astro";
+import { articleSchema } from "@/lib/seo/schema";
+import PostArticle from "../components/PostArticle.astro";
+import PostCard from "../components/PostCard.astro";
+import { categoryName, getCategory, getPublishedBySlug, getTranslationPaths, listRelated, postPath } from "../lib/posts";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "blog", key);
+const post = await getPublishedBySlug(lang, Astro.params.slug ?? "");
+if (!post) return Astro.rewrite("/404");
+
+const [cover, category, alternates, related] = await Promise.all([
+  post.coverId ? getMedia(post.coverId) : null,
+  post.categoryId ? getCategory(post.categoryId) : null,
+  getTranslationPaths(post.translationKey),
+  listRelated(post),
+]);
+const relatedCovers = await getMediaMap(related.map((r) => r.coverId ?? ""));
+const ogImage = cover ? mediaUrl(pickVariant(cover, 1200).key) : undefined;
+
+Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["blog"] });
+---
+
+<PageLayout
+  seo={{
+    title: post.seoTitle || post.title,
+    description: post.seoDescription || post.excerpt || siteConfig.description[lang],
+    image: ogImage,
+    imageAlt: cover?.alt || post.title,
+    type: "article",
+    publishedTime: post.publishedAt ?? undefined,
+    modifiedTime: post.updatedAt,
+    alternates,
+  }}
+  schema={[
+    articleSchema({
+      title: post.title,
+      description: post.excerpt,
+      path: postPath(post),
+      image: ogImage,
+      publishedAt: post.publishedAt!,
+      updatedAt: post.updatedAt,
+      authorName: post.authorName || undefined,
+      lang: lang as Locale,
+    }),
+  ]}
+  breadcrumbs={[
+    { name: t("title"), path: localizePath("/blog", lang) },
+    ...(category ? [{ name: categoryName(category, lang), path: localizePath(`/blog/category/${category.slug}`, lang) }] : []),
+    { name: post.title, path: postPath(post) },
+  ]}
+>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={`${siteConfig.name} — ${t("title")}`} href={localizePath("/blog/rss.xml", lang)} />
+  <PostArticle post={post} cover={cover} category={category} lang={lang} />
+  {
+    related.length > 0 && (
+      <Section tone="muted">
+        <h2 class="text-2xl font-bold tracking-tight">{t("related")}</h2>
+        <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {related.map((item) => (
+            <li>
+              <PostCard post={item} cover={relatedCovers.get(item.coverId ?? "")} lang={lang} headingTag="h3" />
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+</PageLayout>

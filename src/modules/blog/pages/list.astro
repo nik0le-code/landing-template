@@ -1,0 +1,112 @@
+---
+/**
+ * Blog index, pagination and category listings:
+ * /[lang]/blog, /[lang]/blog/page/2, /[lang]/blog/category/news(/page/2)
+ */
+import { siteConfig } from "@site-config";
+import { localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import { getMediaMap } from "@/modules/media/lib/queries";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import PostCard from "../components/PostCard.astro";
+import { categoryName, getCategoryBySlug, listCategories, listPublished } from "../lib/posts";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "blog", key, params);
+
+const pageParam = Astro.params.page;
+const page = pageParam === undefined ? 1 : Number(pageParam);
+// /page/1 duplicates the index; non-numeric pages don't exist.
+if (!Number.isInteger(page) || page < 1 || pageParam === "1") return Astro.rewrite("/404");
+
+const category = Astro.params.category ? await getCategoryBySlug(Astro.params.category) : null;
+if (Astro.params.category && !category) return Astro.rewrite("/404");
+
+const { items, pages } = await listPublished({ locale: lang, categoryId: category?.id, page });
+if (page > pages) return Astro.rewrite("/404");
+
+const [categories, covers] = await Promise.all([listCategories(), getMediaMap(items.map((p) => p.coverId ?? ""))]);
+const categoriesById = new Map(categories.map((c) => [c.id, c]));
+
+const basePath = category ? `/blog/category/${category.slug}` : "/blog";
+const pagePath = (n: number) => (n === 1 ? basePath : `${basePath}/page/${n}`);
+const localizedFor = (l: string, n = page) => `/${l}${pagePath(n)}`;
+const heading = category ? categoryName(category, lang) : t("title");
+const title = page > 1 ? `${heading} — ${t("page", { n: page })}` : heading;
+
+Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["blog"] });
+---
+
+<PageLayout
+  seo={{
+    title,
+    description: t("description"),
+    alternates: Object.fromEntries(siteConfig.locales.map((l) => [l, localizedFor(l)])),
+  }}
+  breadcrumbs={[
+    { name: t("title"), path: localizePath("/blog", lang) },
+    ...(category ? [{ name: heading, path: localizePath(basePath, lang) }] : []),
+    ...(page > 1 ? [{ name: t("page", { n: page }), path: localizePath(pagePath(page), lang) }] : []),
+  ]}
+>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={`${siteConfig.name} — ${t("title")}`} href={localizePath("/blog/rss.xml", lang)} />
+  {page > 1 && <link slot="head" rel="prev" href={localizePath(pagePath(page - 1), lang)} />}
+  {page < pages && <link slot="head" rel="next" href={localizePath(pagePath(page + 1), lang)} />}
+
+  <Section spacing="sm">
+    <SectionHeading tag="h1" title={title} description={t("description")} align="left" />
+
+    {
+      categories.length > 0 && (
+        <nav aria-label={t("categories")} class="mt-8">
+          <ul class="flex flex-wrap gap-2">
+            <li>
+              <a href={localizePath("/blog", lang)} aria-current={!category ? "page" : undefined} class="block rounded-full border border-border px-4 py-1.5 text-sm hover:bg-muted aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:text-primary-foreground">
+                {t("allPosts")}
+              </a>
+            </li>
+            {categories.map((c) => (
+              <li>
+                <a href={localizePath(`/blog/category/${c.slug}`, lang)} aria-current={category?.id === c.id ? "page" : undefined} class="block rounded-full border border-border px-4 py-1.5 text-sm hover:bg-muted aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:text-primary-foreground">
+                  {categoryName(c, lang)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+
+    {
+      items.length === 0 ? (
+        <p class="mt-12 text-muted-foreground">{t("empty")}</p>
+      ) : (
+        <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((post) => {
+            const postCategory = post.categoryId ? categoriesById.get(post.categoryId) : undefined;
+            return (
+              <li>
+                <PostCard post={post} cover={covers.get(post.coverId ?? "")} categoryLabel={postCategory && categoryName(postCategory, lang)} lang={lang} />
+              </li>
+            );
+          })}
+        </ul>
+      )
+    }
+
+    {
+      pages > 1 && (
+        <nav class="mt-12 flex items-center justify-between" aria-label={t("page", { n: page })}>
+          {page > 1 ? <Button href={localizePath(pagePath(page - 1), lang)} variant="outline">← {t("previous")}</Button> : <span />}
+          <span class="text-sm text-muted-foreground">{page} / {pages}</span>
+          {page < pages ? <Button href={localizePath(pagePath(page + 1), lang)} variant="outline">{t("next")} →</Button> : <span />}
+        </nav>
+      )
+    }
+  </Section>
+</PageLayout>

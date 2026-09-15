@@ -98,6 +98,11 @@ export interface ModuleRuntime {
   sitemap?: () => Promise<SitemapEntryLike[]> | SitemapEntryLike[];
   /** Sidebar entries in the admin dashboard. */
   adminNav?: AdminNavItem[];
+  /**
+   * Links added to the public navbar (after site links, before the CTA) and the
+   * footer's first column. `path` is locale-less, e.g. "/blog".
+   */
+  publicNav?: { path: string; label: Partial<Record<Locale, string>> & { en: string } }[];
   /** Module translations: `translateModule(lang, "blog", "list.title")`. */
   i18n?: Partial<Record<Locale, Record<string, unknown>>>;
   /**

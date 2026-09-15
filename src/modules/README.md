@@ -71,11 +71,14 @@ disabled; copy it when writing a new module.
 | Show UI inside core pages | `slots` in index.ts, rendered by `<ModuleSlot name="…">` |
 | Dynamic URLs in sitemap.xml | `sitemap()` in index.ts |
 | Admin sidebar entry | `adminNav` in index.ts |
+| Public menu link (navbar + footer) | `publicNav` in index.ts |
 | Fresh data after a write | `Astro.cache.set({ tags: ["<name>"] })` on pages, `context.cache.invalidate({ tags: ["<name>"] })` in actions |
 | Options per site | `options.ts` + `getModuleOptions("<name>", defaults)` |
 | Admin-editable values on static pages | Render the component with `server:defer` (server island) and read `getSiteSettings()` |
 
-Core slots: `contact.form`, `home.afterHero`, `home.beforeCta`, `layout.beforeFooter`.
+Core slots: `contact.form`, `home.afterHero`, `home.beforeCta`, `layout.beforeFooter`,
+`admin.dashboard`. Slots on prerendered pages render at build time — for data that
+changes (latest posts), render the slot component with `server:defer`.
 Add new ones by placing `<ModuleSlot name="…" />` in a core page and extending
 `SlotName` in `types.ts`.
 

@@ -35,6 +35,11 @@ export function getAdminNav(): AdminNavItem[] {
   return modules.flatMap((module) => module.adminNav ?? []).sort((a, b) => (a.order ?? 50) - (b.order ?? 50));
 }
 
+/** Public navigation links contributed by enabled modules, labels resolved for `lang`. */
+export function getPublicNav(lang: Locale) {
+  return modules.flatMap((module) => module.publicNav ?? []).map((item) => ({ path: item.path, label: item.label[lang] ?? item.label.en }));
+}
+
 /** Translation lookup inside a module's `i18n` dictionaries. */
 export function translateModule(lang: Locale, moduleName: string, key: string, params?: TranslateParams): string {
   const module = modules.find((m) => m.name === moduleName);

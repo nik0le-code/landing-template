@@ -1,0 +1,75 @@
+---
+/** Full post body, shared by the public post page and the admin preview. */
+import type { Locale } from "@site-config";
+import { localeRegions, localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import MediaImage from "@/modules/media/components/MediaImage.astro";
+import type { MediaFile } from "@/modules/media/db/schema";
+import Container from "@/components/ui/Container.astro";
+import Prose from "@/components/ui/Prose.astro";
+import type { BlogCategory, BlogPost } from "../db/schema";
+import { blogOptions, categoryName } from "../lib/posts";
+
+interface Props {
+  post: BlogPost;
+  cover: MediaFile | null;
+  category: BlogCategory | null;
+  lang: Locale;
+}
+
+const { post, cover, category, lang } = Astro.props;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "blog", key, params);
+const format = (date: Date) => new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "long" }).format(date);
+const showUpdated = post.publishedAt && post.updatedAt.getTime() - post.publishedAt.getTime() > 86_400_000;
+---
+
+<article>
+  <Container size="md" class="pt-8 sm:pt-12">
+    <header class="mx-auto max-w-3xl text-center">
+      {
+        category && (
+          <a href={localizePath(`/blog/category/${category.slug}`, lang)} class="text-sm font-semibold text-primary hover:underline">
+            {categoryName(category, lang)}
+          </a>
+        )
+      }
+      <h1 class="mt-3 text-3xl font-bold tracking-tight text-balance sm:text-5xl">{post.title}</h1>
+      {post.excerpt && <p class="mt-5 text-lg text-pretty text-muted-foreground">{post.excerpt}</p>}
+      <p class="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+        {blogOptions().showAuthor && post.authorName && <span>{t("by", { name: post.authorName })}</span>}
+        {post.publishedAt && <time datetime={post.publishedAt.toISOString()}>{format(post.publishedAt)}</time>}
+        {showUpdated && <span>· {t("updated")} <time datetime={post.updatedAt.toISOString()}>{format(post.updatedAt)}</time></span>}
+        <span>· {t("minutes", { n: post.readingMinutes })}</span>
+      </p>
+    </header>
+    {
+      cover && (
+        <MediaImage media={cover} sizes="(min-width: 1024px) 64rem, 100vw" priority class="mt-10 aspect-[16/9] w-full rounded-xl object-cover" />
+      )
+    }
+  </Container>
+
+  <Container size="md" class="py-10 sm:py-14">
+    <div class="grid gap-10 lg:grid-cols-[1fr_14rem]">
+      <Prose class="mx-auto w-full lg:mx-0"><Fragment set:html={post.contentHtml} /></Prose>
+      {
+        post.headings.length >= 3 && (
+          <nav aria-label={t("onThisPage")} class="order-first lg:order-last">
+            <div class="lg:sticky lg:top-24">
+              <p class="text-sm font-semibold">{t("onThisPage")}</p>
+              <ul class="mt-3 space-y-2 border-l border-border text-sm">
+                {post.headings.map((heading) => (
+                  <li>
+                    <a href={`#${heading.id}`} class="-ml-px block border-l border-transparent pl-4 text-muted-foreground hover:border-primary hover:text-foreground">
+                      {heading.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </nav>
+        )
+      }
+    </div>
+  </Container>
+</article>

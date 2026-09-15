@@ -12,6 +12,7 @@ import { defineModulesConfig } from "./src/modules/define";
 
 export default defineModulesConfig({
   modules: {
+    blog: false,
     example: false,
     leads: false,
     media: false,
@@ -19,6 +20,7 @@ export default defineModulesConfig({
   },
 
   options: {
+    blog: { postsPerPage: 9, latestOnHome: 3 },
     example: { pageSize: 20 },
     leads: {
       notifyEmails: [],

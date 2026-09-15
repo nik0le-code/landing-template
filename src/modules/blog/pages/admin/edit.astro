@@ -1,0 +1,172 @@
+---
+/**
+ * Create and edit posts. /admin/blog/new?translationOf=<id>&locale=en starts a
+ * translation linked to an existing post.
+ */
+import { actions } from "astro:actions";
+import ExternalLink from "@lucide/astro/icons/external-link";
+import Eye from "@lucide/astro/icons/eye";
+import { siteConfig, type Locale } from "@site-config";
+import { isLocale, useTranslations } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import Panel from "@/admin/components/Panel.astro";
+import MediaField from "@/modules/media/components/MediaField.astro";
+import { mediaLabels } from "@/modules/media/lib/labels";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+import Select from "@/components/ui/Select.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import MarkdownEditor from "../../components/MarkdownEditor";
+import { blogFormErrors, postState, toDateTimeLocal } from "../../lib/admin";
+import { categoryName, getPost, getTranslationSiblings, listCategories, postPath } from "../../lib/posts";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const tm = (key: string, params?: Record<string, string>) => translateModule(lang, "blog", key, params);
+
+const saved = Astro.getActionResult(actions.blog.savePost);
+const deleted = Astro.getActionResult(actions.blog.deletePost);
+if (saved && !saved.error) return Astro.redirect(`/admin/blog/${saved.data.id}?flash=saved`, 303);
+if (deleted && !deleted.error) return Astro.redirect("/admin/blog?flash=deleted", 303);
+
+const post = Astro.params.id ? await getPost(Astro.params.id) : null;
+if (Astro.params.id && !post) return Astro.rewrite("/404");
+
+// New translation of an existing post?
+const source = !post && Astro.url.searchParams.get("translationOf") ? await getPost(Astro.url.searchParams.get("translationOf")!) : null;
+const requestedLocale = Astro.url.searchParams.get("locale");
+const locale: Locale = post ? (post.locale as Locale) : isLocale(requestedLocale) ? requestedLocale : siteConfig.defaultLocale;
+const translationKey = post?.translationKey ?? source?.translationKey ?? "";
+
+const [categories, siblings] = await Promise.all([listCategories(), translationKey ? getTranslationSiblings(translationKey) : new Map()]);
+const errors = blogFormErrors(lang, saved?.error);
+// After a failed save, keep what the user typed.
+const submitted = saved?.error ? Object.fromEntries((await Astro.request.clone().formData().catch(() => new FormData())).entries()) as Record<string, string> : {};
+const value = (key: string, fallback: string) => submitted[key] ?? fallback;
+const state = post ? postState(post) : "draft";
+const editorLabels = Object.fromEntries(
+  ["write", "preview", "bold", "italic", "heading", "link", "list", "quote", "image", "linkPrompt", "loading", "hint"].map((key) => [key, tm(`admin.editor.${key}`)]),
+) as unknown as Parameters<typeof MarkdownEditor>[0]["labels"];
+---
+
+<AdminLayout title={post ? tm("admin.editPost") : tm("admin.newPost")} description={post?.title} back={{ href: "/admin/blog", label: tm("admin.posts") }}>
+  {
+    post && (
+      <div slot="actions" class="flex gap-2">
+        <Button href={`/admin/blog/${post.id}/preview`} variant="outline" target="_blank"><Eye /> {tm("admin.preview")}</Button>
+        {state === "published" && <Button href={postPath(post)} variant="outline" target="_blank"><ExternalLink /> {tm("admin.view")}</Button>}
+      </div>
+    )
+  }
+
+  <form method="POST" action={post ? `/admin/blog/${post.id}${actions.blog.savePost}` : `/admin/blog/new${actions.blog.savePost}`} class="grid gap-6 xl:grid-cols-[1fr_20rem]">
+    <input type="hidden" name="id" value={post?.id ?? ""} />
+    <input type="hidden" name="translationKey" value={translationKey} />
+
+    <div class="min-w-0 space-y-6">
+      <FormAlert message={errors.form} />
+      <Panel>
+        <div class="space-y-5">
+          <Field id="title" label={tm("admin.titleField")} error={errors.fields.title} required>
+            <Input id="title" name="title" value={value("title", post?.title ?? "")} maxlength={200} required class="text-lg font-semibold" lang={locale} />
+          </Field>
+          <Field id="slug" label={tm("admin.slug")} hint={tm("admin.slugHint")} error={errors.fields.slug}>
+            <Input id="slug" name="slug" value={value("slug", post?.slug ?? "")} maxlength={80} pattern="[a-z0-9]+(-[a-z0-9]+)*" class="font-mono text-sm" />
+          </Field>
+          <Field id="excerpt" label={tm("admin.excerpt")} hint={tm("admin.excerptHint")} error={errors.fields.excerpt}>
+            <Textarea id="excerpt" name="excerpt" rows={3} maxlength={400} lang={locale}>{value("excerpt", post?.excerpt ?? "")}</Textarea>
+          </Field>
+          <div class="space-y-1.5">
+            <p class="text-sm font-medium">{tm("admin.content")}</p>
+            <MarkdownEditor client:load name="content" initial={value("content", post?.content ?? "")} labels={editorLabels} mediaLabels={mediaLabels(lang)} />
+          </div>
+        </div>
+      </Panel>
+
+      <Panel title={tm("admin.seo")}>
+        <div class="space-y-5">
+          <Field id="seoTitle" label={tm("admin.seoTitle")} hint={tm("admin.seoTitleHint")}>
+            <Input id="seoTitle" name="seoTitle" value={value("seoTitle", post?.seoTitle ?? "")} maxlength={200} />
+          </Field>
+          <Field id="seoDescription" label={tm("admin.seoDescription")} hint={tm("admin.seoDescriptionHint")}>
+            <Textarea id="seoDescription" name="seoDescription" rows={2} maxlength={300}>{value("seoDescription", post?.seoDescription ?? "")}</Textarea>
+          </Field>
+        </div>
+      </Panel>
+    </div>
+
+    <div class="space-y-6">
+      <Panel>
+        <div class="space-y-5">
+          <Field id="status" label={tm("admin.status")}>
+            <Select id="status" name="status">
+              <option value="draft" selected={value("status", post?.status ?? "draft") === "draft"}>{tm("admin.draft")}</option>
+              <option value="published" selected={value("status", post?.status ?? "draft") === "published"}>{tm("admin.published")}</option>
+            </Select>
+          </Field>
+          <Field id="publishedAt" label={tm("admin.publishedAt")} hint={tm("admin.publishedAtHint")}>
+            <Input id="publishedAt" name="publishedAt" type="datetime-local" value={value("publishedAt", toDateTimeLocal(post?.publishedAt ?? null))} />
+          </Field>
+          <Field id="locale" label={tm("admin.language")}>
+            <Select id="locale" name="locale" disabled={Boolean(post || source)}>
+              {siteConfig.locales.map((l) => <option value={l} selected={locale === l}>{t(`common.localeNames.${l}`)}</option>)}
+            </Select>
+            {(post || source) && <input type="hidden" name="locale" value={locale} />}
+          </Field>
+          <Button type="submit" class="w-full">{tm("admin.save")}</Button>
+        </div>
+      </Panel>
+
+      <Panel>
+        <div class="space-y-5">
+          <MediaField name="coverId" label={tm("admin.cover")} value={value("coverId", post?.coverId ?? source?.coverId ?? "")} />
+          <Field id="categoryId" label={tm("admin.category")}>
+            <Select id="categoryId" name="categoryId">
+              <option value="">{tm("admin.noCategory")}</option>
+              {categories.map((c) => <option value={c.id} selected={value("categoryId", post?.categoryId ?? source?.categoryId ?? "") === c.id}>{categoryName(c, lang)}</option>)}
+            </Select>
+          </Field>
+          <Field id="authorName" label={tm("admin.author")}>
+            <Input id="authorName" name="authorName" value={value("authorName", post?.authorName ?? Astro.locals.user!.name)} maxlength={120} />
+          </Field>
+        </div>
+      </Panel>
+
+      {
+        (post || source) && (
+          <Panel title={tm("admin.translations")}>
+            <ul class="space-y-2 text-sm">
+              {siteConfig.locales.filter((l) => l !== locale).map((l) => {
+                const sibling = siblings.get(l);
+                return (
+                  <li class="flex items-center justify-between gap-2">
+                    <span class="font-medium uppercase">{l}</span>
+                    {sibling ? (
+                      <a href={`/admin/blog/${sibling.id}`} class="truncate text-primary hover:underline">{sibling.title}</a>
+                    ) : post ? (
+                      <a href={`/admin/blog/new?translationOf=${post.id}&locale=${l}`} class="text-primary hover:underline">+ {tm("admin.addTranslation", { lang: l.toUpperCase() })}</a>
+                    ) : (
+                      <span class="text-muted-foreground">—</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </Panel>
+        )
+      }
+    </div>
+  </form>
+
+  {
+    post && (
+      <form method="POST" action={`/admin/blog/${post.id}${actions.blog.deletePost}`} data-confirm={t("admin.common.confirmDelete")} class="mt-6">
+        <input type="hidden" name="id" value={post.id} />
+        <Button type="submit" variant="destructive">{t("admin.common.delete")}</Button>
+      </form>
+    )
+  }
+</AdminLayout>

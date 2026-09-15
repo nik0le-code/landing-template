@@ -8,8 +8,8 @@
  * Submits the media id (or "" when cleared). Modules using it must list
  * "media" in `dependsOn`.
  */
-import { translateModule } from "@/modules/registry";
-import MediaPicker, { type MediaPickerLabels } from "./MediaPicker";
+import MediaPicker from "./MediaPicker";
+import { mediaLabels } from "../lib/labels";
 import { getMedia } from "../lib/queries";
 import { toPublic } from "../lib/urls";
 
@@ -23,12 +23,8 @@ interface Props {
 }
 
 const { name, label, value, hint, error, required = false } = Astro.props;
-const tm = (key: string) => translateModule(Astro.locals.lang, "media", key);
 const initial = value ? await getMedia(value) : null;
-const labelKeys: (keyof MediaPickerLabels)[] = [
-  "choose", "change", "remove", "select", "close", "search", "upload", "uploading", "loadMore", "empty", "missingAlt",
-];
-const labels = Object.fromEntries(labelKeys.map((key) => [key, tm(key)])) as unknown as MediaPickerLabels;
+const labels = mediaLabels(Astro.locals.lang);
 ---
 
 <fieldset class="space-y-1.5">

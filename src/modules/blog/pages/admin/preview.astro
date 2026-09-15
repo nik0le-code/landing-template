@@ -1,0 +1,19 @@
+---
+/** Admin-only preview of any post (drafts, scheduled) with the public layout. */
+import { getMedia } from "@/modules/media/lib/queries";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import PostArticle from "../../components/PostArticle.astro";
+import { getCategory, getPost } from "../../lib/posts";
+
+const post = await getPost(Astro.params.id!);
+if (!post) return Astro.rewrite("/404");
+const lang = post.locale as typeof Astro.locals.lang;
+Astro.locals.lang = lang;
+const [cover, category] = await Promise.all([post.coverId ? getMedia(post.coverId) : null, post.categoryId ? getCategory(post.categoryId) : null]);
+---
+
+<PageLayout seo={{ title: post.title, noindex: true, alternates: null }}>
+  <p class="bg-amber-100 px-4 py-2 text-center text-sm font-medium text-amber-900">{translateModule(lang, "blog", "admin.previewBanner")}</p>
+  <PostArticle post={post} cover={cover} category={category} lang={lang} />
+</PageLayout>

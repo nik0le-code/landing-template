@@ -1,0 +1,43 @@
+---
+import type { Locale } from "@site-config";
+import { localeRegions } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import MediaImage from "@/modules/media/components/MediaImage.astro";
+import type { MediaFile } from "@/modules/media/db/schema";
+import Card from "@/components/ui/Card.astro";
+import type { BlogPost } from "../db/schema";
+import { postPath } from "../lib/posts";
+
+interface Props {
+  post: BlogPost;
+  cover?: MediaFile | undefined;
+  categoryLabel?: string | undefined;
+  lang: Locale;
+  headingTag?: "h2" | "h3";
+}
+
+const { post, cover, categoryLabel, lang, headingTag: Heading = "h2" } = Astro.props;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "blog", key, params);
+const date = post.publishedAt ? new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "medium" }).format(post.publishedAt) : "";
+---
+
+<Card as="article" padding="none" interactive class="flex h-full flex-col overflow-hidden">
+  {
+    cover ? (
+      <MediaImage media={cover} alt="" sizes="(min-width: 1024px) 24rem, (min-width: 640px) 50vw, 100vw" class="aspect-[16/9] w-full object-cover" />
+    ) : (
+      <div class="aspect-[16/9] w-full bg-gradient-to-br from-primary/15 to-accent/15" aria-hidden="true" />
+    )
+  }
+  <div class="flex flex-1 flex-col p-5">
+    <p class="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+      {categoryLabel && <span class="font-semibold text-primary">{categoryLabel}</span>}
+      {date && <time datetime={post.publishedAt?.toISOString()}>{date}</time>}
+      <span>· {t("minutes", { n: post.readingMinutes })}</span>
+    </p>
+    <Heading class="mt-2 text-lg font-semibold text-balance">
+      <a href={postPath(post)} class="after:absolute after:inset-0">{post.title}</a>
+    </Heading>
+    {post.excerpt && <p class="mt-2 line-clamp-3 text-sm text-muted-foreground">{post.excerpt}</p>}
+  </div>
+</Card>

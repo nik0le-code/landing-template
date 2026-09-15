@@ -1,0 +1,20 @@
+{
+  "name": "blog",
+  "description": "Blog with per-locale posts linked as translations, Markdown editor with media images, categories, drafts and scheduling, RSS, Article JSON-LD, hreflang and sitemap entries.",
+  "admin": true,
+  "dependsOn": ["media"],
+  "routes": [
+    { "pattern": "/[lang]/blog", "entrypoint": "./pages/list.astro" },
+    { "pattern": "/[lang]/blog/page/[page]", "entrypoint": "./pages/list.astro" },
+    { "pattern": "/[lang]/blog/category/[category]", "entrypoint": "./pages/list.astro" },
+    { "pattern": "/[lang]/blog/category/[category]/page/[page]", "entrypoint": "./pages/list.astro" },
+    { "pattern": "/[lang]/blog/rss.xml", "entrypoint": "./pages/rss.ts" },
+    { "pattern": "/[lang]/blog/[slug]", "entrypoint": "./pages/post.astro" },
+    { "pattern": "/api/admin/blog/preview", "entrypoint": "./pages/admin/preview-api.ts" },
+    { "pattern": "/admin/blog", "entrypoint": "./pages/admin/index.astro" },
+    { "pattern": "/admin/blog/new", "entrypoint": "./pages/admin/edit.astro" },
+    { "pattern": "/admin/blog/categories", "entrypoint": "./pages/admin/categories.astro" },
+    { "pattern": "/admin/blog/[id]", "entrypoint": "./pages/admin/edit.astro" },
+    { "pattern": "/admin/blog/[id]/preview", "entrypoint": "./pages/admin/preview.astro" }
+  ]
+}

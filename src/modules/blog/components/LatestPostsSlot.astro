@@ -1,0 +1,10 @@
+---
+/**
+ * Fills "home.beforeCta". Home pages are prerendered, so the section is a server
+ * island: new posts show up without rebuilding. Nothing renders until it loads
+ * (it sits below the fold, so there's no visible layout shift).
+ */
+import LatestPosts from "./LatestPosts.astro";
+---
+
+<LatestPosts server:defer lang={Astro.locals.lang} />

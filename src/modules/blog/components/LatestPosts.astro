@@ -1,0 +1,42 @@
+---
+/** Latest posts section (server island on prerendered home pages). */
+import type { Locale } from "@site-config";
+import { localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import { getMediaMap } from "@/modules/media/lib/queries";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import PostCard from "./PostCard.astro";
+import { blogOptions, listPublished } from "../lib/posts";
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = (key: string) => translateModule(lang, "blog", key);
+const limit = blogOptions().latestOnHome;
+const { items } = limit > 0 ? await listPublished({ locale: lang, page: 1, pageSize: limit }) : { items: [] };
+const covers = await getMediaMap(items.map((p) => p.coverId ?? ""));
+
+Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["blog"] });
+---
+
+{
+  items.length > 0 && (
+    <Section tone="muted">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <SectionHeading title={t("latest")} description={t("latestDescription")} align="left" />
+        <Button href={localizePath("/blog", lang)} variant="outline">{t("allPosts")} →</Button>
+      </div>
+      <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((post) => (
+          <li>
+            <PostCard post={post} cover={covers.get(post.coverId ?? "")} lang={lang} headingTag="h3" />
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}

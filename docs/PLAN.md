@@ -110,7 +110,7 @@ before moving on.
 - [x] 7 Media library
 - [x] 8 Module: leads
 - [x] 9 Module: settings
-- [ ] 10 Module: blog
+- [x] 10 Module: blog
 - [ ] 11 Module: catalog
 - [ ] 12 Module: bookings
 - [ ] 13 Module CLI

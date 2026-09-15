@@ -1,0 +1,61 @@
+---
+import { actions } from "astro:actions";
+import { siteConfig } from "@site-config";
+import { useTranslations } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import Panel from "@/admin/components/Panel.astro";
+import Button from "@/components/ui/Button.astro";
+import Input from "@/components/ui/Input.astro";
+import { blogFormErrors } from "../../lib/admin";
+import { listCategories } from "../../lib/posts";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const tm = (key: string, params?: Record<string, string>) => translateModule(lang, "blog", key, params);
+
+const saved = Astro.getActionResult(actions.blog.saveCategory);
+const deleted = Astro.getActionResult(actions.blog.deleteCategory);
+if (saved && !saved.error) return Astro.redirect("/admin/blog/categories?flash=saved", 303);
+if (deleted && !deleted.error) return Astro.redirect("/admin/blog/categories?flash=deleted", 303);
+const errors = blogFormErrors(lang, saved?.error);
+const categories = await listCategories();
+const nameCols = siteConfig.locales.length;
+---
+
+<AdminLayout title={tm("admin.categories")} back={{ href: "/admin/blog", label: tm("admin.posts") }}>
+  <div class="max-w-4xl space-y-4">
+    <FormAlert message={errors.form} />
+    {
+      [...categories, null].map((category) => (
+        <Panel title={category ? undefined : tm("admin.addCategory")}>
+          <form method="POST" action={actions.blog.saveCategory} class="grid items-end gap-3" style={`grid-template-columns: repeat(${nameCols}, minmax(0, 1fr)) 10rem 5rem auto;`}>
+            <input type="hidden" name="id" value={category?.id ?? ""} />
+            {siteConfig.locales.map((l) => (
+              <label class="space-y-1 text-sm">
+                <span class="font-medium">{tm("admin.categoryName", { lang: l.toUpperCase() })}</span>
+                <Input id={`name_${l}_${category?.id ?? "new"}`} name={`name_${l}`} value={category?.name[l] ?? ""} maxlength={80} required={l === siteConfig.defaultLocale} />
+              </label>
+            ))}
+            <label class="space-y-1 text-sm">
+              <span class="font-medium">{tm("admin.categorySlug")}</span>
+              <Input id={`slug_${category?.id ?? "new"}`} name="slug" value={category?.slug ?? ""} maxlength={80} class="font-mono" />
+            </label>
+            <label class="space-y-1 text-sm">
+              <span class="font-medium">#</span>
+              <Input id={`sort_${category?.id ?? "new"}`} name="sortOrder" type="number" value={String(category?.sortOrder ?? categories.length)} />
+            </label>
+            <Button type="submit" variant={category ? "outline" : "primary"}>{category ? t("admin.common.save") : t("admin.common.create")}</Button>
+          </form>
+          {category && (
+            <form method="POST" action={actions.blog.deleteCategory} data-confirm={t("admin.common.confirmDelete")} class="mt-2">
+              <input type="hidden" name="id" value={category.id} />
+              <button type="submit" class="text-xs text-destructive hover:underline">{t("admin.common.delete")}</button>
+            </form>
+          )}
+        </Panel>
+      ))
+    }
+  </div>
+</AdminLayout>

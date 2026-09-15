@@ -1,0 +1,81 @@
+---
+import Plus from "@lucide/astro/icons/plus";
+import { siteConfig } from "@site-config";
+import { localeRegions } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import Panel from "@/admin/components/Panel.astro";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import Input from "@/components/ui/Input.astro";
+import Select from "@/components/ui/Select.astro";
+import { listAdminPosts } from "../../lib/posts";
+import { postState } from "../../lib/admin";
+
+const lang = Astro.locals.lang;
+const tm = (key: string) => translateModule(lang, "blog", key);
+const params = Astro.url.searchParams;
+const filters = {
+  locale: (siteConfig.locales as readonly string[]).includes(params.get("locale") ?? "") ? params.get("locale")! : "",
+  status: ["draft", "published", "scheduled"].includes(params.get("status") ?? "") ? params.get("status")! : "",
+  query: (params.get("q") ?? "").slice(0, 100),
+};
+const { items } = await listAdminPosts(filters, 1, 100);
+const stateVariant = { draft: "outline", published: "success", scheduled: "secondary" } as const;
+const format = (date: Date) => new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "medium", timeStyle: "short" }).format(date);
+---
+
+<AdminLayout title={tm("admin.posts")}>
+  <div slot="actions" class="flex gap-2">
+    <Button href="/admin/blog/categories" variant="outline">{tm("admin.categories")}</Button>
+    <Button href="/admin/blog/new"><Plus /> {tm("admin.newPost")}</Button>
+  </div>
+
+  <form method="GET" class="mb-6 grid gap-3 sm:grid-cols-[1fr_11rem_11rem_auto]">
+    <Input id="q" name="q" type="search" value={filters.query} placeholder={tm("admin.search")} aria-label={tm("admin.search")} />
+    <Select id="locale" name="locale" aria-label={tm("admin.language")}>
+      <option value="">{tm("admin.allLanguages")}</option>
+      {siteConfig.locales.map((l) => <option value={l} selected={filters.locale === l}>{l.toUpperCase()}</option>)}
+    </Select>
+    <Select id="status" name="status" aria-label={tm("admin.status")}>
+      <option value="">{tm("admin.allStatuses")}</option>
+      {(["draft", "published", "scheduled"] as const).map((s) => <option value={s} selected={filters.status === s}>{tm(`admin.${s}`)}</option>)}
+    </Select>
+    <Button type="submit" variant="secondary">{tm("admin.filter")}</Button>
+  </form>
+
+  {
+    items.length === 0 ? (
+      <Panel><p class="text-muted-foreground">{tm("admin.empty")}</p></Panel>
+    ) : (
+      <div class="relative overflow-x-auto rounded-lg border border-border bg-card">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-border bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th class="px-4 py-3 font-medium">{tm("admin.titleField")}</th>
+              <th class="px-4 py-3 font-medium">{tm("admin.language")}</th>
+              <th class="px-4 py-3 font-medium">{tm("admin.status")}</th>
+              <th class="px-4 py-3 font-medium">{tm("admin.updated")}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {items.map((post) => {
+              const state = postState(post);
+              return (
+                <tr>
+                  <td class="px-4 py-3">
+                    <a href={`/admin/blog/${post.id}`} class="font-medium hover:text-primary">{post.title}</a>
+                    <p class="text-xs text-muted-foreground">/{post.slug}</p>
+                  </td>
+                  <td class="px-4 py-3 uppercase">{post.locale}</td>
+                  <td class="px-4 py-3"><Badge variant={stateVariant[state]}>{tm(`admin.${state}`)}</Badge></td>
+                  <td class="px-4 py-3 whitespace-nowrap text-muted-foreground">{format(post.updatedAt)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+</AdminLayout>

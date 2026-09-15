@@ -4,8 +4,9 @@ import MapPin from "@lucide/astro/icons/map-pin";
 import Phone from "@lucide/astro/icons/phone";
 import { siteConfig } from "@site-config";
 import { footerColumns } from "@/config/navigation";
-import { useTranslations } from "@/i18n";
+import { localizePath, useTranslations } from "@/i18n";
 import { navHref } from "@/lib/nav";
+import { getPublicNav } from "@/modules/registry";
 import { consentBannerEnabled } from "@/lib/tracking/config";
 import Container from "@/components/ui/Container.astro";
 import Logo from "./Logo.astro";
@@ -35,7 +36,7 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : 
     </div>
 
     {
-      footerColumns.map((column) => (
+      footerColumns.map((column, index) => (
         <nav aria-label={t(column.title)}>
           <h2 class="text-sm font-semibold">{t(column.title)}</h2>
           <ul class="mt-4 space-y-3">
@@ -46,6 +47,14 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : 
                 </a>
               </li>
             ))}
+            {index === 0 &&
+              getPublicNav(lang).map((link) => (
+                <li>
+                  <a href={localizePath(link.path, lang)} class="text-sm text-muted-foreground hover:text-foreground">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
           </ul>
         </nav>
       ))

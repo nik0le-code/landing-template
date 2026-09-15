@@ -8,8 +8,9 @@ import type { Locale } from "@site-config";
 import Menu from "@lucide/astro/icons/menu";
 import X from "@lucide/astro/icons/x";
 import { mainNav, navCta } from "@/config/navigation";
-import { useTranslations } from "@/i18n";
+import { localizePath, useTranslations } from "@/i18n";
 import { ariaCurrent, navHref } from "@/lib/nav";
+import { getPublicNav } from "@/modules/registry";
 import Button from "@/components/ui/Button.astro";
 import Container from "@/components/ui/Container.astro";
 import Dropdown from "./Dropdown.astro";
@@ -24,6 +25,8 @@ const { alternates } = Astro.props;
 const lang = Astro.locals.lang;
 const t = useTranslations(lang);
 const pathname = Astro.url.pathname;
+/** Site links plus links from enabled modules (e.g. Blog). */
+const moduleLinks = getPublicNav(lang).map((item) => ({ href: localizePath(item.path, lang), label: item.label, path: item.path }));
 const linkClass =
   "rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground aria-[current]:text-primary";
 ---
@@ -62,6 +65,15 @@ const linkClass =
               </li>
             ),
           )
+        }
+        {
+          moduleLinks.map((link) => (
+            <li>
+              <a href={link.href} aria-current={ariaCurrent({ label: "nav.home", path: link.path }, pathname)} class={linkClass}>
+                {link.label}
+              </a>
+            </li>
+          ))
         }
       </ul>
     </nav>
@@ -118,6 +130,15 @@ const linkClass =
                   ))}
                 </ul>
               )}
+            </li>
+          ))
+        }
+        {
+          moduleLinks.map((link) => (
+            <li class="py-1">
+              <a href={link.href} aria-current={ariaCurrent({ label: "nav.home", path: link.path }, pathname)} class="block py-3 text-lg font-medium aria-[current]:text-primary">
+                {link.label}
+              </a>
             </li>
           ))
         }
