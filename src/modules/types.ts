@@ -33,6 +33,8 @@ export interface ModuleManifest {
   /** Must equal the folder name and the key in modules.config.ts. */
   name: string;
   description: string;
+  /** The module has admin pages: enables the admin area (login, users, dashboard). */
+  admin?: boolean;
   /** Other modules that must be enabled for this one to work. */
   dependsOn?: string[];
   routes?: ModuleRoute[];
@@ -68,6 +70,7 @@ export type SlotName =
   | "home.afterHero"
   | "home.beforeCta"
   | "layout.beforeFooter"
+  | "admin.dashboard"
   | (string & {});
 
 /** Lazy component loader — only evaluated when a page actually renders the slot. */

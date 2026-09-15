@@ -1,0 +1,66 @@
+---
+import { actions } from "astro:actions";
+import { useTranslations } from "@/i18n";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import Panel from "@/admin/components/Panel.astro";
+import { MIN_PASSWORD_LENGTH } from "@/admin/auth/password";
+import { formErrors } from "@/admin/lib/forms";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+
+const t = useTranslations(Astro.locals.lang);
+const user = Astro.locals.user!;
+
+const profile = Astro.getActionResult(actions.admin.updateProfile);
+const password = Astro.getActionResult(actions.admin.changePassword);
+const sessions = Astro.getActionResult(actions.admin.revokeOtherSessions);
+if (profile && !profile.error) return Astro.redirect("/admin/account?flash=saved", 303);
+if (password && !password.error) return Astro.redirect("/admin/account?flash=passwordChanged", 303);
+if (sessions && !sessions.error) return Astro.redirect("/admin/account?flash=sessionsRevoked", 303);
+
+const profileErrors = formErrors(t, profile?.error);
+const passwordErrors = formErrors(t, password?.error);
+---
+
+<AdminLayout title={t("admin.account.title")}>
+  <div class="grid max-w-2xl gap-6">
+    <Panel title={t("admin.account.profile")}>
+      <form method="POST" action={actions.admin.updateProfile} class="space-y-5">
+        <FormAlert message={profileErrors.form} />
+        <Field id="name" label={t("admin.account.name")} error={profileErrors.fields.name}>
+          <Input id="name" name="name" value={user.name} autocomplete="name" required />
+        </Field>
+        <Field id="email" label={t("admin.account.email")} error={profileErrors.fields.email}>
+          <Input id="email" name="email" type="email" value={user.email} autocomplete="username" required />
+        </Field>
+        <Button type="submit">{t("admin.common.save")}</Button>
+      </form>
+    </Panel>
+
+    <Panel title={t("admin.account.security")}>
+      <form method="POST" action={actions.admin.changePassword} class="space-y-5">
+        <FormAlert message={passwordErrors.form} />
+        <Field id="currentPassword" label={t("admin.account.currentPassword")} error={passwordErrors.fields.currentPassword}>
+          <Input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required />
+        </Field>
+        <Field
+          id="newPassword"
+          label={t("admin.account.newPassword")}
+          hint={t("admin.users.passwordHint", { min: MIN_PASSWORD_LENGTH })}
+          error={passwordErrors.fields.newPassword}
+        >
+          <Input id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength={MIN_PASSWORD_LENGTH} required />
+        </Field>
+        <Button type="submit">{t("admin.account.changePassword")}</Button>
+      </form>
+    </Panel>
+
+    <Panel title={t("admin.account.sessions")} description={t("admin.account.sessionsHint")}>
+      <form method="POST" action={actions.admin.revokeOtherSessions}>
+        <Button type="submit" variant="outline">{t("admin.account.revokeOthers")}</Button>
+      </form>
+    </Panel>
+  </div>
+</AdminLayout>

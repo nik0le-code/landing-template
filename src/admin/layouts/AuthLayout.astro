@@ -1,0 +1,40 @@
+---
+/** Centered card layout for sign-in and setup pages (no session required). */
+import { Font } from "astro:assets";
+import { siteConfig } from "@site-config";
+import { useTranslations } from "@/i18n";
+import "@/styles/global.css";
+
+interface Props {
+  title: string;
+  subtitle?: string;
+}
+
+const { title, subtitle } = Astro.props;
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · {t("admin.title")} · {siteConfig.name}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <Font cssVariable="--font-inter" preload={[{ subset: "latin" }]} />
+  </head>
+  <body class="flex min-h-dvh items-center justify-center bg-muted/50 px-4 py-12">
+    <main class="w-full max-w-sm">
+      <div class="mb-8 flex flex-col items-center text-center">
+        <img src={siteConfig.organization.logo} alt={siteConfig.name} width="48" height="48" class="size-12" />
+        <h1 class="mt-4 text-2xl font-bold tracking-tight">{title}</h1>
+        {subtitle && <p class="mt-2 text-sm text-muted-foreground">{subtitle}</p>}
+      </div>
+      <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <slot />
+      </div>
+    </main>
+  </body>
+</html>

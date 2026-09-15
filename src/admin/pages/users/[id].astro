@@ -1,0 +1,56 @@
+---
+import { actions } from "astro:actions";
+import { eq } from "drizzle-orm";
+import { useTranslations } from "@/i18n";
+import { getDb } from "@/db";
+import { users } from "@/db/schema/core";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import Panel from "@/admin/components/Panel.astro";
+import UserForm from "@/admin/components/UserForm.astro";
+import { hasRole } from "@/admin/auth/roles";
+import { formErrors } from "@/admin/lib/forms";
+import Button from "@/components/ui/Button.astro";
+
+const t = useTranslations(Astro.locals.lang);
+const me = Astro.locals.user!;
+if (!hasRole(me.role, "admin")) return Astro.redirect("/admin?flash=forbidden", 302);
+
+const update = Astro.getActionResult(actions.admin.updateUser);
+const remove = Astro.getActionResult(actions.admin.deleteUser);
+if (update && !update.error) return Astro.redirect(`/admin/users/${Astro.params.id}?flash=saved`, 303);
+if (remove && !remove.error) return Astro.redirect("/admin/users?flash=deleted", 303);
+
+const [user] = await getDb().select().from(users).where(eq(users.id, Astro.params.id!)).limit(1);
+if (!user) return Astro.rewrite("/404");
+
+const isSelf = user.id === me.id;
+const deleteErrors = formErrors(t, remove?.error);
+---
+
+<AdminLayout title={t("admin.users.edit")} description={user.email} back={{ href: "/admin/users", label: t("admin.users.title") }}>
+  <div class="grid max-w-2xl gap-6">
+    <Panel>
+      <UserForm
+        action={actions.admin.updateUser}
+        errors={formErrors(t, update?.error)}
+        user={user}
+        canManageOwners={me.role === "owner"}
+        isSelf={isSelf}
+      />
+    </Panel>
+    {
+      !isSelf && (
+        <Panel>
+          <form method="POST" action={actions.admin.deleteUser} class="space-y-4" data-confirm={t("admin.common.confirmDelete")}>
+            <FormAlert message={deleteErrors.form} />
+            <input type="hidden" name="id" value={user.id} />
+            <Button type="submit" variant="destructive">
+              {t("admin.common.delete")}
+            </Button>
+          </form>
+        </Panel>
+      )
+    }
+  </div>
+</AdminLayout>

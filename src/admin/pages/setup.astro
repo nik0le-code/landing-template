@@ -1,0 +1,48 @@
+---
+/**
+ * Creates the first owner from the browser — only while no users exist and
+ * ADMIN_SETUP_TOKEN is configured. Afterwards it redirects to sign-in.
+ */
+import { actions } from "astro:actions";
+import { ADMIN_SETUP_TOKEN } from "astro:env/server";
+import { useTranslations } from "@/i18n";
+import AuthLayout from "@/admin/layouts/AuthLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import { hasAnyUser } from "@/admin/actions";
+import { MIN_PASSWORD_LENGTH } from "@/admin/auth/password";
+import { formErrors } from "@/admin/lib/forms";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+
+const t = useTranslations(Astro.locals.lang);
+const result = Astro.getActionResult(actions.admin.setup);
+if (result && !result.error) return Astro.redirect("/admin", 303);
+if (!ADMIN_SETUP_TOKEN || (await hasAnyUser())) return Astro.redirect("/admin/login", 302);
+
+const errors = formErrors(t, result?.error);
+---
+
+<AuthLayout title={t("admin.setup.title")} subtitle={t("admin.setup.subtitle")}>
+  <form method="POST" action={actions.admin.setup} class="space-y-5">
+    <FormAlert message={errors.form} />
+    <Field id="token" label={t("admin.setup.token")} error={errors.fields.token}>
+      <Input id="token" name="token" type="password" autocomplete="off" required />
+    </Field>
+    <Field id="name" label={t("admin.setup.name")} error={errors.fields.name}>
+      <Input id="name" name="name" autocomplete="name" required />
+    </Field>
+    <Field id="email" label={t("admin.login.email")} error={errors.fields.email}>
+      <Input id="email" name="email" type="email" autocomplete="username" required />
+    </Field>
+    <Field
+      id="password"
+      label={t("admin.login.password")}
+      hint={t("admin.users.passwordHint", { min: MIN_PASSWORD_LENGTH })}
+      error={errors.fields.password}
+    >
+      <Input id="password" name="password" type="password" autocomplete="new-password" minlength={MIN_PASSWORD_LENGTH} required />
+    </Field>
+    <Button type="submit" class="w-full">{t("admin.setup.submit")}</Button>
+  </form>
+</AuthLayout>

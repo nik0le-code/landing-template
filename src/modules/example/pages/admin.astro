@@ -1,0 +1,39 @@
+---
+import { actions } from "astro:actions";
+import { desc } from "drizzle-orm";
+import { getDb } from "@/db";
+import { translateModule } from "@/modules/registry";
+import { useTranslations } from "@/i18n";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import Panel from "@/admin/components/Panel.astro";
+import Button from "@/components/ui/Button.astro";
+import { exampleMessages } from "../db/schema";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const tm = (key: string) => translateModule(lang, "example", key);
+
+const removed = Astro.getActionResult(actions.example.deleteMessage);
+if (removed && !removed.error) return Astro.redirect("/admin/example?flash=deleted", 303);
+
+const messages = await getDb().select().from(exampleMessages).orderBy(desc(exampleMessages.id));
+---
+
+<AdminLayout title={tm("title")}>
+  <Panel>
+    <ul class="divide-y divide-border">
+      {
+        messages.map((message) => (
+          <li class="flex items-center justify-between gap-4 py-3">
+            <span>{message.text}</span>
+            <form method="POST" action={actions.example.deleteMessage} data-confirm={t("admin.common.confirmDelete")}>
+              <input type="hidden" name="id" value={message.id} />
+              <Button type="submit" variant="ghost" size="sm">{t("admin.common.delete")}</Button>
+            </form>
+          </li>
+        ))
+      }
+      {messages.length === 0 && <li class="py-3 text-muted-foreground">{tm("empty")}</li>}
+    </ul>
+  </Panel>
+</AdminLayout>

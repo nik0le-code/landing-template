@@ -1,0 +1,176 @@
+---
+/**
+ * Shell for every signed-in admin page: sidebar (core items + module `adminNav`),
+ * mobile menu, flash messages, page header.
+ *
+ * ```astro
+ * <AdminLayout title={t("admin.users.title")}>
+ *   <Button slot="actions" href="/admin/users/new">…</Button>
+ *   …content…
+ * </AdminLayout>
+ * ```
+ */
+import { Font } from "astro:assets";
+import { actions } from "astro:actions";
+import ExternalLink from "@lucide/astro/icons/external-link";
+import LogOut from "@lucide/astro/icons/log-out";
+import Menu from "@lucide/astro/icons/menu";
+import { siteConfig } from "@site-config";
+import { localizePath, useTranslations } from "@/i18n";
+import { getAdminNav } from "@/modules/registry";
+import { hasRole } from "@/admin/auth/roles";
+import Icon from "@/components/ui/Icon.astro";
+import type { IconName } from "@/components/ui/icons";
+import { cn } from "@/lib/cn";
+import FlashMessage from "../components/FlashMessage.astro";
+import "@/styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Back link shown above the title. */
+  back?: { href: string; label: string };
+}
+
+const { title, description, back } = Astro.props;
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const user = Astro.locals.user!;
+const pathname = Astro.url.pathname;
+
+const items: { href: string; label: string; icon: IconName }[] = [
+  { href: "/admin", label: t("admin.nav.dashboard"), icon: "layout-dashboard" },
+  ...getAdminNav().map((item) => ({
+    href: item.href,
+    label: item.label[lang] ?? item.label.en,
+    icon: (item.icon ?? "layers") as IconName,
+  })),
+  ...(hasRole(user.role, "admin") ? [{ href: "/admin/users", label: t("admin.nav.users"), icon: "users" as IconName }] : []),
+  { href: "/admin/account", label: t("admin.nav.account"), icon: "settings" },
+];
+
+const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(`${href}/`));
+const otherLocales = siteConfig.locales.filter((l) => l !== lang);
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · {t("admin.title")} · {siteConfig.name}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <Font cssVariable="--font-inter" preload={[{ subset: "latin" }]} />
+  </head>
+  <body class="bg-muted/50">
+    <div class="lg:grid lg:min-h-dvh lg:grid-cols-[16rem_1fr]">
+      <aside
+        id="admin-sidebar"
+        popover
+        class="admin-sidebar m-0 h-dvh max-h-none w-72 border-r border-border bg-card p-0 lg:sticky lg:top-0 lg:block lg:w-auto"
+      >
+        <div class="flex h-full flex-col">
+          <a href="/admin" class="flex h-16 items-center gap-2.5 border-b border-border px-5 font-semibold">
+            <img src={siteConfig.organization.logo} alt="" width="28" height="28" class="size-7" />
+            <span class="truncate">{siteConfig.name}</span>
+          </a>
+          <nav class="flex-1 overflow-y-auto p-3" aria-label={t("admin.nav.menu")}>
+            <ul class="space-y-1">
+              {
+                items.map((item) => (
+                  <li>
+                    <a
+                      href={item.href}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      class={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
+                        "aria-[current]:bg-primary/10 aria-[current]:text-primary",
+                      )}
+                    >
+                      <Icon name={item.icon} class="size-4" />
+                      {item.label}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </nav>
+          <div class="space-y-1 border-t border-border p-3 text-sm">
+            <a href={localizePath("/", lang)} target="_blank" class="flex items-center gap-3 rounded-md px-3 py-2 text-muted-foreground hover:bg-muted">
+              <ExternalLink class="size-4" aria-hidden="true" />
+              {t("admin.nav.viewSite")}
+            </a>
+            {
+              otherLocales.length > 0 && (
+                <p class="flex items-center gap-2 px-3 py-2 text-muted-foreground">
+                  <span>{t("admin.nav.language")}:</span>
+                  {otherLocales.map((l) => (
+                    <a href={`/admin/language/${l}`} class="font-medium text-foreground hover:text-primary" hreflang={l}>
+                      {t(`common.localeNames.${l}`)}
+                    </a>
+                  ))}
+                </p>
+              )
+            }
+            <div class="flex items-center justify-between gap-2 px-3 pt-2">
+              <div class="min-w-0">
+                <p class="truncate font-medium">{user.name}</p>
+                <p class="truncate text-xs text-muted-foreground">{t(`admin.roles.${user.role}`)}</p>
+              </div>
+              <form method="POST" action={`/admin/login${actions.admin.logout}`}>
+                <button type="submit" class="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+                  <LogOut class="size-4" aria-hidden="true" />
+                  <span class="sr-only">{t("admin.nav.logout")}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="min-w-0">
+        <header class="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card px-4 lg:hidden">
+          <button type="button" popovertarget="admin-sidebar" class="inline-flex size-9 items-center justify-center rounded-md hover:bg-muted">
+            <Menu class="size-5" aria-hidden="true" />
+            <span class="sr-only">{t("admin.nav.menu")}</span>
+          </button>
+          <span class="font-semibold">{siteConfig.name}</span>
+        </header>
+
+        <main id="main" class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8">
+          <FlashMessage />
+          <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              {back && <a href={back.href} class="text-sm text-muted-foreground hover:text-foreground">← {back.label}</a>}
+              <h1 class="text-2xl font-bold tracking-tight">{title}</h1>
+              {description && <p class="mt-1 text-muted-foreground">{description}</p>}
+            </div>
+            <div class="flex flex-wrap gap-2"><slot name="actions" /></div>
+          </div>
+          <slot />
+        </main>
+      </div>
+    </div>
+
+    <style>
+      @media (min-width: 64rem) {
+        /* Desktop: the sidebar is always visible, not a popover. */
+        .admin-sidebar:not(:popover-open) {
+          display: block;
+          position: sticky;
+          inset: auto;
+        }
+      }
+    </style>
+
+    <script>
+      // Confirm destructive submits: <button data-confirm="Are you sure?">
+      document.addEventListener("submit", (event) => {
+        const submitter = (event as SubmitEvent).submitter as HTMLElement | null;
+        const message = submitter?.dataset.confirm ?? (event.target as HTMLElement).dataset.confirm;
+        if (message && !window.confirm(message)) event.preventDefault();
+      });
+    </script>
+  </body>
+</html>

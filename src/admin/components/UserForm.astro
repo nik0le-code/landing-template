@@ -1,0 +1,60 @@
+---
+/** Shared create/edit form for users. */
+import { USER_ROLES, type User } from "@/db/schema/core";
+import { useTranslations } from "@/i18n";
+import { MIN_PASSWORD_LENGTH } from "@/admin/auth/password";
+import type { FormErrors } from "@/admin/lib/forms";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+import Select from "@/components/ui/Select.astro";
+import FormAlert from "./FormAlert.astro";
+
+interface Props {
+  action: string;
+  errors: FormErrors;
+  user?: Pick<User, "id" | "name" | "email" | "role" | "disabled">;
+  /** Owners can grant the owner role; admins can't. */
+  canManageOwners: boolean;
+  isSelf?: boolean;
+}
+
+const { action, errors, user, canManageOwners, isSelf = false } = Astro.props;
+const t = useTranslations(Astro.locals.lang);
+const roles = USER_ROLES.filter((role) => canManageOwners || role !== "owner" || user?.role === "owner");
+---
+
+<form method="POST" action={action} class="space-y-5">
+  <FormAlert message={errors.form} />
+  {user && <input type="hidden" name="id" value={user.id} />}
+  <Field id="name" label={t("admin.users.name")} error={errors.fields.name} required>
+    <Input id="name" name="name" value={user?.name} required />
+  </Field>
+  <Field id="email" label={t("admin.users.email")} error={errors.fields.email} required>
+    <Input id="email" name="email" type="email" value={user?.email} autocomplete="off" required />
+  </Field>
+  <Field id="role" label={t("admin.users.role")} hint={t("admin.users.rolesHint")} error={errors.fields.role}>
+    <Select id="role" name="role" disabled={isSelf}>
+      {roles.map((role) => <option value={role} selected={(user?.role ?? "editor") === role}>{t(`admin.roles.${role}`)}</option>)}
+    </Select>
+    {isSelf && <input type="hidden" name="role" value={user?.role} />}
+  </Field>
+  <Field
+    id="password"
+    label={user ? t("admin.users.newPassword") : t("admin.users.password")}
+    hint={user ? t("admin.users.newPasswordHint") : t("admin.users.passwordHint", { min: MIN_PASSWORD_LENGTH })}
+    error={errors.fields.password}
+    required={!user}
+  >
+    <Input id="password" name="password" type="password" autocomplete="new-password" minlength={MIN_PASSWORD_LENGTH} required={!user} />
+  </Field>
+  {
+    user && !isSelf && (
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="disabled" checked={user.disabled} class="size-4 accent-primary" />
+        {t("admin.users.disable")}
+      </label>
+    )
+  }
+  <Button type="submit">{user ? t("admin.common.save") : t("admin.common.create")}</Button>
+</form>

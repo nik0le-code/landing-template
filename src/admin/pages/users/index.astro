@@ -1,0 +1,66 @@
+---
+import Plus from "@lucide/astro/icons/plus";
+import { asc } from "drizzle-orm";
+import { localeRegions, useTranslations } from "@/i18n";
+import { getDb } from "@/db";
+import { users } from "@/db/schema/core";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import { hasRole } from "@/admin/auth/roles";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const me = Astro.locals.user!;
+if (!hasRole(me.role, "admin")) return Astro.redirect("/admin?flash=forbidden", 302);
+
+const rows = await getDb().select().from(users).orderBy(asc(users.name));
+const formatDate = (date: Date | null) =>
+  date ? new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "medium", timeStyle: "short" }).format(date) : t("admin.common.never");
+---
+
+<AdminLayout title={t("admin.users.title")}>
+  <Button slot="actions" href="/admin/users/new"><Plus /> {t("admin.users.new")}</Button>
+
+  <div class="relative overflow-x-auto rounded-lg border border-border bg-card">
+    <table class="w-full text-left text-sm">
+      <thead class="border-b border-border bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+        <tr>
+          <th class="px-4 py-3 font-medium">{t("admin.users.name")}</th>
+          <th class="px-4 py-3 font-medium">{t("admin.users.role")}</th>
+          <th class="px-4 py-3 font-medium">{t("admin.users.status")}</th>
+          <th class="px-4 py-3 font-medium">{t("admin.users.lastLogin")}</th>
+          <th class="px-4 py-3"><span class="sr-only">{t("admin.common.actions")}</span></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        {
+          rows.map((row) => (
+            <tr>
+              <td class="px-4 py-3">
+                <p class="font-medium">
+                  {row.name} {row.id === me.id && <span class="text-muted-foreground">({t("admin.users.you")})</span>}
+                </p>
+                <p class="text-muted-foreground">{row.email}</p>
+              </td>
+              <td class="px-4 py-3">{t(`admin.roles.${row.role}`)}</td>
+              <td class="px-4 py-3">
+                {row.disabled ? (
+                  <Badge variant="destructive">{t("admin.users.disabled")}</Badge>
+                ) : (
+                  <Badge variant="success">{t("admin.users.active")}</Badge>
+                )}
+              </td>
+              <td class="px-4 py-3 whitespace-nowrap text-muted-foreground">{formatDate(row.lastLoginAt)}</td>
+              <td class="px-4 py-3 text-right">
+                <Button href={`/admin/users/${row.id}`} variant="ghost" size="sm">
+                  {t("admin.common.edit")}
+                </Button>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

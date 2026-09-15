@@ -1,0 +1,29 @@
+---
+/**
+ * Success/notice banner driven by the `?flash=<key>` query param (keys in
+ * `admin.flash.*`), set on redirects after successful actions.
+ */
+import CircleCheck from "@lucide/astro/icons/circle-check";
+import { useTranslations } from "@/i18n";
+
+const t = useTranslations(Astro.locals.lang);
+const key = Astro.url.searchParams.get("flash");
+const known = ["saved", "created", "deleted", "forbidden", "passwordChanged", "sessionsRevoked"] as const;
+const flash = known.find((k) => k === key);
+---
+
+{
+  flash && (
+    <p
+      role="status"
+      class={
+        flash === "forbidden"
+          ? "mb-6 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          : "mb-6 flex items-center gap-2 rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-success"
+      }
+    >
+      {flash !== "forbidden" && <CircleCheck class="size-4" aria-hidden="true" />}
+      {t(`admin.flash.${flash}`)}
+    </p>
+  )
+}

@@ -1,0 +1,40 @@
+---
+import { actions } from "astro:actions";
+import { ADMIN_SETUP_TOKEN } from "astro:env/server";
+import { useTranslations } from "@/i18n";
+import AuthLayout from "@/admin/layouts/AuthLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import { hasAnyUser } from "@/admin/actions";
+import { formErrors, safeNext } from "@/admin/lib/forms";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+
+const t = useTranslations(Astro.locals.lang);
+const next = safeNext(Astro.url.searchParams.get("next"));
+
+const login = Astro.getActionResult(actions.admin.login);
+if (login && !login.error) return Astro.redirect(next, 303);
+const loggedOut = Astro.getActionResult(actions.admin.logout);
+if (!loggedOut && Astro.locals.user) return Astro.redirect(next, 302);
+
+const errors = formErrors(t, login?.error);
+const noUsers = !(await hasAnyUser());
+if (noUsers && ADMIN_SETUP_TOKEN) return Astro.redirect("/admin/setup", 302);
+
+const formAction = `/admin/login?${new URLSearchParams({ next, _action: "admin.login" })}`;
+---
+
+<AuthLayout title={t("admin.login.title")} subtitle={t("admin.login.subtitle")}>
+  <form method="POST" action={formAction} class="space-y-5">
+    <FormAlert message={errors.form} />
+    {noUsers && <p class="rounded-md bg-muted p-3 text-sm text-muted-foreground">{t("admin.login.noUsers")}</p>}
+    <Field id="email" label={t("admin.login.email")} error={errors.fields.email}>
+      <Input id="email" name="email" type="email" autocomplete="username" required autofocus invalid={Boolean(errors.fields.email)} />
+    </Field>
+    <Field id="password" label={t("admin.login.password")} error={errors.fields.password}>
+      <Input id="password" name="password" type="password" autocomplete="current-password" required />
+    </Field>
+    <Button type="submit" class="w-full">{t("admin.login.submit")}</Button>
+  </form>
+</AuthLayout>

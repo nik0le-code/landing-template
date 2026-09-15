@@ -61,7 +61,8 @@ before moving on.
 - `<ModuleSlot>` so core pages embed module UI without importing modules directly
 
 ### 6. Admin core
-- Auth (users, sessions, scrypt), middleware guard for `/admin` + `/api/admin`, login/logout, rate limit
+- Admin area exists only when an enabled module declares `"admin": true` (no /admin, auth or DB code otherwise)
+- Auth (users, sessions, scrypt), middleware guard for `/admin` + `/api/admin`, login/logout, rate limit, browser setup via ADMIN_SETUP_TOKEN
 - Admin shell layout (sidebar from module registry), dashboard, account/password, user management
 - `npm run admin:create` CLI
 
@@ -104,7 +105,7 @@ before moving on.
 - [x] 3 Sections library + demo pages
 - [x] 4 Tracking & consent
 - [x] 5 Data layer + module system
-- [ ] 6 Admin core
+- [x] 6 Admin core
 - [ ] 7 Media library
 - [ ] 8 Module: leads
 - [ ] 9 Module: settings

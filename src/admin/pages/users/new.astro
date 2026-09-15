@@ -1,0 +1,22 @@
+---
+import { actions } from "astro:actions";
+import { useTranslations } from "@/i18n";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import Panel from "@/admin/components/Panel.astro";
+import UserForm from "@/admin/components/UserForm.astro";
+import { hasRole } from "@/admin/auth/roles";
+import { formErrors } from "@/admin/lib/forms";
+
+const t = useTranslations(Astro.locals.lang);
+const me = Astro.locals.user!;
+if (!hasRole(me.role, "admin")) return Astro.redirect("/admin?flash=forbidden", 302);
+
+const result = Astro.getActionResult(actions.admin.createUser);
+if (result && !result.error) return Astro.redirect("/admin/users?flash=created", 303);
+---
+
+<AdminLayout title={t("admin.users.new")} back={{ href: "/admin/users", label: t("admin.users.title") }}>
+  <Panel class="max-w-2xl">
+    <UserForm action={actions.admin.createUser} errors={formErrors(t, result?.error)} canManageOwners={me.role === "owner"} />
+  </Panel>
+</AdminLayout>

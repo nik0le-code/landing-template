@@ -53,6 +53,9 @@ export default defineConfig({
 
   security: {
     checkOrigin: true,
+    // Behind a reverse proxy/ingress, trust X-Forwarded-Host/Proto/For only for the
+    // site's own host (needed for correct origin checks and client IPs).
+    allowedDomains: [{ hostname: new URL(process.env.SITE_URL ?? siteConfig.url).hostname }],
   },
 
   env: {
@@ -64,6 +67,8 @@ export default defineConfig({
       DATABASE_AUTH_TOKEN: envField.string({ context: "server", access: "secret", optional: true }),
       DB_MIGRATE_ON_START: envField.boolean({ context: "server", access: "secret", default: true }),
       UPLOADS_DIR: envField.string({ context: "server", access: "secret", default: "./data/uploads" }),
+      // Enables /admin/setup (create the first owner from the browser) while no users exist. 16+ chars.
+      ADMIN_SETUP_TOKEN: envField.string({ context: "server", access: "secret", optional: true }),
       RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
       EMAIL_FROM: envField.string({ context: "server", access: "secret", optional: true }),
     },

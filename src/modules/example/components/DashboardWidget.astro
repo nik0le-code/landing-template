@@ -1,0 +1,15 @@
+---
+import { count } from "drizzle-orm";
+import { getDb } from "@/db";
+import { translateModule } from "@/modules/registry";
+import Panel from "@/admin/components/Panel.astro";
+import { exampleMessages } from "../db/schema";
+
+const lang = Astro.locals.lang;
+const [row] = await getDb().select({ value: count() }).from(exampleMessages);
+---
+
+<Panel title={translateModule(lang, "example", "title")}>
+  <p class="text-3xl font-bold">{row?.value ?? 0}</p>
+  <a href="/admin/example" class="mt-2 inline-block text-sm text-primary">{translateModule(lang, "example", "manage")} →</a>
+</Panel>

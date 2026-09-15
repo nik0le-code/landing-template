@@ -1,0 +1,103 @@
+{
+  "title": "Admin",
+  "nav": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "account": "My account",
+    "viewSite": "View website",
+    "logout": "Sign out",
+    "menu": "Menu",
+    "language": "Language"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "editor": "Editor"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "actions": "Actions",
+    "yes": "Yes",
+    "no": "No",
+    "never": "Never",
+    "confirmDelete": "Are you sure? This cannot be undone."
+  },
+  "flash": {
+    "saved": "Changes saved.",
+    "created": "Created.",
+    "deleted": "Deleted.",
+    "forbidden": "You don't have access to that page.",
+    "passwordChanged": "Password changed. Other sessions were signed out.",
+    "sessionsRevoked": "Signed out of all other devices."
+  },
+  "errors": {
+    "invalidCredentials": "Wrong email or password.",
+    "tooManyAttempts": "Too many failed attempts. Try again in {minutes} minutes.",
+    "emailTaken": "A user with this email already exists.",
+    "wrongPassword": "Your current password is incorrect.",
+    "passwordTooShort": "Password must be at least {min} characters.",
+    "cannotChangeSelf": "You can't change the role or status of your own account.",
+    "lastOwner": "There must be at least one active owner.",
+    "ownerOnly": "Only an owner can manage owners.",
+    "invalidSetupToken": "Invalid setup token.",
+    "setupDone": "Initial setup has already been completed.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Sign in to manage the website.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "noUsers": "There are no users yet. Create the first one with `npm run admin:create` or through initial setup."
+  },
+  "setup": {
+    "title": "Initial setup",
+    "subtitle": "Create the owner account.",
+    "token": "Setup token (ADMIN_SETUP_TOKEN)",
+    "name": "Full name",
+    "submit": "Create account"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}.",
+    "empty": "Website sections will appear here."
+  },
+  "account": {
+    "title": "My account",
+    "profile": "Profile",
+    "name": "Full name",
+    "email": "Email",
+    "security": "Security",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "changePassword": "Change password",
+    "sessions": "Sessions",
+    "sessionsHint": "Sign out of every other device where you're signed in.",
+    "revokeOthers": "Sign out other devices"
+  },
+  "users": {
+    "title": "Users",
+    "new": "New user",
+    "edit": "Edit user",
+    "name": "Full name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "active": "Active",
+    "disabled": "Disabled",
+    "lastLogin": "Last sign-in",
+    "password": "Password",
+    "passwordHint": "At least {min} characters. Share it securely.",
+    "newPassword": "New password (optional)",
+    "newPasswordHint": "Leave empty to keep it. Changing it signs the user out.",
+    "disable": "Disable account",
+    "you": "you",
+    "rolesHint": "Editors: content. Admins: + users. Owners: + manage owners."
+  }
+}

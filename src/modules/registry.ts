@@ -4,10 +4,13 @@
  */
 import type { Locale } from "@site-config";
 import { translateDynamic, type TranslateParams } from "@/i18n";
-import { enabledModules, moduleOptions, moduleRuntimes } from "./.generated/registry";
+import { adminEnabled, enabledModules, moduleOptions, moduleRuntimes } from "./.generated/registry";
 import type { AdminNavItem, ModuleOptionsMap, ModuleRuntime, SlotLoader, SlotName } from "./types";
 
 export const modules: readonly ModuleRuntime[] = moduleRuntimes;
+
+/** True when an enabled module declares `"admin": true` (the /admin area exists). */
+export const isAdminEnabled: boolean = adminEnabled;
 
 export function isModuleEnabled(name: string): boolean {
   return (enabledModules as readonly string[]).includes(name);
