@@ -1,0 +1,16 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { siteConfig } from "@site-config";
+
+const { lang } = Astro.params;
+if (!siteConfig.locales.includes(lang as never)) {
+  return new Response(null, { status: 404 });
+}
+---
+
+<BaseLayout title={siteConfig.name}>
+  <main class="mx-auto max-w-page px-4 py-24">
+    <h1 class="text-4xl font-bold text-primary">{siteConfig.name}</h1>
+    <p class="mt-4 text-muted-foreground">locale: {lang}</p>
+  </main>
+</BaseLayout>

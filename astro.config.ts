@@ -1,0 +1,71 @@
+import { defineConfig, envField, fontProviders, memoryCache } from "astro/config";
+import node from "@astrojs/node";
+import react from "@astrojs/react";
+import tailwindcss from "@tailwindcss/vite";
+import { siteConfig } from "./site.config";
+
+export default defineConfig({
+  site: process.env.SITE_URL ?? siteConfig.url,
+  output: "server",
+  trailingSlash: "never",
+  adapter: node({ mode: "standalone" }),
+  integrations: [react()],
+  // Admin auth uses its own DB-backed sessions; Astro sessions would write to the pod filesystem.
+  session: false,
+
+  i18n: {
+    locales: [...siteConfig.locales],
+    defaultLocale: siteConfig.defaultLocale,
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: false,
+    },
+  },
+
+  // Rendered pages are cached in memory per pod; admin mutations invalidate by tag.
+  cache: {
+    provider: memoryCache({ max: 2000 }),
+  },
+
+  // Tap/hover prefetch keeps navigation instant without eager downloads on low-end devices.
+  prefetch: {
+    prefetchAll: false,
+    defaultStrategy: "hover",
+  },
+
+  fonts: [
+    {
+      provider: fontProviders.fontsource(),
+      name: "Inter",
+      cssVariable: "--font-inter",
+      weights: ["400 700"],
+      styles: ["normal"],
+      subsets: ["latin", "greek"],
+      fallbacks: ["system-ui", "sans-serif"],
+    },
+  ],
+
+  image: {
+    responsiveStyles: true,
+  },
+
+  security: {
+    checkOrigin: true,
+  },
+
+  env: {
+    schema: {
+      SITE_URL: envField.string({ context: "server", access: "public", optional: true }),
+      NOINDEX: envField.boolean({ context: "server", access: "public", default: false }),
+      DATABASE_URL: envField.string({ context: "server", access: "secret", default: "file:./data/site.db" }),
+      DATABASE_AUTH_TOKEN: envField.string({ context: "server", access: "secret", optional: true }),
+      UPLOADS_DIR: envField.string({ context: "server", access: "secret", default: "./data/uploads" }),
+      RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      EMAIL_FROM: envField.string({ context: "server", access: "secret", optional: true }),
+    },
+  },
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
+});
