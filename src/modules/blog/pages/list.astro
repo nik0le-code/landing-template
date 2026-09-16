@@ -37,7 +37,7 @@ const basePath = category ? `/blog/category/${category.slug}` : "/blog";
 const pagePath = (n: number) => (n === 1 ? basePath : `${basePath}/page/${n}`);
 const localizedFor = (l: string, n = page) => `/${l}${pagePath(n)}`;
 const heading = category ? categoryName(category, lang) : t("title");
-const title = page > 1 ? `${heading} — ${t("page", { n: page })}` : heading;
+const title = page > 1 ? `${heading} - ${t("page", { n: page })}` : heading;
 
 Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["blog"] });
 ---

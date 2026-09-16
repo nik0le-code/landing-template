@@ -12,14 +12,12 @@ interface Props {
 }
 
 const { eyebrow, title, description, align = "center", tag: Tag = "h2", class: className } = Astro.props;
-const headingSize = Tag === "h1" ? "text-4xl sm:text-5xl" : undefined;
+const headingSize = Tag === "h1" ? "text-4xl sm:text-5xl lg:text-6xl" : "text-[1.75rem] sm:text-4xl lg:text-[2.5rem] lg:leading-[1.08]";
 ---
 
-<div class={cn("max-w-2xl", align === "center" && "mx-auto text-center", className)}>
-  {eyebrow && <p class="text-sm font-semibold uppercase tracking-wider text-primary">{eyebrow}</p>}
-  <Tag class={cn("mt-2 text-3xl font-bold tracking-tight text-balance sm:text-4xl", headingSize)}>
-    {title}
-  </Tag>
-  {description && <p class="mt-4 text-lg text-pretty opacity-80">{description}</p>}
+<div class={cn("max-w-2xl", align === "center" && "mx-auto text-center [&>p]:mx-auto", className)}>
+  {eyebrow && <p class="label text-muted-foreground">{eyebrow}</p>}
+  <Tag class={cn("font-medium text-balance", headingSize, eyebrow && "mt-5")}>{title}</Tag>
+  {description && <p class="mt-4 max-w-xl text-pretty text-muted-foreground">{description}</p>}
   <slot />
 </div>

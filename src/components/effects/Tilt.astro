@@ -1,0 +1,43 @@
+---
+/**
+ * 3D tilt-to-pointer. The wrapper holds the perspective, the single child is the
+ * surface that rotates.
+ *
+ * ```astro
+ * <Tilt glare max={10}>
+ *   <Card>
+ *     <h3 data-tilt-layer>Floats above the surface</h3>
+ *   </Card>
+ * </Tilt>
+ * ```
+ *
+ * Touch devices and reduced-motion users get the plain card — the rotation needs a
+ * pointer, so it is never the only thing carrying meaning.
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  /** Maximum rotation in degrees (3–15 reads well; more looks like a gimmick). */
+  max?: number;
+  /** Moving highlight across the surface. */
+  glare?: boolean;
+  /** Lower = stronger perspective distortion. */
+  perspective?: string;
+  class?: string;
+}
+
+const { max = 8, glare = false, perspective = "900px", class: className } = Astro.props;
+---
+
+<div
+  data-tilt
+  data-tilt-glare={glare ? "" : undefined}
+  class={cn("relative", className)}
+  style={`--tilt-max: ${max}deg; --tilt-perspective: ${perspective};`}
+>
+  <slot />
+</div>
+
+<script>
+  import "./pointer-fx";
+</script>

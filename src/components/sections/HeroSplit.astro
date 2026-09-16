@@ -1,10 +1,9 @@
 ---
 import Check from "@lucide/astro/icons/check";
-import Badge from "@/components/ui/Badge.astro";
 import Button from "@/components/ui/Button.astro";
 import Img from "@/components/ui/Img.astro";
 import Section from "@/components/ui/Section.astro";
-import GlowBackground from "@/components/effects/GlowBackground.astro";
+
 import { cn } from "@/lib/cn";
 import type { CtaLink, ImageProps } from "./types";
 
@@ -19,16 +18,27 @@ interface Props {
   imagePosition?: "left" | "right";
   /** Use "h2" when this isn't the page's main heading. */
   headingTag?: "h1" | "h2";
+  /** Staggered rise of the copy on load (translate only, so LCP is unaffected). */
+  intro?: boolean;
 }
 
-const { badge, title, description, bullets = [], actions = [], image, imagePosition = "right", headingTag: Heading = "h1" } = Astro.props;
+const {
+  badge,
+  title,
+  description,
+  bullets = [],
+  actions = [],
+  image,
+  imagePosition = "right",
+  headingTag: Heading = "h1",
+  intro = true,
+} = Astro.props;
 ---
 
 <Section spacing="lg" class="overflow-hidden">
-  <GlowBackground slot="background" />
   <div class="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-    <div class={cn(imagePosition === "left" && "lg:order-2")}>
-      {badge && <Badge class="mb-6">{badge}</Badge>}
+    <div class={cn(imagePosition === "left" && "lg:order-2")} data-intro={intro ? "" : undefined}>
+      {badge && <p class="label mb-6 text-muted-foreground">{badge}</p>}
       <Heading class="text-4xl font-bold tracking-tight text-balance sm:text-5xl">{title}</Heading>
       {description && <p class="mt-6 text-lg text-pretty text-muted-foreground">{description}</p>}
       {
@@ -62,7 +72,7 @@ const { badge, title, description, bullets = [], actions = [], image, imagePosit
         alt={image.alt}
         priority={Heading === "h1"}
         sizes="(min-width: 1024px) 50vw, 100vw"
-        class="aspect-[4/3] w-full rounded-xl object-cover shadow-xl"
+        class="aspect-[4/5] w-full object-cover sm:aspect-[4/3]"
       />
     </div>
   </div>

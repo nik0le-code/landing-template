@@ -29,10 +29,10 @@ const gallery = [g1, g2, g3, g4, g5, g6].map((src, i) => ({ src, alt: `${copy.ga
   seo={{ title: copy.meta.title, description: copy.meta.description }}
   breadcrumbs={[{ name: copy.meta.title, path: localizePath("/services", lang) }]}
 >
-  <HeroCentered title={copy.hero.title} description={copy.hero.description} actions={[{ label: copy.hero.primary, href: contactHref }]} background="glow" />
-  <FeatureGrid id="consulting" {...copy.consulting} items={copy.consulting.items as FeatureItem[]} tone="muted" />
-  <FeatureGrid id="development" {...copy.development} items={copy.development.items as FeatureItem[]} columns={4} />
-  <Steps {...dict.home.steps} steps={dict.home.steps.items} tone="muted" />
+  <HeroCentered title={copy.hero.title} description={copy.hero.description} actions={[{ label: copy.hero.primary, href: contactHref }]} />
+  <FeatureGrid id="consulting" {...copy.consulting} items={copy.consulting.items as FeatureItem[]} columns={2} highlightFirst tone="muted" />
+  <FeatureGrid id="development" {...copy.development} eyebrow={undefined} items={copy.development.items as FeatureItem[]} columns={4} variant="plain" align="left" />
+  <Steps {...dict.home.steps} eyebrow={undefined} steps={dict.home.steps.items} tone="muted" />
   <Gallery {...copy.gallery} images={gallery} closeLabel={dict.common.close} />
   <Cta title={dict.home.cta.title} description={dict.home.cta.description} actions={[{ label: dict.home.cta.primary, href: contactHref }]} />
 </PageLayout>

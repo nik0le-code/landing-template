@@ -8,5 +8,6 @@
   "cta": "Get a quote",
   "openMenu": "Open menu",
   "closeMenu": "Close menu",
-  "main": "Main navigation"
+  "main": "Main navigation",
+  "toggleTheme": "Switch theme"
 }

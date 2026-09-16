@@ -39,10 +39,10 @@ const initials = (name: string) =>
       members.map((member, i) => (
         <Reveal as="li" stagger={i % 4} class="text-center">
           {member.photo ? (
-            <Img src={member.photo} alt={member.name} width={320} height={320} class="mx-auto aspect-square w-40 rounded-full object-cover" />
+            <Img src={member.photo} alt={member.name} width={320} height={320} class="mx-auto aspect-square w-40 object-cover" />
           ) : (
             <span
-              class="mx-auto flex aspect-square w-40 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-accent/20 text-3xl font-semibold text-primary"
+              class="mx-auto grid aspect-square w-40 place-items-center border border-border bg-muted font-mono text-2xl text-muted-foreground"
               aria-hidden="true"
             >
               {initials(member.name)}
@@ -54,7 +54,7 @@ const initials = (name: string) =>
           {member.linkedin && (
             <a href={member.linkedin} target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex text-muted-foreground hover:text-foreground">
               <SocialIcon network="linkedin" class="size-4" />
-              <span class="sr-only">LinkedIn — {member.name}</span>
+              <span class="sr-only">LinkedIn: {member.name}</span>
             </a>
           )}
         </Reveal>

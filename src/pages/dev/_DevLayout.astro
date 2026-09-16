@@ -1,0 +1,90 @@
+---
+/**
+ * Shell for the dev-only pages: sticky section nav, viewport-width switcher and a
+ * bare <head> (no site SEO, no tracking). Not a route (filename starts with `_`).
+ */
+import { Font } from "astro:assets";
+import "@/styles/global.css";
+
+interface Props {
+  title: string;
+  /** Anchor list for the sidebar: [id, label]. */
+  sections: [string, string][];
+}
+
+const { title, sections } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} · landing-template</title>
+    <Font cssVariable="--font-plex-sans" preload={[{ subset: "latin" }]} />
+  </head>
+  <body class="bg-muted/40">
+    <div class="lg:grid lg:min-h-dvh lg:grid-cols-[15rem_1fr]">
+      <aside class="border-b border-border bg-card lg:sticky lg:top-0 lg:h-dvh lg:overflow-y-auto lg:border-b-0 lg:border-r">
+        <div class="p-5">
+          <p class="text-sm font-semibold">{title}</p>
+          <p class="mt-1 text-xs text-muted-foreground">Dev only. 404 in production.</p>
+        </div>
+        <nav class="px-3 pb-5" aria-label="Sections">
+          <ul class="flex flex-wrap gap-1 lg:block lg:space-y-0.5">
+            {
+              sections.map(([id, label]) => (
+                <li>
+                  <a
+                    href={`#${id}`}
+                    class="block rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    {label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="min-w-0">
+        <div class="sticky top-0 z-40 flex items-center gap-2 border-b border-border bg-card/90 px-4 py-2 text-xs backdrop-blur">
+          <span class="text-muted-foreground">Preview width</span>
+          {
+            [
+              ["100%", "Full"],
+              ["48rem", "Tablet"],
+              ["23.4375rem", "Phone"],
+            ].map(([value, label]) => (
+              <button
+                type="button"
+                data-width={value}
+                class="rounded-md border border-border px-2 py-1 font-medium text-muted-foreground hover:bg-muted hover:text-foreground aria-pressed:border-primary aria-pressed:text-primary"
+                aria-pressed={value === "100%"}
+              >
+                {label}
+              </button>
+            ))
+          }
+        </div>
+
+        <div id="preview" class="mx-auto w-full transition-[max-width] duration-300">
+          <slot />
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // Width switcher: emulates a narrow viewport without opening devtools.
+      const preview = document.getElementById("preview")!;
+      document.querySelectorAll<HTMLButtonElement>("[data-width]").forEach((button) => {
+        button.addEventListener("click", () => {
+          preview.style.maxWidth = button.dataset.width!;
+          document.querySelectorAll("[data-width]").forEach((other) => other.setAttribute("aria-pressed", String(other === button)));
+        });
+      });
+    </script>
+  </body>
+</html>

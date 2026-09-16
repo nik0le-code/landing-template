@@ -134,9 +134,37 @@ Rich text goes through `renderMarkdown()` (sanitized HTML stored on save).
 
 - **Tailwind tokens only** (`bg-primary`, `text-muted-foreground`), never raw colors —
   rebranding is one file.
+- **The design language is ink on paper.** `--primary` is ink (not a brand colour),
+  `--accent` is the only real colour and is used in small doses. Do not add glows,
+  gradient meshes, glassmorphism, pill buttons or coloured icon chips — those are the
+  exact defaults this template was rebuilt to avoid. Elevation = hairline border.
+  Effects like Aurora/Spotlight/Shine/Tilt exist but are off everywhere by default.
+- **Shape system:** interactive = pill, inputs = `rounded-md`, cards = `rounded-lg`,
+  panels = `rounded-xl`. Don't mix.
+- **Dark mode is token-only.** Light and dark define the same variables in
+  `src/styles/theme.css` (`:root`, `prefers-color-scheme`, `[data-theme]`), so never
+  add `dark:` variants or hard-coded colors. A full-bleed brand or inverted band uses
+  `bg-brand-surface` / `bg-contrast`, never `bg-primary` / `bg-foreground`, or it
+  turns into a glaring light slab in dark mode.
+- The theme bootstrap (`src/lib/theme-script.ts`) is inlined in `<head>` and its
+  sha256 is added to the CSP in `astro.config.ts`; Astro does not hash `is:inline`
+  scripts, so editing that string without the config would break it in production.
+- **Eyebrow budget:** at most one uppercase micro-label per three sections, and don't
+  repeat a layout family twice in a row (`FeatureGrid` has `align`, `variant`,
+  `columns`, `highlightFirst` for exactly this).
+- **No em-dashes in user-visible copy** (the "—" in admin tables means "no value").
+- Breadcrumbs overlap the first section's top padding on purpose (PageLayout), so they
+  sit on that section's background instead of cutting a band across the page.
 - `.astro` by default; React (`client:visible`/`client:load`) only where admin
   interactivity needs it.
-- Effects are CSS-first (scroll-driven reveal, marquee); respect reduced motion.
+- Effects live in `src/components/effects/` and are CSS-first: scroll-linked motion
+  uses `animation-timeline: view()/scroll()`, 3D uses CSS transforms. Only `Tilt` and
+  `Spotlight` load JS (one shared ~0.4 KB pointer script). Never add an animation
+  library, a canvas loop or WebGL to this template — `src/styles/effects.css`
+  documents the four rules (compositor properties only, `@supports` +
+  `prefers-reduced-motion` gates, no layout animation).
+- Don't fade in the hero heading: LCP is reported when it actually paints, so
+  entrance animations there are translate-only (`[data-intro]`).
 - `content-visibility` (`lazyRender`) is opt-in — it breaks in-page anchor links.
 - Database columns and form fields: snake_case in SQL, camelCase in TypeScript
   (Drizzle maps them).

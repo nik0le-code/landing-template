@@ -1,0 +1,29 @@
+---
+/**
+ * Types a word out once, with a blinking caret — CSS `steps()`, no JS.
+ *
+ * Only use it for a single short word or phrase inside a heading (the rest of the
+ * heading should be static text, so the page never renders an empty h1).
+ *
+ * ```astro
+ * <h1>We build <Typewriter text="landing pages" /></h1>
+ * ```
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  text: string;
+  /** Seconds for the whole word. */
+  duration?: number;
+  class?: string;
+}
+
+const { text, duration = 2, class: className } = Astro.props;
+---
+
+<span
+  data-typewriter
+  class={cn(className)}
+  style={`--typewriter-steps: ${text.length}; --typewriter-duration: ${duration}s; --typewriter-width: ${text.length}ch;`}
+  >{text}</span
+>

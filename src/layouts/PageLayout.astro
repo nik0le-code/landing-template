@@ -53,8 +53,14 @@ const pageSchema = trail ? [...schema, breadcrumbSchema(trail)] : schema;
   <Navbar alternates={alternates} />
   <main id="main" tabindex="-1" class="outline-none">
     {
+      /*
+       * The trail overlaps the top padding of the first section instead of sitting
+       * in a band of its own, so it always shares that section's background
+       * (muted, dark, aurora) rather than cutting a strip of page background
+       * across the top of the page.
+       */
       trail && (
-        <Container class="pt-6">
+        <Container class="relative z-10 -mb-10 pt-5 sm:-mb-12 sm:pt-7">
           <Breadcrumbs items={trail} />
         </Container>
       )

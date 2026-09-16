@@ -34,7 +34,7 @@ const contactHref = localizePath("/contact", lang);
   />
   <Stats items={dict.home.stats.items} tone="dark" />
   <FeatureGrid {...copy.values} items={copy.values.items as FeatureItem[]} variant="plain" />
-  <Timeline {...copy.timeline} tone="muted" />
-  <Team {...copy.team} />
+  <Timeline {...copy.timeline} eyebrow={undefined} tone="muted" />
+  <Team {...copy.team} eyebrow={undefined} />
   <Cta title={copy.cta.title} description={copy.cta.description} actions={[{ label: copy.cta.primary, href: contactHref }]} variant="banner" />
 </PageLayout>

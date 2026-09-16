@@ -1,0 +1,30 @@
+---
+/**
+ * Number that counts up when it scrolls into view — with no JavaScript at all.
+ * The animation interpolates a registered custom property (`@property --countup-num`)
+ * and prints it with a CSS counter.
+ *
+ * The real value stays in the DOM, so screen readers, search engines and browsers
+ * without scroll-driven animations always read the final number.
+ *
+ * ```astro
+ * <CountUp value={1200} prefix="+" suffix="k" />
+ * ```
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  /** Integers only — CSS can't interpolate a decimal counter. */
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  class?: string;
+}
+
+const { value, prefix = "", suffix = "", class: className } = Astro.props;
+const target = Math.max(0, Math.round(value));
+---
+
+<span class={cn("tabular-nums", className)}
+  >{prefix}<span data-countup style={`--countup-to: ${target};`}><span data-countup-value>{target.toLocaleString()}</span></span>{suffix}</span
+>

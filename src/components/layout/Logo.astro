@@ -13,7 +13,9 @@ const { class: className, iconOnly = false } = Astro.props;
 const lang = Astro.locals.lang;
 ---
 
-<a href={localizePath("/", lang)} class={cn("flex items-center gap-2.5 font-semibold", className)}>
-  <img src={siteConfig.organization.logo} alt={iconOnly ? siteConfig.name : ""} width="32" height="32" class="size-8" />
-  {!iconOnly && <span class="text-lg tracking-tight">{siteConfig.name}</span>}
+<a href={localizePath("/", lang)} class={cn("flex items-center gap-2.5 font-medium", className)}>
+  {/* `logo-mark` inverts a monochrome logo in dark mode (see theme.css). Drop the
+      class when the client's logo is coloured, and ship a dark variant instead. */}
+  <img src={siteConfig.organization.logo} alt={iconOnly ? siteConfig.name : ""} width="28" height="28" class="logo-mark size-7" />
+  {!iconOnly && <span class="tracking-tight">{siteConfig.name}</span>}
 </a>

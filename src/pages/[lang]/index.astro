@@ -15,12 +15,6 @@ import type { FeatureItem } from "@/components/sections/types";
 import { getDictionary, localeStaticPaths, localizePath } from "@/i18n";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import heroImage from "@/assets/demo/hero.jpg";
-import globex from "@/assets/logos/globex.svg";
-import hooli from "@/assets/logos/hooli.svg";
-import initech from "@/assets/logos/initech.svg";
-import northwind from "@/assets/logos/northwind.svg";
-import umbrella from "@/assets/logos/umbrella.svg";
-import vandelay from "@/assets/logos/vandelay.svg";
 
 // Static content → rendered once at build time (HTML + optimized images on disk).
 export const prerender = true;
@@ -30,13 +24,14 @@ const lang = Astro.locals.lang;
 const copy = getDictionary(lang).home;
 const contactHref = localizePath("/contact", lang);
 
+// Replace with the client's real customer logos ({ src: logoFile, alt: "Name" }).
 const logos = [
-  { src: northwind, alt: "Northwind" },
-  { src: globex, alt: "Globex" },
-  { src: initech, alt: "Initech" },
-  { src: umbrella, alt: "Umbrella" },
-  { src: hooli, alt: "Hooli" },
-  { src: vandelay, alt: "Vandelay" },
+  { alt: "Northwind Foods" },
+  { alt: "Globex" },
+  { alt: "Initech" },
+  { alt: "Umbrella Health" },
+  { alt: "Hooli" },
+  { alt: "Vandelay Industries" },
 ];
 
 const plans: Plan[] = copy.pricing.plans.map((plan) => ({
@@ -47,6 +42,7 @@ const plans: Plan[] = copy.pricing.plans.map((plan) => ({
 
 <PageLayout seo={{ title: copy.meta.title, description: copy.meta.description }} schema={[organizationSchema(), websiteSchema(lang)]}>
   <HeroCentered
+    align="left"
     badge={copy.hero.badge}
     title={copy.hero.title}
     description={copy.hero.description}
@@ -61,13 +57,14 @@ const plans: Plan[] = copy.pricing.plans.map((plan) => ({
   <FeatureGrid id="features" {...copy.features} items={copy.features.items as FeatureItem[]} tone="muted" />
   <Bento
     {...copy.bento}
+    eyebrow={undefined}
     items={(copy.bento.items as BentoItem[]).map((item) => (item.size === "large" ? { ...item, image: { src: heroImage, alt: "" } } : item))}
   />
-  <Steps id="how-it-works" {...copy.steps} steps={copy.steps.items} tone="muted" />
+  <Steps id="how-it-works" {...copy.steps} eyebrow={undefined} steps={copy.steps.items} tone="muted" />
   <Stats items={copy.stats.items} />
-  <Testimonials {...copy.testimonials} />
+  <Testimonials {...copy.testimonials} eyebrow={undefined} />
   <Pricing {...copy.pricing} plans={plans} billingLabels={copy.pricing.billing} tone="muted" />
-  <Faq {...copy.faq} />
+  <Faq {...copy.faq} eyebrow={undefined} />
   <ModuleSlot name="home.beforeCta" />
   <Cta
     title={copy.cta.title}

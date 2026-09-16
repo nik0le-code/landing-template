@@ -1,0 +1,35 @@
+---
+/**
+ * Animated gradient border. Uses `[data-shine-border]` from styles/effects.css, so
+ * the same look can be applied to any element that already has a border radius
+ * (the featured pricing plan does exactly that).
+ *
+ * ```astro
+ * <ShineBorder class="rounded-lg"><Card class="border-0">Featured plan</Card></ShineBorder>
+ * ```
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  width?: number;
+  /** Two or three CSS colors; defaults to the brand tokens. */
+  colors?: string[];
+  duration?: number;
+  class?: string;
+}
+
+const {
+  width = 1,
+  colors = ["var(--color-primary)", "var(--color-accent)", "var(--color-primary)"],
+  duration = 6,
+  class: className,
+} = Astro.props;
+---
+
+<div
+  data-shine-border
+  class={cn("rounded-lg", className)}
+  style={`--shine-width: ${width}px; --shine-duration: ${duration}s; --shine-gradient: linear-gradient(110deg, ${colors.join(", ")});`}
+>
+  <slot />
+</div>

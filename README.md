@@ -200,22 +200,110 @@ writing one.
 `Button` · `Card` · `Badge` · `Input` · `Select` · `Textarea` · `Field` ·
 `Section` · `Container` · `SectionHeading` · `Img` · `Prose` · `Icon`
 
-Run `npm run dev` and open **`/dev/ui-kit`** to see all of them with their variants.
+### Effects (`src/components/effects/`)
+
+| Component | What it does | JS |
+|---|---|---|
+| `Reveal` | Fade/slide/zoom/blur/flip in on scroll, with stagger | none |
+| `Parallax` | Content drifts as it crosses the viewport | none |
+| `ScrollProgress` | Reading-progress bar (already on legal pages) | none |
+| `CountUp` | Numbers count up when scrolled into view | none |
+| `Marquee` | Infinite scroller, pauses on hover | none |
+| `Aurora` | Drifting colour blobs behind a section | none |
+| `Meteors` | Shooting stars, randomised at build time | none |
+| `PerspectiveGrid` | 3D horizon grid for dark sections | none |
+| `GlowBackground` / `GridBackground` | Static glow and grid patterns | none |
+| `OrbitingCircles` | Logos orbiting a centre mark | none |
+| `FlipCard` | Two-sided card, flips in 3D on hover/focus | none |
+| `ShineBorder` | Animated gradient border (featured plan) | none |
+| `LampLight` | Glowing divider that widens on scroll | none |
+| `Typewriter` | Types one phrase, with caret | none |
+| `Shine` | Light sweep across a CTA on hover | none |
+| `Tilt` | 3D tilt towards the pointer, optional glare | ~0.4 KB |
+| `Spotlight` | Light follows the pointer inside a card | ~0.4 KB |
+
+Scroll-linked motion uses **CSS scroll-driven animations** (`animation-timeline`) —
+no scroll listeners, no IntersectionObserver, nothing to hydrate. Tilt and Spotlight
+share one tiny pointer script and are skipped entirely on touch devices. Everything
+is disabled under `prefers-reduced-motion`, and nothing animates layout, so there is
+no CLS. Hero copy rises into place without fading, because fading the headline in
+would delay LCP.
+
+Several sections turn effects on by default and take a prop to turn them off:
+`<FeatureGrid spotlight={false}>`, `<HeroSplit tilt={false} intro={false}>`,
+`<Stats countUp={false}>`, `<Cta aurora={false}>`, `<HeroCentered background="aurora">`.
+
+Run `npm run dev` and open **`/dev/ui-kit`** — every primitive and effect, live, with
+a copy button for each snippet and a phone/tablet width switcher.
 
 ### Theming
 
 **File:** `src/styles/theme.css` — change the tokens, the whole site follows.
 
 ```css
-@theme {
-  --color-primary: oklch(0.55 0.2 265);
-  --color-accent: oklch(0.75 0.15 190);
-  --radius-md: 0.625rem;
+:root {
+  --foreground: oklch(0.22 0.011 80);   /* ink */
+  --background: oklch(0.985 0.003 80);  /* paper */
+  --primary: oklch(0.255 0.012 80);     /* buttons: ink, not a colour */
+  --accent: oklch(0.53 0.135 45);       /* the one real colour */
 }
 ```
 
+**The look is ink on paper**, and that is a deliberate reaction to how generated
+landing pages look. The rules the components follow:
+
+- **Primary is ink**, not a brand colour. Buttons and headlines carry weight through
+  contrast. `--accent` is the single real colour and appears only in small doses:
+  a rule, the active nav item, an icon.
+- **No glow, no gradient mesh, no glass.** Aurora, spotlight, shine and tilt still
+  exist in `src/components/effects/`, but nothing uses them by default. Turn one on
+  per client if it fits the brand.
+- **Hairlines over shadows.** Cards are a 1px border on a flat surface; shadows are
+  reserved for things that genuinely float.
+- **Squared off.** 4-6px radii, no pills.
+- **Labels are set in mono** (`class="label"`) instead of a coloured chip.
+- **Real photography.** `npm run demo:images` pulls neutral placeholder photos;
+  generated gradient blobs are the loudest tell that nobody art-directed the page.
+
 Components only use semantic tokens (`bg-primary`, `text-muted-foreground`,
-`rounded-md`) — **never raw colours** — so re-branding stays a one-file change.
+`rounded-md`), **never raw colours**, so re-branding stays a one-file change.
+
+### Dark mode
+
+On by default (`darkMode: true` in `site.config.ts`). It follows the visitor's system
+setting, and the navbar toggle overrides it, remembered in `localStorage`:
+
+```
+:root                     light values (the source of truth)
+prefers-color-scheme:dark system dark, unless the visitor chose light
+[data-theme="dark"|"light"] the visitor's explicit choice
+```
+
+Both modes are the **same token names** with different values, so components need no
+`dark:` variants. Two tokens exist specifically to stop a dark page from flashing
+white blocks halfway down:
+
+- `bg-contrast` — inverted bands (dark stats strip, toasts). Stays dark in dark mode.
+- `bg-brand-surface` — large brand-filled areas (CTA panel, announcement bar). In dark
+  mode it becomes a deep brand tint instead of the bright accent.
+
+Set `darkMode: false` for a brand that must always render light: the page is pinned to
+light and the toggle disappears. Contrast was checked in both modes (WCAG AA, computed
+against the real composited backgrounds).
+
+House rules that keep a client site from looking generic:
+
+- **One accent colour** for the whole page. No second accent in section seven.
+- **One shape system:** interactive elements are pills (buttons, nav, badges),
+  inputs are `rounded-md`, cards and panels `rounded-lg` / `rounded-xl`.
+- **Shadows are tinted** with the brand hue (`--shadow-md`), never pure black.
+- **Eyebrows are rationed:** at most one small uppercase label per three sections.
+  A label above every heading is what makes a page read as templated. Pass
+  `eyebrow={undefined}` on the sections that don't need one.
+- **Vary the layout family.** Don't stack three card grids: `FeatureGrid` takes
+  `align="left"`, `variant="plain"`, `columns` and `highlightFirst` (a double-width
+  first cell, automatically ignored when it would leave a hole in the grid).
+- **No em-dashes in copy.** They are the clearest tell of machine-written text.
 Drop the client logo in `public/favicon.svg` and run `npm run brand:assets` for
 favicons, app icons and the OG image.
 

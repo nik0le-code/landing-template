@@ -17,18 +17,21 @@ const { items, class: className } = Astro.props;
 const t = useTranslations(Astro.locals.lang);
 ---
 
-<nav aria-label={t("common.breadcrumbs.label")} class={cn("text-sm text-muted-foreground", className)}>
-  <ol class="flex flex-wrap items-center gap-1.5">
+<nav aria-label={t("common.breadcrumbs.label")} class={cn("text-[0.8125rem] text-muted-foreground", className)}>
+  <ol class="flex flex-wrap items-center gap-x-1 gap-y-1.5">
     {
       items.map((item, index) => (
-        <li class="flex items-center gap-1.5">
-          {index > 0 && <ChevronRight class="size-3.5" aria-hidden="true" />}
+        <li class="flex items-center gap-1">
+          {index > 0 && <ChevronRight class="size-3.5 text-muted-foreground/50" aria-hidden="true" />}
           {item.path && index < items.length - 1 ? (
-            <a href={item.path} class="hover:text-foreground">
+            <a
+              href={item.path}
+              class="rounded-sm px-1.5 py-0.5 transition-colors hover:bg-foreground/5 hover:text-foreground"
+            >
               {item.name}
             </a>
           ) : (
-            <span aria-current="page" class="text-foreground">
+            <span aria-current="page" class="px-1.5 py-0.5 font-medium text-foreground">
               {item.name}
             </span>
           )}

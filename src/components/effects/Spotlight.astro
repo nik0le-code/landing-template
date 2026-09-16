@@ -1,0 +1,31 @@
+---
+/**
+ * Soft light that follows the pointer inside the element — the cheap trick that
+ * makes dark pricing tables and feature cards feel interactive.
+ *
+ * ```astro
+ * <Spotlight class="rounded-lg border border-border p-8">…</Spotlight>
+ * ```
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  /** Any CSS color; defaults to the brand primary. */
+  color?: string;
+  size?: string;
+  /** Render as a <section>/<li>/… instead of a <div>. */
+  as?: "div" | "section" | "article" | "li";
+  class?: string;
+}
+
+const { color, size = "22rem", as: Tag = "div", class: className } = Astro.props;
+const vars = [`--spotlight-size: ${size}`, color && `--spotlight-color: ${color}`].filter(Boolean).join("; ");
+---
+
+<Tag data-spotlight class={cn("relative isolate overflow-hidden", className)} style={vars}>
+  <slot />
+</Tag>
+
+<script>
+  import "./pointer-fx";
+</script>

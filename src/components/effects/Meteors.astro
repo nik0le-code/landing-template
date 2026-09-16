@@ -1,0 +1,81 @@
+---
+/**
+ * Shooting stars across a dark section. The randomness is baked at build time, so
+ * the browser only runs one CSS keyframe per meteor — no JS, no canvas.
+ *
+ * Put it in a `<Section tone="dark">` background slot.
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  count?: number;
+  /** Angle of travel. */
+  angle?: number;
+  class?: string;
+}
+
+const { count = 14, angle = 215, class: className } = Astro.props;
+
+// Deterministic pseudo-random: same markup on every build, so no hydration/diff churn.
+const rand = (seed: number, min: number, max: number) => {
+  const value = Math.abs(Math.sin(seed * 12.9898) * 43758.5453) % 1;
+  return +(min + value * (max - min)).toFixed(2);
+};
+const meteors = Array.from({ length: count }, (_, i) => ({
+  left: rand(i + 1, -10, 100),
+  top: rand(i + 21, -20, 60),
+  delay: rand(i + 41, 0, 8),
+  duration: rand(i + 61, 3, 9),
+}));
+---
+
+<div aria-hidden="true" class={cn("pointer-events-none absolute inset-0 overflow-hidden", className)} style={`--meteor-angle: ${angle}deg;`}>
+  {
+    meteors.map((meteor) => (
+      <span
+        class="meteor absolute size-0.5 rounded-full bg-current shadow-[0_0_0_1px_currentColor]"
+        style={`left: ${meteor.left}%; top: ${meteor.top}%; animation-delay: ${meteor.delay}s; animation-duration: ${meteor.duration}s;`}
+      />
+    ))
+  }
+</div>
+
+<style>
+  .meteor {
+    transform: rotate(var(--meteor-angle));
+    animation-name: meteor;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    opacity: 0;
+  }
+  /* The tail is a pseudo-element so each meteor is a single DOM node. */
+  .meteor::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    height: 1px;
+    width: 3rem;
+    translate: 0 -50%;
+    background: linear-gradient(90deg, currentColor, transparent);
+  }
+  @keyframes meteor {
+    0% {
+      translate: 0 0;
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.7;
+    }
+    100% {
+      translate: -28rem 0;
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .meteor {
+      animation: none;
+      opacity: 0.35;
+    }
+  }
+</style>

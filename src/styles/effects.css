@@ -1,0 +1,468 @@
+/*
+ * Motion and 3D effects.
+ *
+ * Rules this file follows, because a landing page lives or dies by its LCP/INP:
+ *   1. Scroll-linked motion uses CSS scroll-driven animations (`animation-timeline`)
+ *      — no scroll listeners, no IntersectionObserver, runs off the main thread.
+ *   2. Only compositor properties are animated (transform/translate/scale/rotate,
+ *      opacity, and custom properties). Never width/height/top/left/filter loops.
+ *   3. Everything is wrapped in `@supports` + `prefers-reduced-motion: no-preference`,
+ *      so an unsupported or motion-averse browser sees the final state — never an
+ *      invisible or half-animated page.
+ *   4. Nothing here shifts layout (no CLS): transforms only.
+ *
+ * Components in src/components/effects/ set the data attributes and variables.
+ */
+
+/* ---------------------------------------------------------------- reveal */
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    translate: 0 2rem;
+  }
+}
+@keyframes reveal-down {
+  from {
+    opacity: 0;
+    translate: 0 -2rem;
+  }
+}
+@keyframes reveal-left {
+  from {
+    opacity: 0;
+    translate: 2rem 0;
+  }
+}
+@keyframes reveal-right {
+  from {
+    opacity: 0;
+    translate: -2rem 0;
+  }
+}
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes reveal-zoom {
+  from {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+@keyframes reveal-blur {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+  }
+}
+/* 3D: the element swings in around its bottom edge, as if hinged to the page. */
+@keyframes reveal-flip {
+  from {
+    opacity: 0;
+    transform: perspective(1200px) rotateX(-24deg);
+  }
+}
+
+/* ---------------------------------------------------------------- scroll-driven */
+
+@keyframes parallax-shift {
+  to {
+    translate: 0 var(--parallax-distance, -3rem);
+  }
+}
+@keyframes scroll-progress {
+  from {
+    scale: 0 1;
+  }
+}
+@keyframes sticky-zoom {
+  to {
+    scale: var(--zoom-to, 1.15);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal] {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      /* `--reveal-offset` staggers grid items without a per-item delay. */
+      animation-range: entry calc(0% + var(--reveal-offset, 0%)) cover calc(25% + var(--reveal-offset, 0%));
+    }
+    [data-reveal="down"] {
+      animation-name: reveal-down;
+    }
+    [data-reveal="left"] {
+      animation-name: reveal-left;
+    }
+    [data-reveal="right"] {
+      animation-name: reveal-right;
+    }
+    [data-reveal="fade"] {
+      animation-name: reveal-fade;
+    }
+    [data-reveal="zoom"] {
+      animation-name: reveal-zoom;
+    }
+    [data-reveal="blur"] {
+      animation-name: reveal-blur;
+    }
+    [data-reveal="flip"] {
+      animation-name: reveal-flip;
+      transform-origin: 50% 100%;
+    }
+
+    /* Moves at a different rate than the page while it crosses the viewport. */
+    [data-parallax] {
+      animation: parallax-shift linear both;
+      animation-timeline: view();
+      animation-range: cover;
+      will-change: translate;
+    }
+
+    /* Grows as the element is scrolled through: pair with overflow-hidden. */
+    [data-scroll-zoom] {
+      animation: sticky-zoom linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+
+    /* Reading-progress bar; the timeline is the document, not the element. */
+    [data-scroll-progress] {
+      transform-origin: 0 50%;
+      animation: scroll-progress linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- count up */
+
+@property --countup-num {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
+@keyframes countup {
+  from {
+    --countup-num: 0;
+  }
+  to {
+    --countup-num: var(--countup-to, 0);
+  }
+}
+
+/* Browsers that have scroll-driven animations also have registered properties. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* The real number stays in the DOM for a11y and no-animation browsers; the
+       animated counter is decorative, so it is hidden from assistive tech. */
+    [data-countup] > [data-countup-value] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    [data-countup]::after {
+      content: counter(countup);
+      counter-reset: countup var(--countup-num);
+      animation: countup linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- aurora / mesh */
+
+@keyframes aurora-a {
+  50% {
+    translate: 12% -8%;
+    scale: 1.2;
+  }
+}
+@keyframes aurora-b {
+  50% {
+    translate: -10% 10%;
+    scale: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-aurora] > * {
+    animation: aurora-a var(--aurora-duration, 18s) ease-in-out infinite alternate;
+    will-change: translate, scale;
+  }
+  [data-aurora] > *:nth-child(2) {
+    animation-name: aurora-b;
+    animation-duration: calc(var(--aurora-duration, 18s) * 1.4);
+  }
+  [data-aurora] > *:nth-child(3) {
+    animation-duration: calc(var(--aurora-duration, 18s) * 0.8);
+    animation-direction: alternate-reverse;
+  }
+}
+
+/* ---------------------------------------------------------------- pointer 3D */
+
+/*
+ * Tilt and spotlight read --pointer-x/--pointer-y (0–1, set by pointer-fx.ts).
+ * Both degrade to a plain hover state when that script never runs.
+ */
+[data-tilt] {
+  perspective: var(--tilt-perspective, 900px);
+}
+[data-tilt] > * {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-style: preserve-3d;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  [data-tilt][data-pointer] > * {
+    transition-duration: 0.08s;
+    transform: rotateX(calc((0.5 - var(--pointer-y, 0.5)) * var(--tilt-max, 8deg) * 2))
+      rotateY(calc((var(--pointer-x, 0.5) - 0.5) * var(--tilt-max, 8deg) * 2)) translateZ(0);
+  }
+  /* Children can float above the card surface: class="[transform:translateZ(40px)]" */
+  [data-tilt] [data-tilt-layer] {
+    transform: translateZ(var(--tilt-layer, 2.5rem));
+  }
+  /* Moving highlight that makes the tilt read as a glossy surface. */
+  [data-tilt-glare]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s;
+    background: radial-gradient(
+      18rem 18rem at calc(var(--pointer-x, 0.5) * 100%) calc(var(--pointer-y, 0.5) * 100%),
+      color-mix(in oklch, white 22%, transparent),
+      transparent 60%
+    );
+  }
+  [data-tilt-glare]:hover::after {
+    opacity: 1;
+  }
+
+  [data-spotlight]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s;
+    background: radial-gradient(
+      var(--spotlight-size, 22rem) circle at calc(var(--pointer-x, 0.5) * 100%) calc(var(--pointer-y, 0.5) * 100%),
+      color-mix(in oklch, var(--spotlight-color, var(--color-primary)) 18%, transparent),
+      transparent 65%
+    );
+  }
+  [data-spotlight]:hover::before,
+  [data-spotlight]:focus-within::before {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------- flip card (CSS-only 3D) */
+
+[data-flip] {
+  perspective: 1200px;
+}
+[data-flip] > * {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-flip]:hover > *,
+[data-flip]:focus-within > * {
+  transform: rotateY(180deg);
+}
+[data-flip-face] {
+  backface-visibility: hidden;
+}
+[data-flip-face="back"] {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+/* ---------------------------------------------------------------- shine border */
+
+/*
+ * Animated gradient in the border only: paint the whole box, then mask out the
+ * content box with `mask-composite: exclude`. No second element, no bleed at the
+ * rounded corners.
+ */
+[data-shine-border] {
+  position: relative;
+}
+[data-shine-border]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--shine-width, 1px);
+  background-image: var(--shine-gradient, linear-gradient(110deg, var(--color-primary), var(--color-accent), var(--color-primary)));
+  background-size: 300% 100%;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+@keyframes shine-border {
+  to {
+    background-position: 300% 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-shine-border]::before {
+    animation: shine-border var(--shine-duration, 6s) linear infinite;
+  }
+}
+
+/* ---------------------------------------------------------------- shine sweep */
+
+@keyframes shine-sweep {
+  to {
+    translate: 250% 0;
+  }
+}
+
+[data-shine] {
+  overflow: hidden;
+}
+[data-shine]::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  translate: -150% 0;
+  background: linear-gradient(90deg, transparent, color-mix(in oklch, white 35%, transparent), transparent);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-shine]:hover::after,
+  [data-shine]:focus-visible::after {
+    animation: shine-sweep 0.9s ease-out;
+  }
+}
+
+/* ---------------------------------------------------------------- typewriter */
+
+@keyframes typewriter-chars {
+  from {
+    width: 0;
+  }
+}
+@keyframes typewriter-caret {
+  50% {
+    border-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-typewriter] {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: bottom;
+    border-right: 2px solid currentColor;
+    width: var(--typewriter-width, auto);
+    animation:
+      typewriter-chars var(--typewriter-duration, 2.4s) steps(var(--typewriter-steps, 20)) both,
+      typewriter-caret 0.9s step-end infinite;
+  }
+}
+
+/* ---------------------------------------------------------------- 3D perspective grid */
+
+@keyframes grid-drift {
+  to {
+    background-position: 0 var(--grid-size, 3rem);
+  }
+}
+
+[data-grid-3d] {
+  /* A floor receding to the horizon: one rotated, masked gradient plane. */
+  background-image:
+    linear-gradient(to right, var(--grid-color, color-mix(in oklch, currentColor 12%, transparent)) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color, color-mix(in oklch, currentColor 12%, transparent)) 1px, transparent 1px);
+  background-size: var(--grid-size, 3rem) var(--grid-size, 3rem);
+  transform: perspective(var(--grid-perspective, 30rem)) rotateX(var(--grid-angle, 62deg)) scale(2.2);
+  transform-origin: 50% 0%;
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-grid-3d] {
+    animation: grid-drift var(--grid-speed, 6s) linear infinite;
+  }
+}
+
+/* ---------------------------------------------------------------- page-load intro */
+
+/*
+ * Staggered entrance for hero copy. Deliberately translate-only: fading the
+ * headline in from opacity 0 would delay Largest Contentful Paint, because the
+ * browser reports LCP when the element is actually visible.
+ */
+@keyframes intro-rise {
+  from {
+    translate: 0 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-intro] > * {
+    animation: intro-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--intro-step, 90ms) * var(--intro-index, 0));
+  }
+  [data-intro] > *:nth-child(2) {
+    --intro-index: 1;
+  }
+  [data-intro] > *:nth-child(3) {
+    --intro-index: 2;
+  }
+  [data-intro] > *:nth-child(4) {
+    --intro-index: 3;
+  }
+  [data-intro] > *:nth-child(5) {
+    --intro-index: 4;
+  }
+  [data-intro] > *:nth-child(n + 6) {
+    --intro-index: 5;
+  }
+}
+
+/* ---------------------------------------------------------------- details/FAQ */
+
+/*
+ * Smooth native <details>. `interpolate-size` lets height animate to `auto`, and
+ * `allow-discrete` keeps the content visible for the duration of the close
+ * transition. Browsers without either simply snap open, as they always did — the
+ * FAQ answers stay in the HTML for crawlers regardless.
+ */
+:root {
+  interpolate-size: allow-keywords;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  details::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size 0.3s ease,
+      content-visibility 0.3s allow-discrete;
+  }
+  details[open]::details-content {
+    block-size: auto;
+  }
+}

@@ -1,43 +1,89 @@
 ---
+/**
+ * Customer logos. Pass real logo files per client:
+ *
+ * ```astro
+ * <LogoCloud title={copy.logos.title} logos={[{ src: acme, alt: "Acme" }]} />
+ * ```
+ *
+ * An entry with no `src` renders a monogram set in the mono face instead. That is
+ * for the demo and for clients whose customers have no usable mark: a typeset
+ * initial reads as deliberate, a grey blob reads as a placeholder nobody replaced.
+ */
 import Img from "@/components/ui/Img.astro";
 import Section from "@/components/ui/Section.astro";
 import Marquee from "@/components/effects/Marquee.astro";
 import type { ImageSource } from "./types";
 
+export interface LogoItem {
+  /** Omit to render a monogram built from `alt`. */
+  src?: ImageSource;
+  alt: string;
+  href?: string;
+}
+
 interface Props {
   title?: string;
-  logos: { src: ImageSource; alt: string; href?: string }[];
+  logos: LogoItem[];
   /** "marquee" scrolls continuously; "grid" is static. */
   variant?: "grid" | "marquee";
   tone?: "default" | "muted";
 }
 
 const { title, logos, variant = "marquee", tone = "default" } = Astro.props;
-const logoClass = "h-8 w-auto opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0";
+const logoClass = "h-7 w-auto opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0";
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase();
 ---
 
-<Section tone={tone} spacing="sm">
-  {title && <p class="mb-8 text-center text-sm font-medium text-muted-foreground">{title}</p>}
+<Section tone={tone} spacing="sm" class="border-y border-border">
+  {title && <p class="label mb-8 text-center text-muted-foreground">{title}</p>}
   {
     variant === "marquee" ? (
-      <Marquee duration={35} gap="4rem">
-        {logos.map((logo) => (
-          <Img src={logo.src} alt={logo.alt} height={32} class={logoClass} />
-        ))}
+      <Marquee duration={40} gap="3.5rem">
+        {logos.map((logo) =>
+          logo.src ? (
+            <Img src={logo.src} alt={logo.alt} height={28} class={logoClass} />
+          ) : (
+            <span class="flex items-center gap-2.5 text-muted-foreground transition-colors hover:text-foreground">
+              <span class="grid size-7 place-items-center border border-current font-mono text-[0.625rem] leading-none">
+                {initials(logo.alt)}
+              </span>
+              <span class="text-sm tracking-tight whitespace-nowrap">{logo.alt}</span>
+            </span>
+          ),
+        )}
       </Marquee>
     ) : (
       <ul class="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
-        {logos.map((logo) => (
-          <li>
-            {logo.href ? (
-              <a href={logo.href} target="_blank" rel="noopener noreferrer">
-                <Img src={logo.src} alt={logo.alt} height={32} class={logoClass} />
-              </a>
-            ) : (
-              <Img src={logo.src} alt={logo.alt} height={32} class={logoClass} />
-            )}
-          </li>
-        ))}
+        {logos.map((logo) => {
+          const mark = logo.src ? (
+            <Img src={logo.src} alt={logo.alt} height={28} class={logoClass} />
+          ) : (
+            <span class="flex items-center gap-2.5 text-muted-foreground">
+              <span class="grid size-7 place-items-center border border-current font-mono text-[0.625rem] leading-none">
+                {initials(logo.alt)}
+              </span>
+              <span class="text-sm tracking-tight">{logo.alt}</span>
+            </span>
+          );
+          return (
+            <li>
+              {logo.href ? (
+                <a href={logo.href} target="_blank" rel="noopener noreferrer">
+                  {mark}
+                </a>
+              ) : (
+                mark
+              )}
+            </li>
+          );
+        })}
       </ul>
     )
   }

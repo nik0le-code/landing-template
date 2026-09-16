@@ -19,11 +19,17 @@ const { contact } = siteConfig;
 const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : undefined;
 ---
 
-<footer class="border-t border-border bg-muted/40 [content-visibility:auto] [contain-intrinsic-size:auto_400px]">
-  <Container class="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[2fr_repeat(3,1fr)]">
-    <div class="space-y-4">
+<footer class="relative overflow-hidden border-t border-border bg-muted/50 [content-visibility:auto] [contain-intrinsic-size:auto_400px]">
+  <!-- A single soft wash keeps the footer from reading as a grey slab. -->
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-x-0 -top-24 h-48 bg-[radial-gradient(60rem_16rem_at_50%_0%,color-mix(in_oklch,var(--color-primary)_10%,transparent),transparent)]"
+  >
+  </div>
+  <Container class="relative grid gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[2fr_repeat(3,1fr)] lg:gap-10">
+    <div class="space-y-5">
       <Logo />
-      <p class="max-w-xs text-sm text-muted-foreground">{siteConfig.description[lang]}</p>
+      <p class="max-w-xs text-pretty text-sm text-muted-foreground">{siteConfig.description[lang]}</p>
       {
         hasEditableSettings ? (
           <SocialLinks server:defer lang={lang}>
@@ -38,11 +44,11 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : 
     {
       footerColumns.map((column, index) => (
         <nav aria-label={t(column.title)}>
-          <h2 class="text-sm font-semibold">{t(column.title)}</h2>
-          <ul class="mt-4 space-y-3">
+          <h2 class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{t(column.title)}</h2>
+          <ul class="mt-5 space-y-3">
             {column.links.map((link) => (
               <li>
-                <a href={navHref(link, lang)} class="text-sm text-muted-foreground hover:text-foreground">
+                <a href={navHref(link, lang)} class="text-sm text-foreground/75 transition-colors hover:text-primary">
                   {t(link.label)}
                 </a>
               </li>
@@ -50,7 +56,7 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : 
             {index === 0 &&
               getPublicNav(lang).map((link) => (
                 <li>
-                  <a href={localizePath(link.path, lang)} class="text-sm text-muted-foreground hover:text-foreground">
+                  <a href={localizePath(link.path, lang)} class="text-sm text-foreground/75 transition-colors hover:text-primary">
                     {link.label}
                   </a>
                 </li>
@@ -60,13 +66,13 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : 
       ))
     }
 
-    <address class="space-y-3 text-sm not-italic text-muted-foreground">
-      <a href={`mailto:${contact.email}`} class="flex items-center gap-2 hover:text-foreground">
+    <address class="space-y-3 text-sm not-italic text-foreground/75">
+      <a href={`mailto:${contact.email}`} class="flex items-center gap-2 transition-colors hover:text-primary">
         <Mail class="size-4 shrink-0" aria-hidden="true" />{contact.email}
       </a>
       {
         telHref && (
-          <a href={telHref} class="flex items-center gap-2 hover:text-foreground">
+          <a href={telHref} class="flex items-center gap-2 transition-colors hover:text-primary">
             <Phone class="size-4 shrink-0" aria-hidden="true" />
             {contact.phone}
           </a>
@@ -85,8 +91,8 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : 
     </address>
   </Container>
 
-  <div class="border-t border-border">
-    <Container class="flex flex-col gap-3 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+  <div class="relative border-t border-border/70">
+    <Container class="flex flex-col gap-3 py-6 text-[0.8125rem] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
       <p>{t("footer.rights", { year: new Date().getFullYear(), name: siteConfig.organization.legalName })}</p>
       <div class="flex items-center gap-4">
         {

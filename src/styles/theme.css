@@ -1,33 +1,211 @@
 /*
  * Per-client design tokens. Change these first when branding a new project.
- * Every component uses these semantic tokens (bg-primary, text-muted-foreground, …),
+ * Every component uses the semantic tokens (bg-primary, text-muted-foreground, …),
  * never raw palette colors, so re-theming is a one-file change.
+ *
+ * The look is ink on paper: warm neutrals, hairline rules, one real colour used
+ * sparingly. No gradient meshes, no glows, no glass. Elevation comes from borders
+ * and space, not from shadow.
+ *
+ * Light and dark are the SAME token names with different values:
+ *   :root                       light values (the source of truth)
+ *   prefers-color-scheme: dark  system dark, unless the visitor picked light
+ *   [data-theme="dark"|"light"] the visitor's explicit choice, set by ThemeToggle
+ *
+ * `@theme inline` below makes every utility resolve the variable at runtime rather
+ * than baking in a value, which is what lets the toggle work without a reload.
  */
+
+:root {
+  color-scheme: light;
+
+  /* Warm near-black on warm off-white, never #000 / #fff. The barely-there hue 80
+     reads as paper instead of the cold blue-grey of every generated landing page. */
+  --background: oklch(0.985 0.003 80);
+  --foreground: oklch(0.22 0.011 80);
+  --muted: oklch(0.957 0.005 80);
+  --muted-foreground: oklch(0.47 0.012 80);
+  --border: oklch(0.897 0.006 80);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+
+  /* Primary is ink, not a colour. Buttons and links carry weight through contrast,
+     which is what keeps the page from looking like a gradient SaaS template. */
+  --primary: oklch(0.255 0.012 80);
+  --primary-foreground: oklch(0.985 0.003 80);
+  --secondary: oklch(0.94 0.006 80);
+  --secondary-foreground: oklch(0.28 0.012 80);
+
+  /* The one real colour on the page: rules, the active nav item, a highlighted
+     word, a small icon. Never a large fill. Replace this per client. */
+  --accent: oklch(0.53 0.135 45);
+  --accent-foreground: oklch(0.985 0.003 80);
+
+  --destructive: oklch(0.52 0.18 27);
+  --destructive-foreground: oklch(0.985 0.003 80);
+  --success: oklch(0.5 0.1 150);
+
+  /* Inverted band (dark stats strip, toast). Must NOT flip in dark mode, or those
+     sections turn into white slabs mid-page. */
+  --contrast: oklch(0.22 0.011 80);
+  --contrast-foreground: oklch(0.97 0.004 80);
+
+  /* Large filled panels (CTA, announcement bar). Ink, not brand colour: a
+     full-bleed saturated block is the loudest part of the AI look. */
+  --brand-surface: var(--contrast);
+  --brand-surface-foreground: var(--contrast-foreground);
+
+  /* Shadows exist for things that genuinely float (dialogs, menus). Everything
+     else uses a hairline. */
+  --shadow-color: 0.22 0.011 80;
+  --shadow-strength: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* An explicit light choice wins over the system preference. */
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: oklch(0.185 0.006 80);
+    --foreground: oklch(0.95 0.004 80);
+    --muted: oklch(0.232 0.007 80);
+    --muted-foreground: oklch(0.705 0.012 80);
+    --border: oklch(0.305 0.008 80);
+    --card: oklch(0.222 0.007 80);
+    --card-foreground: var(--foreground);
+
+    /* Ink inverts to paper: light buttons on a dark page. */
+    --primary: oklch(0.94 0.004 80);
+    --primary-foreground: oklch(0.2 0.011 80);
+    --secondary: oklch(0.28 0.009 80);
+    --secondary-foreground: oklch(0.93 0.005 80);
+
+    --accent: oklch(0.72 0.12 48);
+    --accent-foreground: oklch(0.19 0.012 48);
+
+    --destructive: oklch(0.65 0.17 27);
+    --destructive-foreground: oklch(0.17 0.02 27);
+    --success: oklch(0.7 0.11 150);
+
+    --contrast: oklch(0.26 0.008 80);
+    --contrast-foreground: oklch(0.96 0.004 80);
+    --brand-surface: var(--contrast);
+    --brand-surface-foreground: var(--contrast-foreground);
+
+    --shadow-color: 0.02 0.004 80;
+    --shadow-strength: 2;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: oklch(0.185 0.006 80);
+  --foreground: oklch(0.95 0.004 80);
+  --muted: oklch(0.232 0.007 80);
+  --muted-foreground: oklch(0.705 0.012 80);
+  --border: oklch(0.305 0.008 80);
+  --card: oklch(0.222 0.007 80);
+  --card-foreground: var(--foreground);
+
+  --primary: oklch(0.94 0.004 80);
+  --primary-foreground: oklch(0.2 0.011 80);
+  --secondary: oklch(0.28 0.009 80);
+  --secondary-foreground: oklch(0.93 0.005 80);
+
+  --accent: oklch(0.72 0.12 48);
+  --accent-foreground: oklch(0.19 0.012 48);
+
+  --destructive: oklch(0.65 0.17 27);
+  --destructive-foreground: oklch(0.17 0.02 27);
+  --success: oklch(0.7 0.11 150);
+
+  --contrast: oklch(0.26 0.008 80);
+  --contrast-foreground: oklch(0.96 0.004 80);
+  --brand-surface: var(--contrast);
+  --brand-surface-foreground: var(--contrast-foreground);
+
+  --shadow-color: 0.02 0.004 80;
+  --shadow-strength: 2;
+}
+
+@theme inline {
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-contrast: var(--contrast);
+  --color-contrast-foreground: var(--contrast-foreground);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-surface-foreground: var(--brand-surface-foreground);
+
+  --shadow-xs: 0 1px 1px oklch(var(--shadow-color) / calc(0.04 * var(--shadow-strength)));
+  --shadow-sm: 0 1px 2px oklch(var(--shadow-color) / calc(0.05 * var(--shadow-strength)));
+  --shadow-md: 0 4px 12px -4px oklch(var(--shadow-color) / calc(0.08 * var(--shadow-strength)));
+  --shadow-lg: 0 12px 28px -12px oklch(var(--shadow-color) / calc(0.12 * var(--shadow-strength)));
+  --shadow-xl: 0 20px 44px -20px oklch(var(--shadow-color) / calc(0.14 * var(--shadow-strength)));
+  --shadow-2xl: 0 28px 64px -28px oklch(var(--shadow-color) / calc(0.18 * var(--shadow-strength)));
+}
+
 @theme {
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  /* Small radii throughout. Pill buttons plus glass plus soft corners is exactly
+     the look this template avoids. */
+  --radius-sm: 0.1875rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
 
-  --color-background: oklch(0.99 0 0);
-  --color-foreground: oklch(0.21 0.02 265);
-  --color-muted: oklch(0.96 0.005 265);
-  --color-muted-foreground: oklch(0.5 0.02 265);
-  --color-border: oklch(0.91 0.01 265);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: var(--color-foreground);
+  --container-page: 78rem;
+}
 
-  --color-primary: oklch(0.55 0.2 265);
-  --color-primary-foreground: oklch(0.99 0 0);
-  --color-secondary: oklch(0.94 0.02 265);
-  --color-secondary-foreground: oklch(0.3 0.05 265);
-  --color-accent: oklch(0.75 0.15 190);
-  --color-accent-foreground: oklch(0.2 0.03 265);
-  --color-destructive: oklch(0.58 0.22 27);
-  --color-destructive-foreground: oklch(0.99 0 0);
-  --color-success: oklch(0.6 0.15 150);
+@layer base {
+  /* Display type: tighter tracking as the size grows, which is what makes large
+     headlines look typeset rather than merely big. */
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+  h1 {
+    letter-spacing: -0.028em;
+  }
+}
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
+@layer components {
+  /* Monochrome logo files (the template default is ink on transparent) flip in dark
+     mode. A client with a coloured logo should remove the class from Logo.astro. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .logo-mark {
+      filter: invert(1);
+    }
+  }
+  :root[data-theme="dark"] .logo-mark {
+    filter: invert(1);
+  }
 
-  --container-page: 76rem;
+  /* Small caps label (eyebrows, table headers, meta). Set in the mono face so it
+     does the "this is a label" job without a colour chip or a pill. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
 }

@@ -1,0 +1,82 @@
+---
+/**
+ * One entry in the UI kit: a live preview plus the exact code that produced it,
+ * with a copy button. Files starting with `_` are not routes.
+ *
+ * ```astro
+ * <Demo title="Primary" code={`<Button>Save</Button>`}>
+ *   <Button>Save</Button>
+ * </Demo>
+ * ```
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Shown in the code panel. Keep it to the snippet someone would paste. */
+  code?: string;
+  /** Dark preview surface, for effects that only read on a dark background. */
+  dark?: boolean;
+  /** Removes the preview padding (full-bleed backgrounds, marquees). */
+  flush?: boolean;
+  class?: string;
+}
+
+const { title, description, code, dark = false, flush = false, class: className } = Astro.props;
+const id = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+---
+
+<article class="scroll-mt-24" id={id}>
+  <header class="mb-3 flex items-baseline justify-between gap-4">
+    <div>
+      <h3 class="font-semibold">
+        <a href={`#${id}`} class="hover:text-primary">{title}</a>
+      </h3>
+      {description && <p class="mt-0.5 text-sm text-muted-foreground">{description}</p>}
+    </div>
+    {
+      code && (
+        <button
+          type="button"
+          class="shrink-0 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+          data-copy={code}
+        >
+          Copy
+        </button>
+      )
+    }
+  </header>
+
+  <div
+    class={cn(
+      "overflow-hidden rounded-lg border border-border",
+      dark ? "bg-contrast text-contrast-foreground" : "bg-card",
+      !flush && "p-6",
+      className,
+    )}
+  >
+    <slot />
+  </div>
+
+  {
+    code && (
+      <details class="group mt-2">
+        <summary class="cursor-pointer text-xs text-muted-foreground hover:text-foreground">Code</summary>
+        <pre class="mt-2 overflow-x-auto rounded-md bg-muted p-3 text-xs leading-relaxed"><code>{code}</code></pre>
+      </details>
+    )
+  }
+</article>
+
+<script>
+  // Dev-only page, so a plain listener is fine — this never ships to a client site.
+  document.addEventListener("click", async (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLElement>("[data-copy]");
+    if (!button) return;
+    await navigator.clipboard.writeText(button.dataset.copy ?? "");
+    const original = button.textContent;
+    button.textContent = "Copied";
+    setTimeout(() => (button.textContent = original), 1200);
+  });
+</script>

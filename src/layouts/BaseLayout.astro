@@ -5,6 +5,7 @@
  */
 import { Font } from "astro:assets";
 import { siteConfig } from "@site-config";
+import { themeScript } from "@/lib/theme-script";
 import Seo, { type SeoProps } from "@/components/seo/Seo.astro";
 import JsonLd from "@/components/seo/JsonLd.astro";
 import Analytics from "@/components/tracking/Analytics.astro";
@@ -25,17 +26,24 @@ const lang = Astro.locals.lang;
 ---
 
 <!doctype html>
-<html lang={lang} dir="ltr">
+<html lang={lang} dir="ltr" data-theme={siteConfig.darkMode ? undefined : "light"}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <Seo {...seo} />
-    <Font cssVariable="--font-inter" preload={localeFontSubsets[lang].map((subset) => ({ subset }))} />
+    <Font cssVariable="--font-plex-sans" preload={localeFontSubsets[lang].map((subset) => ({ subset }))} />
+    <Font cssVariable="--font-plex-mono" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content={siteConfig.themeColor} />
+    {
+      /* Runs before first paint, so a visitor who picked a theme never sees the
+         other one flash. `set:html` because a raw <script> body would be emitted
+         verbatim, string literal and all. */
+      siteConfig.darkMode && <script is:inline set:html={themeScript} />
+    }
     <link rel="sitemap" href="/sitemap.xml" />
     {schema.length > 0 && <JsonLd data={graph(...schema)} />}
     <Analytics />

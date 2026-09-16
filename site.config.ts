@@ -22,6 +22,12 @@ export interface SiteConfig {
   /** Default Open Graph image, relative to /public. */
   ogImage: string;
   themeColor: string;
+  /**
+   * Dark mode: follow the visitor's system setting and show a toggle in the navbar.
+   * Set false for a brand that must always render light (the palette then never
+   * switches, and the toggle disappears).
+   */
+  darkMode: boolean;
   organization: {
     legalName: string;
     /** "Organization" or a LocalBusiness subtype, e.g. "Dentist", "Restaurant". */
@@ -83,7 +89,8 @@ export const siteConfig: SiteConfig = {
     en: "Acme helps businesses grow with modern solutions.",
   },
   ogImage: "/og-default.png",
-  themeColor: "#0f172a",
+  themeColor: "#1c1b19",
+  darkMode: true,
   organization: {
     legalName: "Acme Ltd",
     type: "Organization",

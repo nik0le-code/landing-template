@@ -1,95 +1,398 @@
 ---
 /**
- * Dev-only showcase of the UI kit (404 in production builds). Not in the sitemap
- * because it lives outside src/pages/[lang]/.
+ * The UI kit: every primitive, every effect, with copy-paste snippets.
+ * Dev-only — it rewrites to 404 in a production build and is never in the sitemap.
+ *
+ * `npm run dev` → http://localhost:3000/dev/ui-kit
  */
 import ArrowRight from "@lucide/astro/icons/arrow-right";
 import Sparkles from "@lucide/astro/icons/sparkles";
-import PageLayout from "@/layouts/PageLayout.astro";
+import Zap from "@lucide/astro/icons/zap";
 import Badge from "@/components/ui/Badge.astro";
 import Button from "@/components/ui/Button.astro";
 import Card from "@/components/ui/Card.astro";
 import Field from "@/components/ui/Field.astro";
 import Input from "@/components/ui/Input.astro";
 import Prose from "@/components/ui/Prose.astro";
-import Section from "@/components/ui/Section.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import Select from "@/components/ui/Select.astro";
 import Textarea from "@/components/ui/Textarea.astro";
+import Aurora from "@/components/effects/Aurora.astro";
+import CountUp from "@/components/effects/CountUp.astro";
+import FlipCard from "@/components/effects/FlipCard.astro";
 import GlowBackground from "@/components/effects/GlowBackground.astro";
 import GridBackground from "@/components/effects/GridBackground.astro";
+import LampLight from "@/components/effects/LampLight.astro";
 import Marquee from "@/components/effects/Marquee.astro";
+import Meteors from "@/components/effects/Meteors.astro";
+import OrbitingCircles from "@/components/effects/OrbitingCircles.astro";
+import Parallax from "@/components/effects/Parallax.astro";
+import PerspectiveGrid from "@/components/effects/PerspectiveGrid.astro";
 import Reveal from "@/components/effects/Reveal.astro";
+import Shine from "@/components/effects/Shine.astro";
+import ShineBorder from "@/components/effects/ShineBorder.astro";
+import Spotlight from "@/components/effects/Spotlight.astro";
+import Tilt from "@/components/effects/Tilt.astro";
+import Typewriter from "@/components/effects/Typewriter.astro";
+import DevLayout from "./_DevLayout.astro";
+import Demo from "./_Demo.astro";
 
 if (!import.meta.env.DEV) return Astro.rewrite("/404");
+
+const sections: [string, string][] = [
+  ["foundations", "Foundations"],
+  ["buttons", "Buttons & badges"],
+  ["cards", "Cards"],
+  ["forms", "Forms"],
+  ["text", "Text"],
+  ["motion", "Motion"],
+  ["three-d", "3D & pointer"],
+  ["backgrounds", "Backgrounds"],
+  ["sections", "Page sections"],
+];
+
+const tokens = [
+  ["primary", "bg-primary"],
+  ["secondary", "bg-secondary"],
+  ["accent", "bg-accent"],
+  ["muted", "bg-muted"],
+  ["card", "bg-card"],
+  ["foreground", "bg-foreground"],
+  ["contrast", "bg-contrast"],
+  ["destructive", "bg-destructive"],
+  ["success", "bg-success"],
+];
+
+const sectionComponents = [
+  "HeroCentered", "HeroSplit", "FeatureGrid", "Bento", "Steps", "Stats",
+  "Pricing", "Testimonials", "Faq", "Gallery", "Timeline", "Team",
+  "LogoCloud", "ContactSection", "Cta", "LegalPage",
+];
 ---
 
-<PageLayout
-  seo={{ title: "UI kit", noindex: true, alternates: null }}
-  breadcrumbs={[{ name: "UI kit" }]}
-  announcement={{ text: "Announcement bar example", href: "#", linkText: "Learn more" }}
->
-  <Section>
-    <GridBackground slot="background" />
-    <GlowBackground slot="background" />
-    <SectionHeading tag="h1" eyebrow="Eyebrow" title="Section heading" description="A description that explains the section in one or two sentences." />
-    <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
-      <Button>Primary <ArrowRight /></Button>
-      <Button variant="secondary">Secondary</Button>
-      <Button variant="outline">Outline</Button>
-      <Button variant="ghost">Ghost</Button>
-      <Button variant="link" href="#">Link</Button>
-      <Button variant="destructive" size="sm">Destructive</Button>
-      <Button size="lg" href="#"><Sparkles /> Large link</Button>
-    </div>
-    <div class="mt-6 flex flex-wrap justify-center gap-2">
-      <Badge>Default</Badge><Badge variant="secondary">Secondary</Badge><Badge variant="outline">Outline</Badge>
-      <Badge variant="success">Success</Badge><Badge variant="destructive">Destructive</Badge>
-    </div>
-  </Section>
+<DevLayout title="UI kit" sections={sections}>
+  <div class="space-y-14 px-4 py-10 sm:px-8">
+    <!-- ---------------------------------------------------------------- foundations -->
+    <section id="foundations" class="scroll-mt-16 space-y-6">
+      <h2 class="text-xl font-bold tracking-tight">Foundations</h2>
+      <p class="max-w-2xl text-sm text-muted-foreground">
+        Ink on paper: warm neutrals, hairline rules, one accent used sparingly, no glow. Everything is driven by
+        <code class="rounded-sm bg-muted px-1">src/styles/theme.css</code>, so changing those tokens re-themes the whole site.
+      </p>
 
-  <Section tone="muted">
-    <SectionHeading title="Cards + reveal" align="left" />
-    <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {
-        Array.from({ length: 6 }, (_, i) => (
-          <Reveal stagger={i}>
-            <Card interactive>
-              <h3 class="font-semibold">Card {i + 1}</h3>
-              <p class="mt-2 text-sm text-muted-foreground">Cards reveal on scroll with CSS only.</p>
+      <Demo title="Colour tokens" code={`<div class="bg-primary text-primary-foreground">…</div>`}>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {
+            tokens.map(([name, klass]) => (
+              <div>
+                <div class={`h-14 rounded-md border border-border ${klass}`} />
+                <p class="mt-1.5 text-xs text-muted-foreground">{name}</p>
+              </div>
+            ))
+          }
+        </div>
+      </Demo>
+
+      <Demo title="Type scale" description="IBM Plex Sans for text, IBM Plex Mono for labels. Both cover Greek." code={`<h1 class="text-4xl font-medium">…</h1>
+<p class="label">Section label</p>`}>
+        <div class="space-y-2">
+          <p class="label text-muted-foreground">Section label</p>
+          <p class="text-4xl font-medium">Display 4xl</p>
+          <p class="text-2xl font-medium">Heading 2xl</p>
+          <p class="text-base">Body base, the default paragraph size.</p>
+          <p class="text-sm text-muted-foreground">Small muted, for captions and hints.</p>
+        </div>
+      </Demo>
+
+      <Demo title="Radius & elevation" code={`<div class="rounded-lg border border-border shadow-lg">…</div>`}>
+        <div class="flex flex-wrap gap-4">
+          {
+            ["rounded-sm", "rounded-md", "rounded-lg", "rounded-xl"].map((radius) => (
+              <div class={`grid size-20 place-items-center border border-border bg-muted text-xs ${radius}`}>{radius.replace("rounded-", "")}</div>
+            ))
+          }
+          <div class="grid size-20 place-items-center rounded-lg bg-card text-xs shadow-lg">shadow-lg</div>
+        </div>
+      </Demo>
+    </section>
+
+    <!-- ---------------------------------------------------------------- buttons -->
+    <section id="buttons" class="scroll-mt-16 space-y-6">
+      <h2 class="text-xl font-bold tracking-tight">Buttons & badges</h2>
+
+      <Demo title="Button variants" code={`<Button variant="secondary" size="lg" href="/contact">Get in touch</Button>`}>
+        <div class="flex flex-wrap items-center gap-3">
+          <Button>Primary <ArrowRight /></Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="outline">Outline</Button>
+          <Button variant="ghost">Ghost</Button>
+          <Button variant="link" href="#">Link</Button>
+          <Button variant="destructive" size="sm">Destructive</Button>
+          <Button size="lg" href="#"><Sparkles /> Large link</Button>
+        </div>
+      </Demo>
+
+      <Demo
+        title="Button with shine"
+        description="Off by default. Decoration like this is opt-in, per client."
+        code={`<Shine class="rounded-md"><Button size="lg">Book a call</Button></Shine>`}
+      >
+        <Shine class="rounded-md"><Button size="lg">Book a call</Button></Shine>
+      </Demo>
+
+      <Demo title="Badges" code={`<Badge variant="success">Live</Badge>`}>
+        <div class="flex flex-wrap gap-2">
+          <Badge>Default</Badge><Badge variant="secondary">Secondary</Badge><Badge variant="outline">Outline</Badge>
+          <Badge variant="success">Success</Badge><Badge variant="destructive">Destructive</Badge>
+        </div>
+      </Demo>
+    </section>
+
+    <!-- ---------------------------------------------------------------- cards -->
+    <section id="cards" class="scroll-mt-16 space-y-6">
+      <h2 class="text-xl font-bold tracking-tight">Cards</h2>
+
+      <Demo title="Card padding & hover" code={`<Card interactive padding="lg">…</Card>`}>
+        <div class="grid gap-4 sm:grid-cols-3">
+          <Card padding="sm"><p class="text-sm">padding="sm"</p></Card>
+          <Card><p class="text-sm">default</p></Card>
+          <Card interactive><p class="text-sm">interactive (hover)</p></Card>
+        </div>
+      </Demo>
+
+      <Demo
+        title="Spotlight card"
+        description="Light follows the pointer. Falls back to a plain card on touch."
+        code={`<Spotlight class="rounded-lg border border-border p-6">…</Spotlight>`}
+      >
+        <div class="grid gap-4 sm:grid-cols-2">
+          {
+            ["Fast by default", "Zero JavaScript"].map((title) => (
+              <Spotlight class="rounded-lg border border-border bg-card p-6">
+                <h4 class="font-semibold">{title}</h4>
+                <p class="mt-1 text-sm text-muted-foreground">Move the pointer across this card.</p>
+              </Spotlight>
+            ))
+          }
+        </div>
+      </Demo>
+
+      <Demo title="Shine border" description="Animated gradient border for the featured plan." code={`<ShineBorder class="rounded-lg"><Card>…</Card></ShineBorder>`}>
+        <ShineBorder class="max-w-sm rounded-lg">
+          <Card class="border-0">
+            <h4 class="font-semibold">Featured</h4>
+            <p class="mt-1 text-sm text-muted-foreground">The gradient runs in the border only.</p>
+          </Card>
+        </ShineBorder>
+      </Demo>
+    </section>
+
+    <!-- ---------------------------------------------------------------- forms -->
+    <section id="forms" class="scroll-mt-16 space-y-6">
+      <h2 class="text-xl font-bold tracking-tight">Forms</h2>
+      <Demo
+        title="Fields"
+        description="Field renders the label, hint, error and the required mark; inputs stay dumb."
+        code={`<Field id="email" label="Email" error={errors.email}>
+  <Input id="email" name="email" type="email" required />
+</Field>`}
+      >
+        <form class="max-w-md space-y-5">
+          <Field id="name" label="Name" required hint="As it appears on your ID"><Input id="name" name="name" required /></Field>
+          <Field id="email" label="Email" error="Please enter a valid email"><Input id="email" type="email" invalid /></Field>
+          <Field id="topic" label="Topic">
+            <Select id="topic"><option>General</option><option>Sales</option></Select>
+          </Field>
+          <Field id="message" label="Message"><Textarea id="message" /></Field>
+          <Button type="submit">Send</Button>
+        </form>
+      </Demo>
+    </section>
+
+    <!-- ---------------------------------------------------------------- text -->
+    <section id="text" class="scroll-mt-16 space-y-6">
+      <h2 class="text-xl font-bold tracking-tight">Text</h2>
+
+      <Demo title="Section heading" code={`<SectionHeading eyebrow="Why us" title="Built for speed" description="…" align="left" />`}>
+        <SectionHeading tag="h3" eyebrow="Eyebrow" title="Section heading" description="One or two sentences of context." align="left" />
+      </Demo>
+
+      <Demo title="Typewriter" description="One short phrase inside an otherwise static heading." code={`<h1>We build <Typewriter text="landing pages" /></h1>`}>
+        <p class="text-2xl font-bold">We build <Typewriter text="landing pages" class="text-primary" /></p>
+      </Demo>
+
+      <Demo title="Count up" description="CSS counter animation on scroll, no JavaScript." code={`<CountUp value={1200} suffix="+" />`}>
+        <div class="flex flex-wrap gap-10">
+          <p class="text-3xl font-bold"><CountUp value={1200} suffix="+" /><span class="mt-1 block text-sm font-normal text-muted-foreground">Projects</span></p>
+          <p class="text-3xl font-bold"><CountUp value={98} suffix="%" /><span class="mt-1 block text-sm font-normal text-muted-foreground">Retention</span></p>
+        </div>
+      </Demo>
+
+      <Demo title="Prose" description="For Markdown-rendered content." code={`<Prose set:html={html} />`}>
+        <Prose>
+          <h2>Prose heading</h2>
+          <p>Long-form text with <a href="#">a link</a>, <strong>bold</strong> and <code>code</code>.</p>
+          <ul><li>First item</li><li>Second item</li></ul>
+          <blockquote>A quote.</blockquote>
+        </Prose>
+      </Demo>
+    </section>
+
+    <!-- ---------------------------------------------------------------- motion -->
+    <section id="motion" class="scroll-mt-16 space-y-6">
+      <h2 class="text-xl font-bold tracking-tight">Motion</h2>
+      <p class="max-w-2xl text-sm text-muted-foreground">
+        Scroll-linked effects use CSS scroll-driven animations: no scroll listeners, nothing to hydrate, and they simply don't run
+        for reduced-motion users. Scroll this panel to see them.
+      </p>
+
+      <Demo title="Reveal" description="effect: up · down · left · right · fade · zoom · blur · flip" code={`<Reveal effect="up" stagger={i}>
+  <Card>…</Card>
+</Reveal>`}>
+        <div class="grid gap-3 sm:grid-cols-4">
+          {
+            (["up", "fade", "zoom", "blur", "left", "right", "down", "flip"] as const).map((effect, i) => (
+              <Reveal effect={effect} stagger={i}>
+                <Card padding="sm" class="text-center text-sm">{effect}</Card>
+              </Reveal>
+            ))
+          }
+        </div>
+      </Demo>
+
+      <Demo title="Parallax" description="Content drifts as it crosses the viewport." code={`<Parallax distance="-4rem"><Img … /></Parallax>`} flush>
+        <div class="h-56 overflow-hidden bg-muted">
+          <Parallax distance="-4rem" class="grid h-full place-items-center">
+            <p class="text-lg font-semibold">I move slower than the page</p>
+          </Parallax>
+        </div>
+      </Demo>
+
+      <Demo title="Marquee" description="Duplicated content, pauses on hover, scrollable when reduced motion is on." code={`<Marquee duration={40} fade>…</Marquee>`} flush>
+        <Marquee class="py-6">
+          {["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta"].map((name) => <span class="text-2xl font-bold text-muted-foreground">{name}</span>)}
+        </Marquee>
+      </Demo>
+
+      <Demo title="Lamp divider" code={`<LampLight />`}>
+        <div class="py-8"><LampLight /></div>
+      </Demo>
+    </section>
+
+    <!-- ---------------------------------------------------------------- 3d -->
+    <section id="three-d" class="scroll-mt-16 space-y-6">
+      <h2 class="text-xl font-bold tracking-tight">3D & pointer</h2>
+      <p class="max-w-2xl text-sm text-muted-foreground">
+        CSS 3D transforms, no WebGL and no canvas. Tilt and spotlight share one ~0.4 KB pointer script that only runs on devices with
+        a real pointer.
+      </p>
+
+      <Demo
+        title="Tilt card"
+        description="data-tilt-layer lifts an element off the surface."
+        code={`<Tilt glare max={10}>
+  <Card>
+    <h3 data-tilt-layer>Floats above</h3>
+  </Card>
+</Tilt>`}
+      >
+        <div class="grid gap-6 sm:grid-cols-2">
+          <Tilt glare max={10}>
+            <Card class="h-40">
+              <Zap class="size-6 text-primary" />
+              <h4 class="mt-2 font-semibold" data-tilt-layer>Tilt with glare</h4>
+              <p class="text-sm text-muted-foreground">Point at me.</p>
             </Card>
-          </Reveal>
-        ))
-      }
-    </div>
-  </Section>
+          </Tilt>
+          <Tilt max={14} perspective="600px">
+            <Card class="h-40">
+              <h4 class="font-semibold">Stronger perspective</h4>
+              <p class="text-sm text-muted-foreground">max=14, perspective=600px</p>
+            </Card>
+          </Tilt>
+        </div>
+      </Demo>
 
-  <Section>
-    <SectionHeading title="Marquee" />
-    <Marquee class="mt-10">
-      {["Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Zeta"].map((name) => <span class="text-2xl font-bold text-muted-foreground">{name}</span>)}
-    </Marquee>
-  </Section>
+      <Demo title="Flip card" description="Hover or Tab to it. Both faces stay in the DOM." code={`<FlipCard height="12rem">
+  <Card slot="front">…</Card>
+  <Card slot="back">…</Card>
+</FlipCard>`}>
+        <div class="max-w-xs">
+          <FlipCard height="12rem">
+            <Card slot="front" class="grid place-items-center"><p class="font-semibold">Front</p></Card>
+            <Card slot="back" class="grid place-items-center bg-primary text-primary-foreground"><p class="font-semibold">Back</p></Card>
+          </FlipCard>
+        </div>
+      </Demo>
 
-  <Section tone="muted" width="sm">
-    <SectionHeading title="Form fields" align="left" />
-    <form class="mt-8 space-y-5">
-      <Field id="name" label="Name" required hint="As it appears on your ID"><Input id="name" name="name" required /></Field>
-      <Field id="email" label="Email" error="Please enter a valid email"><Input id="email" type="email" invalid /></Field>
-      <Field id="topic" label="Topic">
-        <Select id="topic"><option>General</option><option>Sales</option></Select>
-      </Field>
-      <Field id="message" label="Message"><Textarea id="message" /></Field>
-      <Button type="submit">Send</Button>
-    </form>
-  </Section>
+      <Demo title="Orbiting circles" description="Integration logos circling a centre mark." code={`<OrbitingCircles radius={110} duration={26}>
+  <Zap slot="center" />
+  <img src="/logo-a.svg" alt="" />
+</OrbitingCircles>`}>
+        <OrbitingCircles radius={110} duration={26}>
+          <div class="grid size-16 place-items-center rounded-full bg-primary text-primary-foreground" slot="center"><Sparkles /></div>
+          <Zap />
+          <Sparkles />
+          <ArrowRight />
+          <Zap />
+        </OrbitingCircles>
+      </Demo>
 
-  <Section>
-    <Prose>
-      <h2>Prose heading</h2>
-      <p>Long-form text with <a href="#">a link</a>, <strong>bold</strong> and <code>code</code>.</p>
-      <ul><li>First item</li><li>Second item</li></ul>
-      <blockquote>A quote.</blockquote>
-    </Prose>
-  </Section>
-</PageLayout>
+      <Demo title="Perspective grid" description="An infinite 3D floor for dark sections." code={`<Section tone="dark"><PerspectiveGrid slot="background" /></Section>`} dark flush>
+        <div class="relative h-56 overflow-hidden">
+          <PerspectiveGrid />
+          <p class="relative grid h-full place-items-center font-semibold">Horizon grid</p>
+        </div>
+      </Demo>
+    </section>
+
+    <!-- ---------------------------------------------------------------- backgrounds -->
+    <section id="backgrounds" class="scroll-mt-16 space-y-6">
+      <h2 class="text-xl font-bold tracking-tight">Backgrounds</h2>
+      <p class="max-w-2xl text-sm text-muted-foreground">
+        Pass these to a section's <code class="rounded bg-muted px-1">background</code> slot: <code class="rounded bg-muted px-1">&lt;Aurora slot="background" /&gt;</code>.
+      </p>
+
+      <Demo title="Aurora" description="Three drifting gradient blobs. Rebrands with the theme." code={`<Aurora duration={20} intensity={26} slot="background" />`} flush>
+        <div class="relative grid h-56 place-items-center overflow-hidden">
+          <Aurora />
+          <p class="font-semibold">Aurora</p>
+        </div>
+      </Demo>
+
+      <Demo title="Glow + grid" code={`<GlowBackground slot="background" />
+<GridBackground slot="background" />`} flush>
+        <div class="relative grid h-56 place-items-center overflow-hidden">
+          <GridBackground />
+          <GlowBackground />
+          <p class="font-semibold">Glow + grid</p>
+        </div>
+      </Demo>
+
+      <Demo title="Meteors" description="Randomised at build time; one CSS animation each." code={`<Meteors count={16} slot="background" />`} dark flush>
+        <div class="relative grid h-56 place-items-center overflow-hidden">
+          <Meteors />
+          <p class="relative font-semibold">Meteors</p>
+        </div>
+      </Demo>
+    </section>
+
+    <!-- ---------------------------------------------------------------- sections -->
+    <section id="sections" class="scroll-mt-16 space-y-4">
+      <h2 class="text-xl font-bold tracking-tight">Page sections</h2>
+      <p class="max-w-2xl text-sm text-muted-foreground">
+        Full-width blocks in <code class="rounded bg-muted px-1">src/components/sections/</code>. They take copy as props, so the
+        text lives in <code class="rounded bg-muted px-1">src/i18n/locales/</code>. See them assembled on the demo pages.
+      </p>
+      <div class="flex flex-wrap gap-2">
+        {sectionComponents.map((name) => <code class="rounded-md border border-border bg-card px-2 py-1 text-xs">{name}</code>)}
+      </div>
+      <div class="flex flex-wrap gap-3 pt-2">
+        <Button variant="outline" size="sm" href="/el">Home</Button>
+        <Button variant="outline" size="sm" href="/el/about">About</Button>
+        <Button variant="outline" size="sm" href="/el/services">Services</Button>
+        <Button variant="outline" size="sm" href="/el/contact">Contact</Button>
+      </div>
+    </section>
+  </div>
+</DevLayout>

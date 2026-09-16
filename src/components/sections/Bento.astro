@@ -51,8 +51,8 @@ const slots = await Promise.all(
           effect="zoom"
           stagger={i % 3}
           class={cn(
-            "relative flex flex-col overflow-hidden rounded-xl border border-border p-6",
-            item.highlight ? "bg-primary text-primary-foreground" : "bg-card",
+            "relative flex flex-col overflow-hidden border border-border p-6",
+            item.highlight ? "bg-brand-surface text-brand-surface-foreground" : "bg-card",
             sizes[item.size ?? "normal"],
           )}
         >
@@ -60,7 +60,7 @@ const slots = await Promise.all(
             <span
               class={cn(
                 "mb-4 inline-flex size-10 items-center justify-center rounded-md",
-                item.highlight ? "bg-primary-foreground/15" : "bg-primary/10 text-primary",
+                item.highlight ? "text-brand-surface-foreground" : "text-accent",
               )}
             >
               <Icon name={item.icon} />

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { defineConfig, envField, fontProviders, memoryCache } from "astro/config";
 import node from "@astrojs/node";
 import react from "@astrojs/react";
@@ -5,6 +6,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { siteConfig } from "./site.config";
 import modulesConfig from "./modules.config";
 import { modulesIntegration } from "./src/integrations/modules";
+import { themeScript } from "./src/lib/theme-script";
+
+// Astro hashes its own inline scripts for the CSP, but not `is:inline` ones, so the
+// theme bootstrap is hashed here from the same source string.
+const themeScriptHash = `'sha256-${createHash("sha256").update(themeScript).digest("base64")}'`;
 
 export default defineConfig({
   site: process.env.SITE_URL ?? siteConfig.url,
@@ -13,6 +19,8 @@ export default defineConfig({
   // "middleware" + server.mjs: one place for security headers, compression and
   // long-lived cache headers, applied to static files as well as rendered pages.
   adapter: node({ mode: "middleware" }),
+  // Same port as server.mjs in production, so links and SITE_URL match everywhere.
+  server: { port: 3000 },
   integrations: [react(), modulesIntegration(modulesConfig)],
   // Admin auth uses its own DB-backed sessions; Astro sessions would write to the pod filesystem.
   session: false,
@@ -37,15 +45,29 @@ export default defineConfig({
     defaultStrategy: "hover",
   },
 
+  /**
+   * IBM Plex, not Inter. Plex has real Greek coverage (most "modern" display faces
+   * do not), a mono companion for labels and numbers, and enough character that the
+   * page does not read as a default template.
+   */
   fonts: [
     {
       provider: fontProviders.fontsource(),
-      name: "Inter",
-      cssVariable: "--font-inter",
-      weights: ["400 700"],
+      name: "IBM Plex Sans",
+      cssVariable: "--font-plex-sans",
+      weights: [400, 500, 600],
       styles: ["normal"],
       subsets: ["latin", "greek"],
       fallbacks: ["system-ui", "sans-serif"],
+    },
+    {
+      provider: fontProviders.fontsource(),
+      name: "IBM Plex Mono",
+      cssVariable: "--font-plex-mono",
+      weights: [400, 500],
+      styles: ["normal"],
+      subsets: ["latin"],
+      fallbacks: ["ui-monospace", "monospace"],
     },
   ],
 
@@ -79,7 +101,7 @@ export default defineConfig({
         "frame-src 'self' https://www.google.com https://www.youtube-nocookie.com",
       ],
       // Astro adds hashes for its own inline scripts/styles to these.
-      scriptDirective: { resources: ["'self'", "https://www.googletagmanager.com"] },
+      scriptDirective: { resources: ["'self'", "https://www.googletagmanager.com", themeScriptHash] },
       styleDirective: { resources: ["'self'"] },
     },
     // Behind a reverse proxy/ingress, trust X-Forwarded-Host/Proto/For only for the

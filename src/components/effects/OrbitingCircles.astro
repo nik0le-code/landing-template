@@ -1,0 +1,75 @@
+---
+/**
+ * Icons orbiting a centre point — the "integrations" visual. Pure CSS: each child
+ * gets its own radius, duration and start angle, and counter-rotates so it stays
+ * upright.
+ *
+ * ```astro
+ * <OrbitingCircles radius={120} duration={24}>
+ *   <img src="/logo-a.svg" alt="" />
+ *   <img src="/logo-b.svg" alt="" />
+ * </OrbitingCircles>
+ * ```
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  /** Orbit radius in px. */
+  radius?: number;
+  /** Seconds for a full turn. */
+  duration?: number;
+  reverse?: boolean;
+  /** Faint circle showing the orbit path. */
+  path?: boolean;
+  class?: string;
+}
+
+const { radius = 120, duration = 24, reverse = false, path = true, class: className } = Astro.props;
+const children = await Astro.slots.render("default");
+// Each top-level element of the slot becomes one satellite.
+const items = children.split(/(?=<(?:img|svg|div|span|a)\b)/).filter((chunk) => chunk.trim());
+---
+
+<div class={cn("relative isolate grid place-items-center", className)} style={`height: ${radius * 2 + 64}px;`}>
+  {
+    path && (
+      <div
+        aria-hidden="true"
+        class="absolute rounded-full border border-border/70"
+        style={`width: ${radius * 2}px; height: ${radius * 2}px;`}
+      />
+    )
+  }
+  <div class="absolute grid place-items-center"><slot name="center" /></div>
+  {
+    items.map((item, index) => (
+      <div
+        class="orbit absolute grid size-12 place-items-center rounded-full border border-border bg-card shadow-sm [&>*]:size-6"
+        style={`--radius: ${radius}px; --duration: ${duration}s; --angle: ${(360 / items.length) * index}deg; ${reverse ? "animation-direction: reverse;" : ""}`}
+      >
+        <Fragment set:html={item} />
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  /* rotate → push out by the radius → rotate back, so the icon never spins. */
+  @keyframes orbit {
+    from {
+      transform: rotate(var(--angle)) translateY(calc(var(--radius) * -1)) rotate(calc(var(--angle) * -1));
+    }
+    to {
+      transform: rotate(calc(var(--angle) + 360deg)) translateY(calc(var(--radius) * -1)) rotate(calc((var(--angle) + 360deg) * -1));
+    }
+  }
+  .orbit {
+    animation: orbit var(--duration) linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .orbit {
+      animation: none;
+      transform: rotate(var(--angle)) translateY(calc(var(--radius) * -1)) rotate(calc(var(--angle) * -1));
+    }
+  }
+</style>

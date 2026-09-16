@@ -1,7 +1,7 @@
 ---
 /**
  * Animates children into view on scroll using CSS scroll-driven animations
- * (zero JS, compositor-only). See `[data-reveal]` in global.css.
+ * (zero JS, compositor-only). See `[data-reveal]` in styles/effects.css.
  *
  * `stagger` shifts the animation range so items in a grid appear one after another
  * (pass the item index).
@@ -9,7 +9,8 @@
 import type { HTMLAttributes } from "astro/types";
 
 interface Props extends HTMLAttributes<"div"> {
-  effect?: "up" | "fade" | "zoom";
+  /** "flip" is a 3D hinge; the rest are translate/opacity only. */
+  effect?: "up" | "down" | "left" | "right" | "fade" | "zoom" | "blur" | "flip";
   stagger?: number;
   as?: "div" | "li" | "article";
 }

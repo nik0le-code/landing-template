@@ -1,0 +1,37 @@
+---
+/**
+ * Glowing hairline that widens as it scrolls into view — a section divider that
+ * costs one element and no JavaScript.
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  color?: string;
+  class?: string;
+}
+
+const { color = "var(--color-primary)", class: className } = Astro.props;
+---
+
+<div aria-hidden="true" class={cn("relative mx-auto h-px w-full max-w-md", className)} style={`--lamp-color: ${color};`}>
+  <div class="lamp h-px w-full" style="background: linear-gradient(90deg, transparent, var(--lamp-color), transparent);"></div>
+  <div class="lamp absolute inset-x-0 -top-2 h-4 opacity-40 blur-md" style="background: linear-gradient(90deg, transparent, var(--lamp-color), transparent);"></div>
+</div>
+
+<style>
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .lamp {
+        animation: lamp-grow linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 30%;
+      }
+      @keyframes lamp-grow {
+        from {
+          scale: 0.2 1;
+          opacity: 0;
+        }
+      }
+    }
+  }
+</style>

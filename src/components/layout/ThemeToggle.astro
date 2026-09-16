@@ -1,0 +1,78 @@
+---
+/**
+ * Light/dark switch. The current mode lives on `<html data-theme>`; with no
+ * attribute the page follows the visitor's system setting (see theme.css).
+ *
+ * Both icons are in the HTML and CSS picks the right one, so the button is correct
+ * on first paint with no JavaScript involved in rendering it.
+ */
+import Moon from "@lucide/astro/icons/moon";
+import Sun from "@lucide/astro/icons/sun";
+import { useTranslations } from "@/i18n";
+import { cn } from "@/lib/cn";
+
+interface Props {
+  class?: string;
+}
+
+const t = useTranslations(Astro.locals.lang);
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  class={cn(
+    "inline-flex size-9 items-center justify-center text-foreground/70 transition-colors hover:text-accent",
+    Astro.props.class,
+  )}
+>
+  <Sun class="theme-icon-light size-4.5" aria-hidden="true" />
+  <Moon class="theme-icon-dark size-4.5" aria-hidden="true" />
+  <span class="sr-only">{t("nav.toggleTheme")}</span>
+</button>
+
+<style is:global>
+  /* Default (system light): show the moon, because clicking goes to dark. */
+  .theme-icon-dark {
+    display: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-icon-light {
+      display: none;
+    }
+    :root:not([data-theme="light"]) .theme-icon-dark {
+      display: block;
+    }
+  }
+  :root[data-theme="dark"] .theme-icon-light {
+    display: none;
+  }
+  :root[data-theme="dark"] .theme-icon-dark {
+    display: block;
+  }
+  :root[data-theme="light"] .theme-icon-light {
+    display: block;
+  }
+  :root[data-theme="light"] .theme-icon-dark {
+    display: none;
+  }
+</style>
+
+<script>
+  // One listener for every toggle on the page (navbar + mobile menu).
+  document.addEventListener("click", (event) => {
+    if (!(event.target as HTMLElement).closest("[data-theme-toggle]")) return;
+    const root = document.documentElement;
+    const isDark = root.dataset.theme
+      ? root.dataset.theme === "dark"
+      : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const next = isDark ? "light" : "dark";
+    root.dataset.theme = next;
+    root.style.colorScheme = next;
+    try {
+      localStorage.setItem("theme", next);
+    } catch {
+      // Private mode: the choice just doesn't persist.
+    }
+  });
+</script>

@@ -4,6 +4,7 @@ import Icon from "@/components/ui/Icon.astro";
 import Section from "@/components/ui/Section.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
 import Reveal from "@/components/effects/Reveal.astro";
+import Spotlight from "@/components/effects/Spotlight.astro";
 import { cn } from "@/lib/cn";
 import type { FeatureItem } from "./types";
 
@@ -15,26 +16,36 @@ interface Props {
   items: FeatureItem[];
   columns?: 2 | 3 | 4;
   variant?: "cards" | "plain";
+  /** Pointer-following light on each card. Off by default: it is decoration. */
+  spotlight?: boolean;
+  /**
+   * First item spans two columns, to break the "identical cards in a row" look.
+   * Ignored when it would leave a hole in the last row.
+   */
+  highlightFirst?: boolean;
+  /** Left-aligned headings break up a page of centred sections. */
+  align?: "left" | "center";
   tone?: "default" | "muted";
 }
 
-const { id, eyebrow, title, description, items, columns = 3, variant = "cards", tone = "default" } = Astro.props;
+const { id, eyebrow, title, description, items, columns = 3, variant = "cards", spotlight = false, highlightFirst = false, align = "center", tone = "default" } = Astro.props;
+const Hover = spotlight && variant === "cards" ? Spotlight : Fragment;
 const cols = { 2: "sm:grid-cols-2", 3: "sm:grid-cols-2 lg:grid-cols-3", 4: "sm:grid-cols-2 lg:grid-cols-4" };
+// A double-width first cell only works when the remaining items still fill every
+// row; otherwise the grid ends with an empty cell, which reads as a bug.
+const wideFirst = highlightFirst && (items.length + 1) % columns === 0;
 ---
 
 <Section id={id} tone={tone}>
-  <SectionHeading eyebrow={eyebrow} title={title} description={description} />
+  <SectionHeading eyebrow={eyebrow} title={title} description={description} align={align} />
   <ul class={cn("mt-14 grid gap-6", cols[columns])}>
     {
       items.map((item, i) => (
-        <Reveal as="li" stagger={i % columns}>
+        <Reveal as="li" stagger={i % columns} class={cn(wideFirst && i === 0 && "sm:col-span-2")}>
+          <Hover class="h-full rounded-lg">
           <Card padding={variant === "cards" ? "md" : "none"} interactive={Boolean(item.href)} class={cn("h-full", variant === "plain" && "border-0 bg-transparent")}>
-            {item.icon && (
-              <span class="mb-4 inline-flex size-11 items-center justify-center rounded-md bg-primary/10 text-primary">
-                <Icon name={item.icon} />
-              </span>
-            )}
-            <h3 class="text-lg font-semibold">
+            {item.icon && <Icon name={item.icon} class="mb-5 size-5 text-accent" />}
+            <h3 class="text-base font-medium">
               {item.href ? (
                 <a href={item.href} class="after:absolute after:inset-0">
                   {item.title}
@@ -43,8 +54,9 @@ const cols = { 2: "sm:grid-cols-2", 3: "sm:grid-cols-2 lg:grid-cols-3", 4: "sm:g
                 item.title
               )}
             </h3>
-            <p class="mt-2 text-muted-foreground">{item.description}</p>
+            <p class="mt-2 text-pretty text-muted-foreground">{item.description}</p>
           </Card>
+          </Hover>
         </Reveal>
       ))
     }

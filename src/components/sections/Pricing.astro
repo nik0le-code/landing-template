@@ -4,7 +4,6 @@
  * inputs + CSS `:has()` — no JavaScript, and both prices are in the HTML for crawlers.
  */
 import Check from "@lucide/astro/icons/check";
-import Badge from "@/components/ui/Badge.astro";
 import Button from "@/components/ui/Button.astro";
 import Section from "@/components/ui/Section.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
@@ -45,13 +44,13 @@ const name = `${id}-billing`;
     <SectionHeading eyebrow={eyebrow} title={title} description={description} />
     {
       billingLabels && (
-        <fieldset class="mx-auto mt-8 flex w-fit items-center gap-1 rounded-full border border-border bg-card p-1 text-sm font-medium">
+        <fieldset class="mx-auto mt-8 flex w-fit items-center border border-border bg-card text-sm font-medium">
           <legend class="sr-only">{title}</legend>
-          <label class="cursor-pointer rounded-full px-4 py-1.5 has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:outline-2 has-focus-visible:outline-primary">
+          <label class="cursor-pointer px-4 py-2 has-checked:bg-foreground has-checked:text-background has-focus-visible:outline-2 has-focus-visible:outline-foreground">
             <input type="radio" name={name} value="monthly" class="sr-only" checked />
             {billingLabels.monthly}
           </label>
-          <label class="cursor-pointer rounded-full px-4 py-1.5 has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:outline-2 has-focus-visible:outline-primary">
+          <label class="cursor-pointer px-4 py-2 has-checked:bg-foreground has-checked:text-background has-focus-visible:outline-2 has-focus-visible:outline-foreground">
             <input type="radio" name={name} value="yearly" class="sr-only" />
             {billingLabels.yearly}
             {billingLabels.note && <span class="ml-1 text-xs opacity-80">{billingLabels.note}</span>}
@@ -66,11 +65,14 @@ const name = `${id}-billing`;
             as="li"
             stagger={i}
             class={cn(
-              "relative flex flex-col rounded-xl border bg-card p-8",
-              plan.featured ? "border-primary shadow-xl shadow-primary/10 lg:-my-4 lg:py-12" : "border-border",
+              "relative flex flex-col border bg-card p-8",
+              plan.featured ? "border-foreground lg:-my-4 lg:py-12" : "border-border",
             )}
           >
-            {plan.badge && <Badge class="absolute -top-3 left-8">{plan.badge}</Badge>}
+            {/* Opaque and above the border ring: the badge straddles the card edge. */}
+            {plan.badge && (
+              <span class="label absolute -top-2.5 left-8 z-10 bg-foreground px-2 py-1 text-background">{plan.badge}</span>
+            )}
             <h3 class="text-lg font-semibold">{plan.name}</h3>
             {plan.description && <p class="mt-2 text-sm text-muted-foreground">{plan.description}</p>}
             <p class="mt-6 flex items-baseline gap-1">

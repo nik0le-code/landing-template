@@ -1,0 +1,45 @@
+---
+/**
+ * Slow drifting colour blobs — the "AI startup" hero background, done with three
+ * animated radial gradients instead of a canvas or a video.
+ *
+ * ```astro
+ * <Section>
+ *   <Aurora slot="background" />
+ *   …
+ * </Section>
+ * ```
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  /** Defaults to the primary/accent tokens, so it rebrands with the theme. */
+  colors?: [string, string, string];
+  /** Seconds for one drift cycle; slower is calmer. */
+  duration?: number;
+  /** 0–100; how strongly the colours show through. */
+  intensity?: number;
+  class?: string;
+}
+
+const {
+  colors = ["var(--color-primary)", "var(--color-accent)", "var(--color-primary)"],
+  duration = 18,
+  intensity = 22,
+  class: className,
+} = Astro.props;
+
+const blob = (color: string) =>
+  `background: radial-gradient(closest-side, color-mix(in oklch, ${color} ${intensity}%, transparent), transparent);`;
+---
+
+<div
+  aria-hidden="true"
+  data-aurora
+  class={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+  style={`--aurora-duration: ${duration}s;`}
+>
+  <div class="absolute -top-1/3 left-[-10%] size-[42rem] max-w-[120vw] rounded-full" style={blob(colors[0])}></div>
+  <div class="absolute -right-[15%] top-[-20%] size-[38rem] max-w-[120vw] rounded-full" style={blob(colors[1])}></div>
+  <div class="absolute bottom-[-30%] left-1/3 size-[34rem] max-w-[120vw] rounded-full" style={blob(colors[2])}></div>
+</div>

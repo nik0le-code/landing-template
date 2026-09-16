@@ -4,7 +4,7 @@
  * using the native Popover API — no JavaScript, Escape/back-gesture close it,
  * and focus returns to the trigger automatically.
  */
-import type { Locale } from "@site-config";
+import { siteConfig, type Locale } from "@site-config";
 import Menu from "@lucide/astro/icons/menu";
 import X from "@lucide/astro/icons/x";
 import { mainNav, navCta } from "@/config/navigation";
@@ -15,6 +15,7 @@ import Button from "@/components/ui/Button.astro";
 import Container from "@/components/ui/Container.astro";
 import Dropdown from "./Dropdown.astro";
 import LanguageSwitcher from "./LanguageSwitcher.astro";
+import ThemeToggle from "./ThemeToggle.astro";
 import Logo from "./Logo.astro";
 
 interface Props {
@@ -28,11 +29,14 @@ const pathname = Astro.url.pathname;
 /** Site links plus links from enabled modules (e.g. Blog). */
 const moduleLinks = getPublicNav(lang).map((item) => ({ href: localizePath(item.path, lang), label: item.label, path: item.path }));
 const linkClass =
-  "rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground aria-[current]:text-primary";
+  "relative px-3 py-2 text-sm text-foreground/70 transition-colors hover:text-foreground " +
+  "aria-[current]:text-foreground aria-[current]:after:absolute aria-[current]:after:inset-x-3 " +
+  "aria-[current]:after:-bottom-px aria-[current]:after:h-px aria-[current]:after:bg-accent";
 ---
 
-<header class="sticky top-0 z-40 border-b border-border bg-background/95 supports-[backdrop-filter]:bg-background/85">
-  <Container class="flex h-16 items-center justify-between gap-4">
+<!-- A rule, not a floating panel: one hairline separates the header from the page. -->
+<header class="sticky top-0 z-40 border-b border-border bg-background">
+  <Container class="flex h-[4.5rem] items-center justify-between gap-6">
     <Logo />
 
     <nav aria-label={t("nav.main")} class="hidden lg:block">
@@ -79,12 +83,13 @@ const linkClass =
     </nav>
 
     <div class="flex items-center gap-2">
+      {siteConfig.darkMode && <ThemeToggle class="hidden sm:inline-flex" />}
       <div class="hidden lg:block"><LanguageSwitcher alternates={alternates} /></div>
       <Button href={navHref(navCta, lang)} size="sm" class="hidden sm:inline-flex">{t(navCta.label)}</Button>
       <button
         type="button"
         popovertarget="mobile-menu"
-        class="inline-flex size-10 items-center justify-center rounded-md hover:bg-muted lg:hidden"
+        class="-mr-2 inline-flex size-10 items-center justify-center hover:text-accent lg:hidden"
       >
         <Menu class="size-6" aria-hidden="true" />
         <span class="sr-only">{t("nav.openMenu")}</span>
@@ -145,7 +150,10 @@ const linkClass =
       </ul>
     </nav>
     <Button href={navHref(navCta, lang)} size="lg" class="mt-8 w-full">{t(navCta.label)}</Button>
-    <div class="mt-8"><LanguageSwitcher alternates={alternates} variant="list" /></div>
+    <div class="mt-8 flex items-center justify-between gap-4">
+      <LanguageSwitcher alternates={alternates} variant="list" />
+      {siteConfig.darkMode && <ThemeToggle />}
+    </div>
   </Container>
 </div>
 

@@ -1,0 +1,35 @@
+---
+/**
+ * Two-sided card that flips in 3D on hover and on keyboard focus. CSS-only.
+ *
+ * ```astro
+ * <FlipCard height="14rem">
+ *   <Card slot="front">Front</Card>
+ *   <Card slot="back">Back</Card>
+ * </FlipCard>
+ * ```
+ *
+ * Both faces are always in the DOM, so the back is readable by search engines and
+ * assistive tech; keep anything essential on the front anyway.
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  /** Both faces are absolutely positioned, so the card needs a height. */
+  height?: string;
+  class?: string;
+}
+
+const { height = "16rem", class: className } = Astro.props;
+---
+
+<div data-flip class={cn("group", className)} style={`height: ${height};`} tabindex="0">
+  <div class="size-full">
+    <div data-flip-face="front" class="size-full [&>*]:size-full">
+      <slot name="front" />
+    </div>
+    <div data-flip-face="back" class="[&>*]:size-full">
+      <slot name="back" />
+    </div>
+  </div>
+</div>

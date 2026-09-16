@@ -1,10 +1,9 @@
 ---
 import Button from "@/components/ui/Button.astro";
-import Badge from "@/components/ui/Badge.astro";
 import Img from "@/components/ui/Img.astro";
 import Section from "@/components/ui/Section.astro";
-import GlowBackground from "@/components/effects/GlowBackground.astro";
-import GridBackground from "@/components/effects/GridBackground.astro";
+import { cn } from "@/lib/cn";
+import Parallax from "@/components/effects/Parallax.astro";
 import type { CtaLink, ImageProps } from "./types";
 
 interface Props {
@@ -14,22 +13,24 @@ interface Props {
   actions?: CtaLink[];
   /** Product screenshot/visual below the copy — becomes the page's LCP image. */
   image?: ImageProps;
-  background?: "grid" | "glow" | "both" | "none";
+  /** Staggered rise of the copy on load (translate only, so LCP is unaffected). */
+  intro?: boolean;
+  /** Left-aligned reads as editorial; centred is for manifesto-style launches. */
+  align?: "center" | "left";
 }
 
-const { badge, title, description, actions = [], image, background = "both" } = Astro.props;
+const { badge, title, description, actions = [], image, intro = true, align = "center" } = Astro.props;
+const centred = align === "center";
 ---
 
-<Section spacing="lg" class="overflow-hidden">
-  {(background === "grid" || background === "both") && <GridBackground slot="background" />}
-  {(background === "glow" || background === "both") && <GlowBackground slot="background" />}
-  <div class="mx-auto max-w-3xl text-center">
-    {badge && <Badge class="mb-6">{badge}</Badge>}
-    <h1 class="text-4xl font-bold tracking-tight text-balance sm:text-6xl">{title}</h1>
-    {description && <p class="mx-auto mt-6 max-w-2xl text-lg text-pretty text-muted-foreground sm:text-xl">{description}</p>}
+<Section spacing="lg" class="overflow-hidden pt-20 pb-12 sm:pt-24 sm:pb-16">
+  <div class={centred ? "mx-auto max-w-4xl text-center" : "max-w-3xl"} data-intro={intro ? "" : undefined}>
+    {badge && <p class="label mb-7 text-muted-foreground">{badge}</p>}
+    <h1 class="text-[2.5rem] font-semibold leading-[1.05] text-balance sm:text-5xl lg:text-6xl">{title}</h1>
+    {description && <p class={cn("mt-7 max-w-xl text-lg text-pretty text-muted-foreground", centred && "mx-auto")}>{description}</p>}
     {
       actions.length > 0 && (
-        <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+        <div class={cn("mt-9 flex flex-wrap items-center gap-3", centred && "justify-center")}>
           {actions.map((action, i) => (
             <Button href={action.href} external={action.external} variant={action.variant ?? (i === 0 ? "primary" : "outline")} size="lg">
               {action.label}
@@ -42,9 +43,14 @@ const { badge, title, description, actions = [], image, background = "both" } = 
   </div>
   {
     image && (
-      <div class="mx-auto mt-16 max-w-5xl rounded-xl border border-border bg-card p-2 shadow-2xl shadow-primary/10">
-        <Img src={image.src} alt={image.alt} priority sizes="(min-width: 1024px) 64rem, 100vw" class="w-full rounded-lg" />
-      </div>
+      /*
+       * The visual sits in a device-style frame, lit from behind and faded out at
+       * the bottom edge, so the section ends in a gradient instead of a hard line
+       * across the page.
+       */
+      <Parallax distance="-1.5rem" class={cn("mt-16 border-t border-border pt-4 sm:mt-20", centred && "mx-auto max-w-5xl")}>
+        <Img src={image.src} alt={image.alt} priority sizes="(min-width: 1024px) 72rem, 100vw" class="aspect-[16/9] w-full object-cover" />
+      </Parallax>
     )
   }
 </Section>

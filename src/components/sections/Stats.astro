@@ -1,6 +1,7 @@
 ---
 import Section from "@/components/ui/Section.astro";
 import SectionHeading from "@/components/ui/SectionHeading.astro";
+import CountUp from "@/components/effects/CountUp.astro";
 import Reveal from "@/components/effects/Reveal.astro";
 import { cn } from "@/lib/cn";
 
@@ -10,11 +11,21 @@ interface Props {
   title?: string;
   description?: string;
   items: { value: string; label: string }[];
+  /** Animate whole numbers up when they scroll into view ("1,200+" → 0…1200 +). */
+  countUp?: boolean;
   tone?: "default" | "muted" | "primary" | "dark";
 }
 
-const { id, eyebrow, title, description, items, tone = "primary" } = Astro.props;
+const { id, eyebrow, title, description, items, countUp = true, tone = "primary" } = Astro.props;
 const onColor = tone === "primary" || tone === "dark";
+
+/** "1,200+" → { prefix: "", number: 1200, suffix: "+" }; "24/7" → null (nothing to count). */
+function splitValue(value: string) {
+  const match = /^(\D*?)([\d.,]+)(\D*)$/.exec(value.trim());
+  if (!match) return null;
+  const number = Number(match[2]!.replace(/[.,](?=\d{3}\b)/g, ""));
+  return Number.isInteger(number) ? { prefix: match[1]!, number, suffix: match[3]! } : null;
+}
 ---
 
 <Section id={id} tone={tone} spacing="sm">
@@ -22,9 +33,14 @@ const onColor = tone === "primary" || tone === "dark";
   <dl class="grid grid-cols-2 gap-8 text-center lg:grid-cols-4">
     {
       items.map((item, i) => (
-        <Reveal stagger={i} class="flex flex-col-reverse gap-1">
-          <dt class={cn("text-sm sm:text-base", onColor ? "opacity-80" : "text-muted-foreground")}>{item.label}</dt>
-          <dd class="text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">{item.value}</dd>
+        <Reveal stagger={i} class="flex flex-col-reverse gap-2">
+          <dt class={cn("text-sm", onColor ? "opacity-90" : "text-muted-foreground")}>{item.label}</dt>
+          <dd class="text-5xl font-semibold tracking-[-0.04em] tabular-nums sm:text-6xl">
+            {(() => {
+              const parts = countUp ? splitValue(item.value) : null;
+              return parts ? <CountUp value={parts.number} prefix={parts.prefix} suffix={parts.suffix} /> : item.value;
+            })()}
+          </dd>
         </Reveal>
       ))
     }

@@ -45,7 +45,7 @@ const initials = item.name
       item.avatar ? (
         <Img src={item.avatar} alt="" width={40} height={40} class="size-10 rounded-full object-cover" />
       ) : (
-        <span class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary" aria-hidden="true">
+        <span class="grid size-10 place-items-center border border-border font-mono text-xs" aria-hidden="true">
           {initials}
         </span>
       )

@@ -21,7 +21,7 @@ const { id, eyebrow, title, description, items, tone = "default" } = Astro.props
     {
       items.map((item) => (
         <Reveal as="li" class="relative pb-10 pl-8 last:pb-0">
-          <span class="absolute top-1.5 -left-[7px] size-3.5 rounded-full border-2 border-background bg-primary" aria-hidden="true" />
+          <span class="absolute top-2 -left-[4.5px] size-2 bg-accent" aria-hidden="true" />
           <p class="text-sm font-semibold text-primary">{item.date}</p>
           <h3 class="mt-1 text-lg font-semibold">{item.title}</h3>
           <p class="mt-2 text-muted-foreground">{item.description}</p>

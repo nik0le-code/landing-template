@@ -1,0 +1,22 @@
+---
+/**
+ * Moves its content at a different rate to the page while the element crosses the
+ * viewport. Pure CSS scroll-driven animation: no scroll listener, no jank.
+ *
+ * Use small distances (2–6rem). The element keeps its layout box, so nothing
+ * shifts; give the parent `overflow-hidden` if the movement should be clipped.
+ */
+import { cn } from "@/lib/cn";
+
+interface Props {
+  /** How far it travels over the full scroll. Negative = moves up (slower than the page). */
+  distance?: string;
+  class?: string;
+}
+
+const { distance = "-3rem", class: className } = Astro.props;
+---
+
+<div data-parallax class={cn("will-change-transform", className)} style={`--parallax-distance: ${distance};`}>
+  <slot />
+</div>

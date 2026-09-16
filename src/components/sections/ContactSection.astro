@@ -29,7 +29,7 @@ interface Props {
 const { id = "contact", eyebrow, title, description, labels, mapEmbedUrl, headingTag = "h2", tone = "default" } = Astro.props;
 const { contact } = siteConfig;
 const telHref = contact.phone ? `tel:${contact.phone.replace(/[^+\d]/g, "")}` : undefined;
-const iconBox = "flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary";
+const iconBox = "mt-0.5 size-4 shrink-0 text-accent";
 ---
 
 <Section id={id} tone={tone}>
@@ -99,7 +99,7 @@ const iconBox = "flex size-10 shrink-0 items-center justify-center rounded-md bg
         title={labels.address}
         loading="lazy"
         referrerpolicy="no-referrer-when-downgrade"
-        class="mt-12 aspect-[16/7] w-full rounded-xl border border-border"
+        class="mt-12 aspect-[16/7] w-full border border-border"
       />
     )
   }
