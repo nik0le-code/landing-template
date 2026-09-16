@@ -10,7 +10,9 @@ export default defineConfig({
   site: process.env.SITE_URL ?? siteConfig.url,
   output: "server",
   trailingSlash: "never",
-  adapter: node({ mode: "standalone" }),
+  // "middleware" + server.mjs: one place for security headers, compression and
+  // long-lived cache headers, applied to static files as well as rendered pages.
+  adapter: node({ mode: "middleware" }),
   integrations: [react(), modulesIntegration(modulesConfig)],
   // Admin auth uses its own DB-backed sessions; Astro sessions would write to the pod filesystem.
   session: false,
@@ -47,12 +49,39 @@ export default defineConfig({
     },
   ],
 
+  markdown: {
+    // Shiki emits inline styles, which the CSP blocks. Code blocks in legal pages
+    // and blog posts are styled by src/styles/prose.css instead.
+    syntaxHighlight: false,
+  },
+
   image: {
     responsiveStyles: true,
   },
 
   security: {
     checkOrigin: true,
+    /**
+     * Content-Security-Policy. Astro adds hashes for its own inline scripts/styles;
+     * Google tag + Analytics hosts are listed because the consent banner may load
+     * them at runtime. Remove those two lines for sites without tracking.
+     */
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "object-src 'none'",
+        "frame-ancestors 'self'",
+        "form-action 'self'",
+        "img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com",
+        "font-src 'self'",
+        "connect-src 'self' https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
+        "frame-src 'self' https://www.google.com https://www.youtube-nocookie.com",
+      ],
+      // Astro adds hashes for its own inline scripts/styles to these.
+      scriptDirective: { resources: ["'self'", "https://www.googletagmanager.com"] },
+      styleDirective: { resources: ["'self'"] },
+    },
     // Behind a reverse proxy/ingress, trust X-Forwarded-Host/Proto/For only for the
     // site's own host (needed for correct origin checks and client IPs).
     allowedDomains: [{ hostname: new URL(process.env.SITE_URL ?? siteConfig.url).hostname }],

@@ -8,9 +8,9 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
-    "preview": "node ./dist/server/entry.mjs",
-    "start": "node ./dist/server/entry.mjs",
+    "build": "astro build && node scripts/precompress.mjs",
+    "preview": "node server.mjs",
+    "start": "node server.mjs",
     "check": "astro check",
     "astro": "astro",
     "brand:assets": "tsx scripts/brand-assets.mjs",
@@ -40,6 +40,7 @@
     "sanitize-html": "^2.17.7",
     "sharp": "^0.35.4",
     "simple-icons": "^16.31.0",
+    "sirv": "^3.0.2",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.3",
     "zod": "^4.6.5"

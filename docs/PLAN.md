@@ -115,4 +115,4 @@ before moving on.
 - [x] 11 Module: catalog
 - [x] 12 Module: bookings
 - [x] 13 Module CLI
-- [ ] 14 Production + docs
+- [x] 14 Production + docs
