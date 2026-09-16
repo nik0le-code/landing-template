@@ -34,12 +34,12 @@ await writeFile(new URL("apple-touch-icon.png", pub), await png(180));
 await writeFile(new URL("icon-192.png", pub), await png(192));
 await writeFile(new URL("icon-512.png", pub), await png(512));
 
-const escape = (s) => s.replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]);
+const escape = (s) => String(s ?? "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]);
 const og = Buffer.from(`
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
   <rect width="1200" height="630" fill="${siteConfig.themeColor}"/>
   <text x="96" y="370" font-family="Inter, Arial, sans-serif" font-size="96" font-weight="700" fill="#ffffff">${escape(siteConfig.name)}</text>
-  <text x="96" y="450" font-family="Inter, Arial, sans-serif" font-size="36" fill="#cbd5e1">${escape(siteConfig.description.en)}</text>
+  <text x="96" y="450" font-family="Inter, Arial, sans-serif" font-size="36" fill="#cbd5e1">${escape(siteConfig.description[siteConfig.defaultLocale])}</text>
 </svg>`);
 const logo = await sharp(svg, { density: 384 }).resize(128, 128).png().toBuffer();
 await sharp(og)

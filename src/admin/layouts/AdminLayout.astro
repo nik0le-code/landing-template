@@ -15,9 +15,9 @@ import { actions } from "astro:actions";
 import ExternalLink from "@lucide/astro/icons/external-link";
 import LogOut from "@lucide/astro/icons/log-out";
 import Menu from "@lucide/astro/icons/menu";
-import { siteConfig } from "@site-config";
+import { siteConfig, type Locale } from "@site-config";
 import { localizePath, useTranslations } from "@/i18n";
-import { getAdminNav } from "@/modules/registry";
+import { getAdminNav, navLabel } from "@/modules/registry";
 import { hasRole } from "@/admin/auth/roles";
 import Icon from "@/components/ui/Icon.astro";
 import type { IconName } from "@/components/ui/icons";
@@ -42,7 +42,7 @@ const items: { href: string; label: string; icon: IconName }[] = [
   { href: "/admin", label: t("admin.nav.dashboard"), icon: "layout-dashboard" },
   ...getAdminNav().map((item) => ({
     href: item.href,
-    label: item.label[lang] ?? item.label.en,
+    label: navLabel(item.label, lang),
     icon: (item.icon ?? "layers") as IconName,
   })),
   ...(hasRole(user.role, "admin") ? [{ href: "/admin/users", label: t("admin.nav.users"), icon: "users" as IconName }] : []),
@@ -50,7 +50,7 @@ const items: { href: string; label: string; icon: IconName }[] = [
 ];
 
 const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(`${href}/`));
-const otherLocales = siteConfig.locales.filter((l) => l !== lang);
+const otherLocales: Locale[] = siteConfig.locales.filter((l) => l !== lang);
 ---
 
 <!doctype html>

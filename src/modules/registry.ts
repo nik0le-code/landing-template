@@ -3,7 +3,7 @@
  * registry, which only imports modules enabled in modules.config.ts.
  */
 import type { Locale } from "@site-config";
-import { translateDynamic, type TranslateParams } from "@/i18n";
+import { pickLocalized, translateDynamic, type TranslateParams } from "@/i18n";
 import { adminEnabled, enabledModules, moduleOptions, moduleRuntimes } from "./.generated/registry";
 import type { AdminNavItem, ModuleOptionsMap, ModuleRuntime, SlotLoader, SlotName } from "./types";
 
@@ -35,11 +35,15 @@ export function getAdminNav(): AdminNavItem[] {
   return modules.flatMap((module) => module.adminNav ?? []).sort((a, b) => (a.order ?? 50) - (b.order ?? 50));
 }
 
+/** Label for `lang`, falling back to the default locale and then any provided value. */
+export const navLabel = (label: Partial<Record<Locale, string>>, lang: Locale) =>
+  pickLocalized(label, lang) || Object.values(label).find(Boolean) || "";
+
 /** Public navigation links contributed by enabled modules, labels resolved for `lang`. */
 export function getPublicNav(lang: Locale) {
   return modules
     .flatMap((module) => module.publicNav ?? [])
-    .map((item) => ({ path: typeof item.path === "function" ? item.path() : item.path, label: item.label[lang] ?? item.label.en }));
+    .map((item) => ({ path: typeof item.path === "function" ? item.path() : item.path, label: navLabel(item.label, lang) }));
 }
 
 /** Translation lookup inside a module's `i18n` dictionaries. */

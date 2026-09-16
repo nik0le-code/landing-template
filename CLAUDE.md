@@ -33,6 +33,11 @@ Astro 7 (Node adapter, middleware mode + `server.mjs`) · TypeScript strict ·
 Tailwind 4 · Drizzle + libSQL/SQLite · React only for admin islands · sharp ·
 Resend (HTTP API) · GA4/Ads with Consent Mode v2.
 
+**A fresh clone is configured with `npm run setup`** (client name, domain,
+languages, brand colour, modules, first admin — all available as flags plus
+`--yes` for unattended runs). It rewrites the config files rather than
+scaffolding new ones, so it is safe to run once, at the start.
+
 **`npm run check` (astro check) is the correctness gate — run it after every change.**
 Then `npm run build` for anything touching rendering, modules or the server.
 

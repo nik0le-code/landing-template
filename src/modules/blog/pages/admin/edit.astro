@@ -39,6 +39,7 @@ if (Astro.params.id && !post) return Astro.rewrite("/404");
 const source = !post && Astro.url.searchParams.get("translationOf") ? await getPost(Astro.url.searchParams.get("translationOf")!) : null;
 const requestedLocale = Astro.url.searchParams.get("locale");
 const locale: Locale = post ? (post.locale as Locale) : isLocale(requestedLocale) ? requestedLocale : siteConfig.defaultLocale;
+const otherLocales: Locale[] = siteConfig.locales.filter((l) => l !== locale);
 const translationKey = post?.translationKey ?? source?.translationKey ?? "";
 
 const [categories, siblings] = await Promise.all([listCategories(), translationKey ? getTranslationSiblings(translationKey) : new Map()]);
@@ -136,7 +137,7 @@ const state = post ? postState(post) : "draft";
         (post || source) && (
           <Panel title={tm("admin.translations")}>
             <ul class="space-y-2 text-sm">
-              {siteConfig.locales.filter((l) => l !== locale).map((l) => {
+              {otherLocales.map((l) => {
                 const sibling = siblings.get(l);
                 return (
                   <li class="flex items-center justify-between gap-2">

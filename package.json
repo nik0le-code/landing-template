@@ -23,7 +23,8 @@
     "module:list": "tsx scripts/modules.ts list",
     "module:new": "tsx scripts/modules.ts new",
     "module:remove": "tsx scripts/modules.ts remove",
-    "module:add": "tsx scripts/modules.ts add"
+    "module:add": "tsx scripts/modules.ts add",
+    "setup": "tsx scripts/setup.ts"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.5",

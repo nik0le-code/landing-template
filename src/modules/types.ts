@@ -89,7 +89,8 @@ export interface SitemapEntryLike {
 
 export interface AdminNavItem {
   href: string;
-  label: Partial<Record<Locale, string>> & { en: string };
+  /** Per-locale label; falls back to the default locale, then any value. */
+  label: Partial<Record<Locale, string>>;
   /** Name from src/components/ui/icons.ts. */
   icon?: string;
   /** Lower sorts first; core items use 0–10. */
@@ -108,7 +109,7 @@ export interface ModuleRuntime {
    * Links added to the public navbar (after site links, before the CTA) and the
    * footer's first column. `path` is locale-less, e.g. "/blog".
    */
-  publicNav?: { path: string | (() => string); label: Partial<Record<Locale, string>> & { en: string } }[];
+  publicNav?: { path: string | (() => string); label: Partial<Record<Locale, string>> }[];
   /** Module translations: `translateModule(lang, "blog", "list.title")`. */
   i18n?: Partial<Record<Locale, Record<string, unknown>>>;
   /**
