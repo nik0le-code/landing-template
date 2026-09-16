@@ -115,15 +115,63 @@ function patch(relative: string, pattern: RegExp, replacement: string, label: st
 
 // ---------------------------------------------------------------- steps
 
+/**
+ * Asks until the answer is valid, then normalizes it. A bad site URL or colour
+ * reaches astro.config.ts / theme.css and breaks the build, so these are refused
+ * rather than warned about; with --yes (or no terminal) there is nobody to ask,
+ * so the run stops instead of writing something broken.
+ */
+async function ask(
+  question: string,
+  preset: string | undefined,
+  fallback: string,
+  check: (value: string) => string | null,
+): Promise<string> {
+  for (let attempt = 0; ; attempt++) {
+    // A value passed as a flag is used as-is when valid, and re-asked when not.
+    const answer = attempt === 0 && preset !== undefined ? preset.trim() : (await prompt(question, fallback)).trim();
+    const normalized = check(answer);
+    if (normalized !== null) return normalized;
+    const problem = `"${answer}" is not valid for: ${question.replace(/:$/, "")}`;
+    if (flags.yes || !process.stdin.isTTY || attempt >= 4) {
+      console.error(`\n✗ ${problem}`);
+      process.exit(1);
+    }
+    console.log(`  ${problem} — try again.`);
+  }
+}
+
+/** "client.gr" → "https://client.gr"; rejects anything that isn't a real http(s) origin. */
+export function normalizeUrl(value: string): string | null {
+  const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`;
+  let url: URL;
+  try {
+    url = new URL(candidate);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  // A bare word ("test") parses as https://test — require a dotted host or localhost.
+  if (!url.hostname.includes(".") && url.hostname !== "localhost") return null;
+  return `${url.origin}${url.pathname.replace(/\/+$/, "")}`;
+}
+
+export function normalizeColor(value: string): string | null {
+  const hex = value.trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(hex)) return hex;
+  if (/^[0-9a-f]{6}$/.test(hex)) return `#${hex}`;
+  if (/^#?[0-9a-f]{3}$/.test(hex)) return `#${hex.replace("#", "").replace(/./g, (c) => c + c)}`;
+  return null;
+}
+
+const normalizeEmail = (value: string) => (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) ? value.toLowerCase() : null);
+
 async function askBasics() {
   const name = flags.name ?? (await prompt("Client / site name:", "Acme"));
-  const domainInput = flags.domain ?? (await prompt("Production URL:", "https://example.com"));
-  const domain = domainInput.replace(/\/+$/, "");
-  const email = flags.email ?? (await prompt("Contact email:", "hello@example.com"));
+  const domain = await ask("Production URL:", flags.domain, "https://example.com", normalizeUrl);
+  const email = await ask("Contact email:", flags.email, "hello@example.com", normalizeEmail);
   const phone = flags.phone ?? (await prompt("Contact phone (blank to skip):", ""));
-  const color = flags.color ?? (await prompt("Brand colour (hex):", "#4f46e5"));
-  if (!/^https?:\/\//.test(domain)) warn(`"${domain}" doesn't look like a URL — check site.config.ts.`);
-  if (!/^#[0-9a-fA-F]{6}$/.test(color)) warn(`"${color}" isn't a 6-digit hex colour — check src/styles/theme.css.`);
+  const color = await ask("Brand colour (hex):", flags.color, "#4f46e5", normalizeColor);
   return { name, domain, email, phone, color };
 }
 
