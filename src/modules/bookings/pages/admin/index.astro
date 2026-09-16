@@ -1,0 +1,84 @@
+---
+import { localeRegions } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import Panel from "@/admin/components/Panel.astro";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import Select from "@/components/ui/Select.astro";
+import { and, asc, desc, eq, gte, lt, type SQL } from "drizzle-orm";
+import { getDb } from "@/db";
+import { bookings } from "../../db/schema";
+import { BOOKING_STATUSES, type BookingStatus } from "../../options";
+import { bookingsOptions, toDateString } from "../../lib/availability";
+
+const lang = Astro.locals.lang;
+const tm = (key: string) => translateModule(lang, "bookings", key);
+const params = Astro.url.searchParams;
+const range = params.get("range") === "past" ? "past" : params.get("range") === "all" ? "all" : "upcoming";
+const statusParam = params.get("status") ?? "";
+const status = (BOOKING_STATUSES as readonly string[]).includes(statusParam) ? (statusParam as BookingStatus) : null;
+const today = toDateString(new Date());
+
+const conditions: SQL[] = [];
+if (range === "upcoming") conditions.push(gte(bookings.date, today));
+if (range === "past") conditions.push(lt(bookings.date, today));
+if (status) conditions.push(eq(bookings.status, status));
+const items = await getDb()
+  .select()
+  .from(bookings)
+  .where(conditions.length ? and(...conditions) : undefined)
+  .orderBy(range === "past" ? desc(bookings.date) : asc(bookings.date), asc(bookings.time))
+  .limit(300);
+
+const services = new Map(bookingsOptions().services.map((service) => [service.value, service.label[lang] ?? service.value]));
+const badge = { pending: "default", confirmed: "success", cancelled: "destructive", completed: "secondary" } as const;
+const weekday = (date: string) => new Intl.DateTimeFormat(localeRegions[lang], { weekday: "short", day: "numeric", month: "short" }).format(new Date(`${date}T12:00:00`));
+---
+
+<AdminLayout title={tm("admin.title")}>
+  <form method="GET" class="mb-6 grid gap-3 sm:grid-cols-[12rem_12rem_auto]">
+    <Select id="range" name="range" aria-label={tm("admin.when")}>
+      {(["upcoming", "past", "all"] as const).map((value) => <option value={value} selected={range === value}>{tm(`admin.${value}`)}</option>)}
+    </Select>
+    <Select id="status" name="status" aria-label={tm("admin.status")}>
+      <option value="">{tm("admin.all")}</option>
+      {BOOKING_STATUSES.map((value) => <option value={value} selected={status === value}>{tm(`statuses.${value}`)}</option>)}
+    </Select>
+    <Button type="submit" variant="secondary">{tm("admin.filter")}</Button>
+  </form>
+
+  {
+    items.length === 0 ? (
+      <Panel><p class="text-muted-foreground">{tm("admin.empty")}</p></Panel>
+    ) : (
+      <div class="relative overflow-x-auto rounded-lg border border-border bg-card">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-border bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th class="px-4 py-3 font-medium">{tm("admin.when")}</th>
+              <th class="px-4 py-3 font-medium">{tm("admin.customer")}</th>
+              <th class="px-4 py-3 font-medium">{tm("fields.service")}</th>
+              <th class="px-4 py-3 font-medium">{tm("admin.status")}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {items.map((booking) => (
+              <tr class={booking.status === "pending" ? "font-medium" : ""}>
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <a href={`/admin/bookings/${booking.id}`} class="hover:text-primary">{weekday(booking.date)} · {booking.time}</a>
+                </td>
+                <td class="px-4 py-3">
+                  {booking.name}
+                  <p class="font-normal text-muted-foreground">{booking.email}{booking.phone && ` · ${booking.phone}`}</p>
+                </td>
+                <td class="px-4 py-3 font-normal">{services.get(booking.service) ?? "—"}</td>
+                <td class="px-4 py-3"><Badge variant={badge[booking.status]}>{tm(`statuses.${booking.status}`)}</Badge></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+</AdminLayout>

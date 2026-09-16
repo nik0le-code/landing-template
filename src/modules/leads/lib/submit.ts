@@ -71,8 +71,10 @@ export async function submitLead(input: SubmitInput): Promise<SubmitResult> {
   // Bots filling the honeypot get a fake success and nothing is stored.
   if (input.honeypot.trim()) return { ok: true };
 
-  const limit = consume(`leads:${input.clientAddress}`, options.rateLimit.max, options.rateLimit.windowMinutes * 60_000);
-  if (!limit.allowed) return { ok: false, code: "rateLimited" };
+  // Two limits: many attempts are usually someone fixing validation errors, so only
+  // stored submissions hit the configured limit; the loose one still stops abuse.
+  const windowMs = options.rateLimit.windowMinutes * 60_000;
+  if (!consume(`lead-attempts:${input.clientAddress}`, options.rateLimit.max * 6, windowMs).allowed) return { ok: false, code: "rateLimited" };
 
   const values: Partial<Record<LeadField, string>> = {};
   const fields: NonNullable<Extract<SubmitResult, { ok: false }>["fields"]> = {};
@@ -84,6 +86,8 @@ export async function submitLead(input: SubmitInput): Promise<SubmitResult> {
   }
   if (formConfig.consent && !input.consent) fields.consent = "consentRequired";
   if (Object.keys(fields).length) return { ok: false, code: "invalid", fields };
+
+  if (!consume(`leads:${input.clientAddress}`, options.rateLimit.max, windowMs).allowed) return { ok: false, code: "rateLimited" };
 
   const links = (values.message?.match(/https?:\/\//gi) ?? []).length;
   const spamReason =

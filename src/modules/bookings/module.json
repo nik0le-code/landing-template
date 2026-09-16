@@ -1,0 +1,15 @@
+{
+  "name": "bookings",
+  "description": "Appointment/booking requests: a public form with configurable days, time slots and notice, an admin workflow (pending → confirmed/cancelled/completed) and email notifications.",
+  "admin": true,
+  "dependsOn": [],
+  "optionDefaults": { "basePath": "booking" },
+  "routes": [
+    { "pattern": "/[lang]/{basePath}", "entrypoint": "./pages/form.astro" },
+    { "pattern": "/[lang]/{basePath}/submit", "entrypoint": "./pages/submit.astro" },
+    { "pattern": "/[lang]/{basePath}/thank-you", "entrypoint": "./pages/thank-you.astro" },
+    { "pattern": "/api/bookings/slots", "entrypoint": "./pages/slots-api.ts" },
+    { "pattern": "/admin/bookings", "entrypoint": "./pages/admin/index.astro" },
+    { "pattern": "/admin/bookings/[id]", "entrypoint": "./pages/admin/[id].astro" }
+  ]
+}

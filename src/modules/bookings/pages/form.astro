@@ -1,0 +1,31 @@
+---
+import { siteConfig } from "@site-config";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Card from "@/components/ui/Card.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import BookingForm from "../components/BookingForm.astro";
+import { bookingsPath } from "../lib/availability";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "bookings", key);
+---
+
+<PageLayout
+  seo={{
+    title: t("title"),
+    description: t("description"),
+    alternates: Object.fromEntries(siteConfig.locales.map((l) => [l, bookingsPath(l)])),
+  }}
+  breadcrumbs={[{ name: t("title"), path: bookingsPath(lang) }]}
+>
+  <Section width="md">
+    <SectionHeading tag="h1" title={t("title")} description={t("description")} />
+    <Card padding="lg" class="mx-auto mt-10 max-w-2xl">
+      <BookingForm />
+    </Card>
+  </Section>
+</PageLayout>

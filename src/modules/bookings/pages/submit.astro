@@ -1,0 +1,59 @@
+---
+/** Form target without JavaScript: validates, then redirects to the thank-you page. */
+import { localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import { bookingsOptions, bookingsPath } from "../lib/availability";
+import { submitBooking } from "../lib/submit";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "bookings", key, params);
+if (Astro.request.method !== "POST") return Astro.redirect(bookingsPath(lang), 303);
+
+const data = await Astro.request.formData();
+const text = (name: string) => String(data.get(name) ?? "");
+const result = await submitBooking({
+  date: text("date"),
+  time: text("time"),
+  service: text("service"),
+  name: text("name"),
+  email: text("email"),
+  phone: text("phone"),
+  people: text("people"),
+  notes: text("notes"),
+  honeypot: text("website"),
+  locale: lang,
+  clientAddress: Astro.clientAddress,
+});
+
+if (result.ok) return Astro.redirect(bookingsPath(lang, "/thank-you"), 303);
+Astro.response.status = result.code === "rateLimited" ? 429 : 400;
+const fieldErrors = Object.entries(result.fields ?? {});
+const hours = bookingsOptions().minNoticeHours;
+---
+
+<PageLayout seo={{ title: t("submitError.title"), noindex: true, alternates: null }}>
+  <Section width="sm">
+    <h1 class="text-3xl font-bold tracking-tight">{t("submitError.title")}</h1>
+    <p class="mt-4 text-muted-foreground">{t(`errors.${result.code}`, { hours })}</p>
+    {
+      fieldErrors.length > 0 && (
+        <ul class="mt-6 list-disc space-y-1 pl-5">
+          {fieldErrors.map(([field, code]) => (
+            <li>
+              <strong>{t(`fields.${field}`)}:</strong> {t(`errors.${code}`, { hours })}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    <div class="mt-8 flex gap-3">
+      <Button href={bookingsPath(lang)}>{t("submitError.back")}</Button>
+      <Button href={localizePath("/", lang)} variant="outline">{t("thankYou.back")}</Button>
+    </div>
+  </Section>
+</PageLayout>

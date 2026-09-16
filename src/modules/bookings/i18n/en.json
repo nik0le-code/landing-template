@@ -1,0 +1,92 @@
+{
+  "title": "Bookings",
+  "description": "Book an appointment online. You'll get a confirmation by email.",
+  "submit": "Request booking",
+  "sending": "Sending…",
+  "fields": {
+    "date": "Date",
+    "time": "Time",
+    "service": "Service",
+    "name": "Full name",
+    "email": "Email",
+    "phone": "Phone",
+    "people": "People",
+    "notes": "Notes"
+  },
+  "chooseService": "Choose a service",
+  "chooseTime": "Choose a time",
+  "noSlots": "No times available on that day.",
+  "closedDays": "We take bookings on: {days}.",
+  "hint": "Your request is confirmed by our team.",
+  "errors": {
+    "required": "This field is required.",
+    "invalidEmail": "Enter a valid email.",
+    "invalidPhone": "Enter a valid phone number.",
+    "tooLong": "The text is too long.",
+    "unknownService": "Choose an available service.",
+    "invalidPeople": "Enter a valid number of people.",
+    "invalidDate": "Choose a valid date.",
+    "closedDay": "We don't take bookings on that day.",
+    "invalidTime": "Choose an available time.",
+    "tooSoon": "We need at least {hours} hours' notice.",
+    "tooFar": "That date is too far ahead.",
+    "slotTaken": "That time was just booked. Please pick another.",
+    "rateLimited": "Too many requests. Please try again in a few minutes.",
+    "invalid": "Please check the form fields.",
+    "network": "Sending failed. Please try again."
+  },
+  "thankYou": {
+    "title": "We received your request",
+    "description": "We'll confirm your booking by email as soon as possible.",
+    "back": "Back to home"
+  },
+  "submitError": {
+    "title": "Your request wasn't sent",
+    "back": "Back to the form"
+  },
+  "statuses": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled",
+    "completed": "Completed"
+  },
+  "admin": {
+    "title": "Bookings",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "all": "All",
+    "empty": "No bookings.",
+    "status": "Status",
+    "when": "When",
+    "customer": "Customer",
+    "notes": "Internal notes",
+    "notesHint": "Only visible to admins.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "complete": "Complete",
+    "save": "Save",
+    "filter": "Filter",
+    "pendingCount": "pending",
+    "emailCustomer": "The customer is notified by email.",
+    "call": "Call",
+    "reply": "Reply by email"
+  },
+  "email": {
+    "newSubject": "New booking request — {date} {time}",
+    "newIntro": "New booking request from the website:",
+    "open": "Open in admin",
+    "confirmedSubject": "Your booking is confirmed — {date} {time}",
+    "confirmedIntro": "Hello {name}, your booking is confirmed.",
+    "cancelledSubject": "Your booking was cancelled — {date} {time}",
+    "cancelledIntro": "Hello {name}, unfortunately your booking was cancelled. Contact us to arrange another date."
+  },
+  "days": {
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
+  }
+}

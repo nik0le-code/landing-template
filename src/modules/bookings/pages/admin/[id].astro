@@ -1,0 +1,103 @@
+---
+import { actions } from "astro:actions";
+import Mail from "@lucide/astro/icons/mail";
+import Phone from "@lucide/astro/icons/phone";
+import { eq } from "drizzle-orm";
+import { localeRegions, useTranslations } from "@/i18n";
+import { getDb } from "@/db";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import Panel from "@/admin/components/Panel.astro";
+import { hasRole } from "@/admin/auth/roles";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Select from "@/components/ui/Select.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import { bookings } from "../../db/schema";
+import { BOOKING_STATUSES } from "../../options";
+import { bookingsOptions } from "../../lib/availability";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const tm = (key: string) => translateModule(lang, "bookings", key);
+
+const updated = Astro.getActionResult(actions.bookings.update);
+const removed = Astro.getActionResult(actions.bookings.delete);
+if (updated && !updated.error) return Astro.redirect(`/admin/bookings/${Astro.params.id}?flash=saved`, 303);
+if (removed && !removed.error) return Astro.redirect("/admin/bookings?flash=deleted", 303);
+
+const [booking] = await getDb().select().from(bookings).where(eq(bookings.id, Astro.params.id!)).limit(1);
+if (!booking) return Astro.rewrite("/404");
+
+const options = bookingsOptions();
+const service = options.services.find((entry) => entry.value === booking.service);
+const when = new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "full" }).format(new Date(`${booking.date}T12:00:00`));
+const telHref = booking.phone ? `tel:${booking.phone.replace(/[^+\d]/g, "")}` : null;
+const badge = { pending: "default", confirmed: "success", cancelled: "destructive", completed: "secondary" } as const;
+const rows = [
+  [tm("fields.service"), service?.label[lang] ?? service?.value ?? "—"],
+  [tm("fields.name"), booking.name],
+  [tm("fields.email"), booking.email],
+  [tm("fields.phone"), booking.phone || "—"],
+  ...(options.askPeople ? [[tm("fields.people"), booking.people ? String(booking.people) : "—"] as const] : []),
+] as [string, string][];
+---
+
+<AdminLayout title={`${when} · ${booking.time}`} description={booking.name} back={{ href: "/admin/bookings", label: tm("admin.title") }}>
+  <div slot="actions" class="flex gap-2">
+    <Button href={`mailto:${booking.email}`} variant="outline"><Mail /> {tm("admin.reply")}</Button>
+    {telHref && <Button href={telHref} variant="outline"><Phone /> {tm("admin.call")}</Button>}
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-[3fr_2fr]">
+    <Panel>
+      <div class="mb-4 flex items-center justify-between">
+        <p class="text-lg font-semibold">{when} · {booking.time}</p>
+        <Badge variant={badge[booking.status]}>{tm(`statuses.${booking.status}`)}</Badge>
+      </div>
+      <dl class="grid gap-3 text-sm sm:grid-cols-2">
+        {rows.map(([label, value]) => (
+          <div>
+            <dt class="text-muted-foreground">{label}</dt>
+            <dd class="font-medium break-words">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {
+        booking.notes && (
+          <div class="mt-6 border-t border-border pt-4">
+            <p class="text-sm text-muted-foreground">{tm("fields.notes")}</p>
+            <p class="mt-1 whitespace-pre-wrap">{booking.notes}</p>
+          </div>
+        )
+      }
+    </Panel>
+
+    <div class="space-y-6">
+      <Panel>
+        <form method="POST" action={actions.bookings.update} class="space-y-4">
+          <input type="hidden" name="id" value={booking.id} />
+          <Field id="status" label={tm("admin.status")} hint={options.emailCustomer ? tm("admin.emailCustomer") : undefined}>
+            <Select id="status" name="status">
+              {BOOKING_STATUSES.map((value) => <option value={value} selected={booking.status === value}>{tm(`statuses.${value}`)}</option>)}
+            </Select>
+          </Field>
+          <Field id="adminNotes" label={tm("admin.notes")} hint={tm("admin.notesHint")}>
+            <Textarea id="adminNotes" name="adminNotes" rows={4} maxlength={2000}>{booking.adminNotes}</Textarea>
+          </Field>
+          <Button type="submit">{tm("admin.save")}</Button>
+        </form>
+      </Panel>
+
+      {
+        hasRole(Astro.locals.user!.role, "admin") && (
+          <form method="POST" action={actions.bookings.delete} data-confirm={t("admin.common.confirmDelete")}>
+            <input type="hidden" name="id" value={booking.id} />
+            <Button type="submit" variant="destructive">{t("admin.common.delete")}</Button>
+          </form>
+        )
+      }
+    </div>
+  </div>
+</AdminLayout>

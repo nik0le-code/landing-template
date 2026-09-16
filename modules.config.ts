@@ -13,6 +13,7 @@ import { defineModulesConfig } from "./src/modules/define";
 export default defineModulesConfig({
   modules: {
     blog: false,
+    bookings: false,
     catalog: false,
     example: false,
     leads: false,
@@ -22,6 +23,15 @@ export default defineModulesConfig({
 
   options: {
     blog: { postsPerPage: 9, latestOnHome: 3 },
+    bookings: {
+      basePath: "booking",
+      services: [
+        // { value: "consultation", label: { el: "Συμβουλευτική", en: "Consultation" } },
+      ],
+      openDays: [1, 2, 3, 4, 5],
+      slots: ["09:00", "10:00", "11:00", "12:00", "16:00", "17:00", "18:00"],
+      minNoticeHours: 24,
+    },
     catalog: { basePath: "products", currency: "EUR", showPrices: true, featuredOnHome: 3 },
     example: { pageSize: 20 },
     leads: {

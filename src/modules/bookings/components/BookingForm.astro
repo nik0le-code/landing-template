@@ -1,0 +1,177 @@
+---
+/**
+ * Booking request form.
+ * - Without JavaScript: posts to /[lang]/<basePath>/submit; the server validates
+ *   the slot and redirects to the thank-you page.
+ * - With JavaScript: loads free times for the chosen date, submits through
+ *   `actions.bookings.request`, shows inline errors and fires the conversion.
+ */
+import { pickLocalized } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+import Select from "@/components/ui/Select.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import { bookingsOptions, bookingsPath, dateRange } from "../lib/availability";
+
+const lang = Astro.locals.lang;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "bookings", key, params);
+const options = bookingsOptions();
+const range = dateRange();
+const openDayNames = options.openDays.map((day) => t(`days.${day}`)).join(", ");
+const errorKeys = [
+  "required", "invalidEmail", "invalidPhone", "tooLong", "unknownService", "invalidPeople", "invalidDate", "closedDay",
+  "invalidTime", "tooSoon", "tooFar", "slotTaken", "rateLimited", "invalid", "network",
+];
+const messages = {
+  ...Object.fromEntries(errorKeys.map((key) => [key, t(`errors.${key}`, { hours: options.minNoticeHours })])),
+  noSlots: t("noSlots"),
+};
+---
+
+<div id="booking-form" data-booking-form data-conversion={options.conversion}>
+  <form method="POST" action={bookingsPath(lang, "/submit")} data-errors={JSON.stringify(messages)} class="space-y-5">
+    <input type="hidden" name="locale" value={lang} />
+    <div aria-hidden="true" class="absolute -left-[9999px] h-px w-px overflow-hidden">
+      <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+    </div>
+
+    <p data-form-error role="alert" class="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive" hidden></p>
+
+    {
+      options.services.length > 0 && (
+        <Field id="booking-service" label={t("fields.service")} required>
+          <Select id="booking-service" name="service" required>
+            <option value="">{t("chooseService")}</option>
+            {options.services.map((service) => (
+              <option value={service.value}>{pickLocalized(service.label, lang)}</option>
+            ))}
+          </Select>
+        </Field>
+      )
+    }
+
+    <div class="grid gap-5 sm:grid-cols-2">
+      <Field id="booking-date" label={t("fields.date")} hint={t("closedDays", { days: openDayNames })} required>
+        <Input id="booking-date" name="date" type="date" min={range.min} max={range.max} required />
+      </Field>
+      <Field id="booking-time" label={t("fields.time")} required>
+        <Select id="booking-time" name="time" required>
+          <option value="">{t("chooseTime")}</option>
+          {options.slots.map((slot) => <option value={slot}>{slot}</option>)}
+        </Select>
+      </Field>
+    </div>
+
+    <div class="grid gap-5 sm:grid-cols-2">
+      <Field id="booking-name" label={t("fields.name")} required>
+        <Input id="booking-name" name="name" autocomplete="name" required />
+      </Field>
+      <Field id="booking-email" label={t("fields.email")} required>
+        <Input id="booking-email" name="email" type="email" autocomplete="email" required />
+      </Field>
+      <Field id="booking-phone" label={t("fields.phone")}>
+        <Input id="booking-phone" name="phone" type="tel" autocomplete="tel" />
+      </Field>
+      {
+        options.askPeople && (
+          <Field id="booking-people" label={t("fields.people")}>
+            <Input id="booking-people" name="people" type="number" min={1} max={100} />
+          </Field>
+        )
+      }
+    </div>
+
+    <Field id="booking-notes" label={t("fields.notes")}>
+      <Textarea id="booking-notes" name="notes" rows={3} maxlength={2000} />
+    </Field>
+
+    <p class="text-sm text-muted-foreground">{t("hint")}</p>
+    <Button type="submit" data-sending={t("sending")} class="w-full sm:w-auto">{t("submit")}</Button>
+  </form>
+
+  <div data-form-success role="status" hidden class="rounded-lg border border-success/30 bg-success/10 p-6 text-center">
+    <p class="text-lg font-semibold">{t("thankYou.title")}</p>
+    <p class="mt-1 text-muted-foreground">{t("thankYou.description")}</p>
+  </div>
+</div>
+
+<script>
+  import { actions, isInputError } from "astro:actions";
+  import { trackConversion, trackEvent } from "@/lib/tracking";
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-booking-form]")) {
+    const form = root.querySelector("form")!;
+    const formError = root.querySelector<HTMLElement>("[data-form-error]")!;
+    const success = root.querySelector<HTMLElement>("[data-form-success]")!;
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const dateInput = form.elements.namedItem("date") as HTMLInputElement;
+    const timeSelect = form.elements.namedItem("time") as HTMLSelectElement;
+    const messages = JSON.parse(form.dataset.errors ?? "{}") as Record<string, string>;
+    /** Grey out times already taken (the server checks again on submit). */
+    const refreshSlots = async () => {
+      if (!dateInput.value) return;
+      const response = await fetch(`/api/bookings/slots?date=${encodeURIComponent(dateInput.value)}`, { headers: { Accept: "application/json" } });
+      if (!response.ok) return;
+      const { slots } = (await response.json()) as { slots: string[] };
+      const available = new Set(slots);
+      for (const option of timeSelect.options) {
+        if (!option.value) continue;
+        option.disabled = !available.has(option.value);
+        option.textContent = option.disabled ? `${option.value} —` : option.value;
+      }
+      if (timeSelect.value && !available.has(timeSelect.value)) timeSelect.value = "";
+      // No free times that day: say so instead of letting them submit.
+      formError.hidden = slots.length > 0;
+      if (!slots.length) formError.textContent = messages.noSlots ?? "";
+    };
+
+    dateInput.addEventListener("change", () => void refreshSlots());
+    if (dateInput.value) void refreshSlots();
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      formError.hidden = true;
+      for (const el of form.querySelectorAll<HTMLElement>("[data-field-error]")) el.textContent = "";
+      const label = submit.textContent;
+      submit.disabled = true;
+      submit.textContent = submit.dataset.sending ?? label;
+
+      const { error } = await actions.bookings
+        .request(new FormData(form))
+        .catch(() => ({ error: { message: '{"code":"network"}' } as Error }));
+      submit.disabled = false;
+      submit.textContent = label;
+
+      if (!error) {
+        form.hidden = true;
+        success.hidden = false;
+        trackEvent("booking_request");
+        if (root.dataset.conversion) trackConversion(root.dataset.conversion);
+        return;
+      }
+
+      let payload: { code?: string; fields?: Record<string, string> } = { code: "invalid" };
+      if (!isInputError(error)) {
+        try {
+          payload = JSON.parse(error.message);
+        } catch {
+          payload = { code: "network" };
+        }
+      }
+      let firstInvalid: HTMLElement | null = null;
+      for (const [field, code] of Object.entries(payload.fields ?? {})) {
+        const errorEl = document.getElementById(`booking-${field}-error`);
+        if (errorEl) errorEl.textContent = messages[code] ?? code;
+        const control = document.getElementById(`booking-${field}`);
+        control?.setAttribute("aria-invalid", "true");
+        firstInvalid ??= control;
+      }
+      formError.textContent = messages[payload.code ?? "invalid"] ?? messages.invalid ?? "";
+      formError.hidden = false;
+      if (payload.fields?.time || payload.fields?.date) void refreshSlots();
+      (firstInvalid ?? formError).focus?.();
+    });
+  }
+</script>

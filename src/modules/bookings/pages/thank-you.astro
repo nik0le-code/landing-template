@@ -1,0 +1,22 @@
+---
+import CircleCheck from "@lucide/astro/icons/circle-check";
+import { localizePath } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "bookings", key);
+---
+
+<PageLayout seo={{ title: t("thankYou.title"), description: t("thankYou.description"), noindex: true }}>
+  <Section width="sm" class="text-center">
+    <CircleCheck class="mx-auto size-14 text-success" aria-hidden="true" />
+    <h1 class="mt-6 text-4xl font-bold tracking-tight">{t("thankYou.title")}</h1>
+    <p class="mt-4 text-lg text-muted-foreground">{t("thankYou.description")}</p>
+    <Button href={localizePath("/", lang)} class="mt-8">{t("thankYou.back")}</Button>
+  </Section>
+</PageLayout>

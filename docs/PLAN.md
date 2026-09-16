@@ -113,6 +113,6 @@ before moving on.
 - [x] 9 Module: settings
 - [x] 10 Module: blog
 - [x] 11 Module: catalog
-- [ ] 12 Module: bookings
+- [x] 12 Module: bookings
 - [ ] 13 Module CLI
 - [ ] 14 Production + docs
