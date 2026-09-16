@@ -19,7 +19,11 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "admin:create": "tsx scripts/admin-create.ts"
+    "admin:create": "tsx scripts/admin-create.ts",
+    "module:list": "tsx scripts/modules.ts list",
+    "module:new": "tsx scripts/modules.ts new",
+    "module:remove": "tsx scripts/modules.ts remove",
+    "module:add": "tsx scripts/modules.ts add"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.5",

@@ -114,5 +114,5 @@ before moving on.
 - [x] 10 Module: blog
 - [x] 11 Module: catalog
 - [x] 12 Module: bookings
-- [ ] 13 Module CLI
+- [x] 13 Module CLI
 - [ ] 14 Production + docs

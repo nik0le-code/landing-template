@@ -13,7 +13,15 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AstroIntegration } from "astro";
-import { listAllSchemaFiles, listAvailableModules, listUnconfiguredModules, resolveModules, type ResolvedModule } from "../modules/resolve";
+import {
+  listAllSchemaFiles,
+  listAvailableModules,
+  listUnconfiguredModules,
+  migratedTables,
+  moduleTables,
+  resolveModules,
+  type ResolvedModule,
+} from "../modules/resolve";
 import type { ModulesConfig } from "../modules/types";
 
 const GENERATED_DIR = "src/modules/.generated";
@@ -148,8 +156,15 @@ export function modulesIntegration(config: ModulesConfig): AstroIntegration {
           logger.warn(`not listed in modules.config.ts (disabled): ${unconfigured.join(", ")} — add them as \`name: false\`.`);
         }
 
-        if (listAllSchemaFiles(root).length && !existsSync(path.join(root, "drizzle", "meta", "_journal.json"))) {
-          logger.warn("module tables exist but no migrations were generated — run `npm run db:generate` once.");
+        // Tables an enabled module needs but no migration creates yet.
+        const migrated = migratedTables(root);
+        const missing = modules.flatMap((module) =>
+          moduleTables(root, module.name).filter((table) => !migrated?.has(table)),
+        );
+        if (listAllSchemaFiles(root).length && (!migrated || missing.length)) {
+          logger.warn(
+            `${missing.length ? `no migration yet for: ${missing.join(", ")}` : "module tables exist but no migrations were generated"} — run \`npm run db:generate\`.`,
+          );
         }
       },
     },

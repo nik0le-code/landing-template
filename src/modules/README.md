@@ -46,6 +46,26 @@ Only needed when a schema **file** changes or a new module **folder** is added:
 npm run db:generate   # writes drizzle/NNNN_*.sql — commit it
 ```
 
+## CLI
+
+```bash
+npm run module:list                        # what exists, what's on, deps, tables, routes
+npm run module:new -- case-studies         # scaffold a working module and enable it
+npm run module:new -- faq --no-admin --base-path questions
+npm run module:remove -- bookings --force  # delete the folder + unregister
+npm run module:add -- bookings --from ../landing-template
+```
+
+`module:new` scaffolds a content module (table, admin list/edit, public list/detail,
+i18n, options, sitemap) that works as soon as you run `npm run db:generate`.
+
+`module:add` without `--from` restores the folder from a git remote that tracks the
+template (`git remote add template <url>`; override with `TEMPLATE_REMOTE` / `TEMPLATE_REF`).
+
+To keep a module's data, set it to `false` instead of removing it: `module:remove`
+deletes the folder, and the next `npm run db:generate` then drops its tables. If
+drizzle-kit asks whether a table was renamed, always choose create/drop.
+
 ## Anatomy
 
 ```

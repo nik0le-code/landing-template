@@ -34,6 +34,24 @@ export function listAllSchemaFiles(root: string): string[] {
     .filter((file) => existsSync(path.join(root, file)));
 }
 
+/** Table names declared in a module's schema file (`sqliteTable("x", …)`). */
+export function moduleTables(root: string, name: string): string[] {
+  const file = path.join(root, MODULES_DIR, name, "db", "schema.ts");
+  if (!existsSync(file)) return [];
+  return [...readFileSync(file, "utf8").matchAll(/sqliteTable\(\s*["'`]([\w-]+)["'`]/g)].map((match) => match[1]!);
+}
+
+/** Tables present in the latest drizzle snapshot (i.e. covered by a migration). */
+export function migratedTables(root: string): Set<string> | null {
+  const metaDir = path.join(root, "drizzle", "meta");
+  if (!existsSync(metaDir)) return null;
+  const snapshots = readdirSync(metaDir).filter((file) => file.endsWith("_snapshot.json")).sort();
+  const latest = snapshots.at(-1);
+  if (!latest) return null;
+  const snapshot = JSON.parse(readFileSync(path.join(metaDir, latest), "utf8")) as { tables?: Record<string, unknown> };
+  return new Set(Object.keys(snapshot.tables ?? {}));
+}
+
 /** Every module folder (one containing module.json), enabled or not. */
 export function listAvailableModules(root: string): string[] {
   const base = path.join(root, MODULES_DIR);
