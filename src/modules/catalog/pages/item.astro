@@ -1,0 +1,120 @@
+---
+import { siteConfig } from "@site-config";
+import { localizePath, pickLocalized } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import MediaImage from "@/modules/media/components/MediaImage.astro";
+import { getMediaMap } from "@/modules/media/lib/queries";
+import { mediaUrl, pickVariant } from "@/modules/media/lib/urls";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import Container from "@/components/ui/Container.astro";
+import Prose from "@/components/ui/Prose.astro";
+import Section from "@/components/ui/Section.astro";
+import { productSchema } from "@/lib/seo/schema";
+import ItemCard from "../components/ItemCard.astro";
+import { catalogOptions, catalogPath, formatPrice, getCatalogCategory, getPublishedItem, listRelatedItems } from "../lib/items";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "catalog", key);
+const item = await getPublishedItem(Astro.params.slug ?? "");
+if (!item) return Astro.rewrite("/404");
+
+const [category, related] = await Promise.all([item.categoryId ? getCatalogCategory(item.categoryId) : null, listRelatedItems(item)]);
+const media = await getMediaMap([item.coverId ?? "", ...item.gallery, ...related.map((r) => r.coverId ?? "")]);
+const cover = item.coverId ? media.get(item.coverId) : undefined;
+const gallery = item.gallery.flatMap((id) => (media.has(id) ? [media.get(id)!] : []));
+
+const name = pickLocalized(item.name, lang);
+const summary = pickLocalized(item.summary, lang);
+const contentHtml = pickLocalized(item.contentHtml, lang);
+const price = formatPrice(item, lang);
+const ogImage = cover ? mediaUrl(pickVariant(cover, 1200).key) : undefined;
+const { showPrices, currency } = catalogOptions();
+
+Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["catalog"] });
+---
+
+<PageLayout
+  seo={{
+    title: name,
+    description: summary || siteConfig.description[lang],
+    image: ogImage,
+    imageAlt: cover?.alt || name,
+    alternates: Object.fromEntries(siteConfig.locales.map((l) => [l, catalogPath(l, item.slug)])),
+  }}
+  schema={[
+    productSchema({
+      name,
+      description: summary,
+      path: catalogPath(lang, item.slug),
+      image: ogImage,
+      price: showPrices && item.priceCents !== null ? item.priceCents / 100 : undefined,
+      currency,
+      sku: item.sku || undefined,
+      availability: item.availability,
+    }),
+  ]}
+  breadcrumbs={[
+    { name: t("title"), path: catalogPath(lang) },
+    ...(category ? [{ name: pickLocalized(category.name, lang), path: `${catalogPath(lang)}/category/${category.slug}` }] : []),
+    { name, path: catalogPath(lang, item.slug) },
+  ]}
+>
+  <Container class="py-10 sm:py-14">
+    <div class="grid gap-10 lg:grid-cols-2 lg:gap-14">
+      <div class="space-y-3">
+        {cover && <MediaImage media={cover} sizes="(min-width: 1024px) 50vw, 100vw" priority class="aspect-[4/3] w-full rounded-xl object-cover" />}
+        {
+          gallery.length > 0 && (
+            <ul class="grid grid-cols-4 gap-3" aria-label={t("gallery")}>
+              {gallery.map((image) => (
+                <li>
+                  <a href={mediaUrl(pickVariant(image, 1600).key)} target="_blank" class="block overflow-hidden rounded-lg">
+                    <MediaImage media={image} sizes="(min-width: 1024px) 12vw, 25vw" class="aspect-square w-full object-cover transition hover:scale-105" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+
+      <div>
+        {category && (
+          <a href={`${catalogPath(lang)}/category/${category.slug}`} class="text-sm font-semibold text-primary hover:underline">
+            {pickLocalized(category.name, lang)}
+          </a>
+        )}
+        <h1 class="mt-2 text-3xl font-bold tracking-tight text-balance sm:text-4xl">{name}</h1>
+        {summary && <p class="mt-4 text-lg text-muted-foreground">{summary}</p>}
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          <p class="text-2xl font-bold">{price ?? t("askPrice")}</p>
+          <Badge variant={item.availability === "InStock" ? "success" : "outline"}>{t(`availability.${item.availability}`)}</Badge>
+        </div>
+        {item.sku && <p class="mt-2 text-sm text-muted-foreground">{t("sku")}: {item.sku}</p>}
+        <Button href={localizePath("/contact", lang)} size="lg" class="mt-8" data-track="catalog_contact" data-track-label={item.slug}>
+          {t("contact")}
+        </Button>
+        {contentHtml && <Prose class="mt-10"><Fragment set:html={contentHtml} /></Prose>}
+      </div>
+    </div>
+  </Container>
+
+  {
+    related.length > 0 && (
+      <Section tone="muted">
+        <h2 class="text-2xl font-bold tracking-tight">{t("related")}</h2>
+        <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {related.map((r) => (
+            <li>
+              <ItemCard item={r} cover={media.get(r.coverId ?? "")} lang={lang} headingTag="h3" />
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+</PageLayout>

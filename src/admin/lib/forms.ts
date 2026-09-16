@@ -7,7 +7,8 @@
  */
 import { isActionError, isInputError } from "astro:actions";
 import { MIN_PASSWORD_LENGTH } from "@/admin/auth/password";
-import type { useTranslations } from "@/i18n";
+import { useTranslations, type Locale } from "@/i18n";
+import { translateModule } from "@/modules/registry";
 
 type T = ReturnType<typeof useTranslations>;
 
@@ -43,4 +44,21 @@ export function formErrors(t: T, error: unknown): FormErrors {
 /** Only allow same-site relative redirects (`?next=` after login). */
 export function safeNext(value: string | null, fallback = "/admin"): string {
   return value && value.startsWith("/admin") && !value.startsWith("//") ? value : fallback;
+}
+
+/**
+ * Like formErrors, but also translates a module's own error codes, looked up as
+ * `admin.<code>` in that module's i18n (e.g. blog "slugTaken").
+ */
+export function moduleFormErrors(lang: Locale, moduleName: string, error: unknown): FormErrors {
+  const errors = formErrors(useTranslations(lang), error);
+  const translate = (message: string) => {
+    const key = `admin.${message}`;
+    const translated = translateModule(lang, moduleName, key);
+    return translated === key ? message : translated;
+  };
+  return {
+    form: errors.form && translate(errors.form),
+    fields: Object.fromEntries(Object.entries(errors.fields).map(([field, message]) => [field, translate(message)])),
+  };
 }

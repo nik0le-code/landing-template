@@ -13,13 +13,13 @@ import AdminLayout from "@/admin/layouts/AdminLayout.astro";
 import FormAlert from "@/admin/components/FormAlert.astro";
 import Panel from "@/admin/components/Panel.astro";
 import MediaField from "@/modules/media/components/MediaField.astro";
-import { mediaLabels } from "@/modules/media/lib/labels";
+import { editorLabels, mediaLabels } from "@/modules/media/lib/labels";
 import Button from "@/components/ui/Button.astro";
 import Field from "@/components/ui/Field.astro";
 import Input from "@/components/ui/Input.astro";
 import Select from "@/components/ui/Select.astro";
 import Textarea from "@/components/ui/Textarea.astro";
-import MarkdownEditor from "../../components/MarkdownEditor";
+import MarkdownEditor from "@/modules/media/components/MarkdownEditor";
 import { blogFormErrors, postState, toDateTimeLocal } from "../../lib/admin";
 import { categoryName, getPost, getTranslationSiblings, listCategories, postPath } from "../../lib/posts";
 
@@ -47,9 +47,6 @@ const errors = blogFormErrors(lang, saved?.error);
 const submitted = saved?.error ? Object.fromEntries((await Astro.request.clone().formData().catch(() => new FormData())).entries()) as Record<string, string> : {};
 const value = (key: string, fallback: string) => submitted[key] ?? fallback;
 const state = post ? postState(post) : "draft";
-const editorLabels = Object.fromEntries(
-  ["write", "preview", "bold", "italic", "heading", "link", "list", "quote", "image", "linkPrompt", "loading", "hint"].map((key) => [key, tm(`admin.editor.${key}`)]),
-) as unknown as Parameters<typeof MarkdownEditor>[0]["labels"];
 ---
 
 <AdminLayout title={post ? tm("admin.editPost") : tm("admin.newPost")} description={post?.title} back={{ href: "/admin/blog", label: tm("admin.posts") }}>
@@ -81,7 +78,7 @@ const editorLabels = Object.fromEntries(
           </Field>
           <div class="space-y-1.5">
             <p class="text-sm font-medium">{tm("admin.content")}</p>
-            <MarkdownEditor client:load name="content" initial={value("content", post?.content ?? "")} labels={editorLabels} mediaLabels={mediaLabels(lang)} />
+            <MarkdownEditor client:load name="content" initial={value("content", post?.content ?? "")} labels={editorLabels(lang)} mediaLabels={mediaLabels(lang)} />
           </div>
         </div>
       </Panel>

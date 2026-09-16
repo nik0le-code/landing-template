@@ -74,6 +74,11 @@ export function getDictionary(lang: Locale): Dictionary {
   return dictionaries[lang];
 }
 
+/** Value for `lang` from a per-locale object (`{ el: "…", en: "…" }`), falling back to the default locale. */
+export function pickLocalized(value: Partial<Record<string, string>> | null | undefined, lang: Locale): string {
+  return value?.[lang] || value?.[siteConfig.defaultLocale] || "";
+}
+
 /** Untyped variant for keys contributed by modules (see src/modules). */
 export function translateDynamic(lang: Locale, dict: Partial<Record<Locale, unknown>>, key: string, params?: TranslateParams) {
   const value = lookup(dict[lang], key) ?? lookup(dict[siteConfig.defaultLocale], key) ?? key;

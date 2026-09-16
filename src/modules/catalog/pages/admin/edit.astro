@@ -1,0 +1,139 @@
+---
+import { actions } from "astro:actions";
+import ExternalLink from "@lucide/astro/icons/external-link";
+import { siteConfig } from "@site-config";
+import { pickLocalized, useTranslations } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import FormAlert from "@/admin/components/FormAlert.astro";
+import Panel from "@/admin/components/Panel.astro";
+import { moduleFormErrors } from "@/admin/lib/forms";
+import MediaField from "@/modules/media/components/MediaField.astro";
+import MediaGalleryInput from "@/modules/media/components/MediaGalleryInput.astro";
+import MarkdownEditor from "@/modules/media/components/MarkdownEditor";
+import { editorLabels, mediaLabels } from "@/modules/media/lib/labels";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+import Select from "@/components/ui/Select.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import { AVAILABILITY } from "../../options";
+import { catalogOptions, catalogPath, getItem, listCatalogCategories } from "../../lib/items";
+
+const lang = Astro.locals.lang;
+const t = useTranslations(lang);
+const tm = (key: string, params?: Record<string, string>) => translateModule(lang, "catalog", key, params);
+
+const saved = Astro.getActionResult(actions.catalog.saveItem);
+const deleted = Astro.getActionResult(actions.catalog.deleteItem);
+if (saved && !saved.error) return Astro.redirect(`/admin/catalog/${saved.data.id}?flash=saved`, 303);
+if (deleted && !deleted.error) return Astro.redirect("/admin/catalog?flash=deleted", 303);
+
+const item = Astro.params.id ? await getItem(Astro.params.id) : null;
+if (Astro.params.id && !item) return Astro.rewrite("/404");
+
+const categories = await listCatalogCategories();
+const errors = moduleFormErrors(lang, "catalog", saved?.error);
+const submitted = saved?.error ? (Object.fromEntries((await Astro.request.clone().formData().catch(() => new FormData())).entries()) as Record<string, string>) : {};
+const value = (key: string, fallback: string) => submitted[key] ?? fallback;
+const priceValue = item?.priceCents != null ? (item.priceCents / 100).toFixed(2) : "";
+const { currency } = catalogOptions();
+const langName = (l: string) => t(`common.localeNames.${l as "el"}`);
+const action = `${item ? `/admin/catalog/${item.id}` : "/admin/catalog/new"}${actions.catalog.saveItem}`;
+---
+
+<AdminLayout title={item ? tm("admin.editItem") : tm("admin.newItem")} description={item ? pickLocalized(item.name, lang) : undefined} back={{ href: "/admin/catalog", label: tm("admin.items") }}>
+  {item?.published && <Button slot="actions" href={catalogPath(lang, item.slug)} variant="outline" target="_blank"><ExternalLink /> {tm("admin.view")}</Button>}
+
+  <form method="POST" action={action} class="grid gap-6 xl:grid-cols-[1fr_20rem]">
+    <input type="hidden" name="id" value={item?.id ?? ""} />
+    <div class="min-w-0 space-y-6">
+      <FormAlert message={errors.form} />
+      {
+        siteConfig.locales.map((l) => (
+          <Panel title={langName(l)}>
+            <div class="space-y-5">
+              <Field id={`name_${l}`} label={tm("admin.name", { lang: l.toUpperCase() })} required={l === siteConfig.defaultLocale}>
+                <Input id={`name_${l}`} name={`name_${l}`} value={value(`name_${l}`, item?.name[l] ?? "")} maxlength={200} lang={l} required={l === siteConfig.defaultLocale} />
+              </Field>
+              <Field id={`summary_${l}`} label={tm("admin.summary", { lang: l.toUpperCase() })} hint={tm("admin.summaryHint")}>
+                <Textarea id={`summary_${l}`} name={`summary_${l}`} rows={2} maxlength={400} lang={l}>{value(`summary_${l}`, item?.summary[l] ?? "")}</Textarea>
+              </Field>
+              <div class="space-y-1.5">
+                <p class="text-sm font-medium">{tm("admin.content", { lang: l.toUpperCase() })}</p>
+                <MarkdownEditor client:visible name={`content_${l}`} initial={value(`content_${l}`, item?.content[l] ?? "")} labels={editorLabels(lang)} mediaLabels={mediaLabels(lang)} />
+              </div>
+            </div>
+          </Panel>
+        ))
+      }
+    </div>
+
+    <div class="space-y-6">
+      <Panel>
+        <div class="space-y-4">
+          <label class="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" name="published" checked={value("published", item?.published ? "on" : "") === "on"} class="size-4 accent-primary" />
+            {tm("admin.published")}
+          </label>
+          <label class="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" name="featured" checked={value("featured", item?.featured ? "on" : "") === "on"} class="size-4 accent-primary" />
+            {tm("admin.featured")}
+          </label>
+          <Button type="submit" class="w-full">{tm("admin.save")}</Button>
+        </div>
+      </Panel>
+
+      <Panel>
+        <div class="space-y-5">
+          <MediaField name="coverId" label={tm("admin.cover")} value={value("coverId", item?.coverId ?? "")} />
+          <MediaGalleryInput name="gallery" label={tm("admin.gallery")} value={value("gallery", item?.gallery.join(",") ?? "").split(",").filter(Boolean)} addLabel={tm("admin.addImages")} />
+        </div>
+      </Panel>
+
+      <Panel>
+        <div class="space-y-5">
+          <Field id="price" label={tm("admin.price", { currency })} hint={tm("admin.priceHint")}>
+            <Input id="price" name="price" inputmode="decimal" value={value("price", priceValue)} placeholder="0.00" />
+          </Field>
+          {siteConfig.locales.map((l) => (
+            <Field id={`priceNote_${l}`} label={tm("admin.priceNote", { lang: l.toUpperCase() })} hint={l === siteConfig.defaultLocale ? tm("admin.priceNoteHint") : undefined}>
+              <Input id={`priceNote_${l}`} name={`priceNote_${l}`} value={value(`priceNote_${l}`, item?.priceNote[l] ?? "")} maxlength={30} />
+            </Field>
+          ))}
+          <Field id="availability" label={tm("admin.availability")}>
+            <Select id="availability" name="availability">
+              {AVAILABILITY.map((a) => <option value={a} selected={value("availability", item?.availability ?? "InStock") === a}>{tm(`availability.${a}`)}</option>)}
+            </Select>
+          </Field>
+          <Field id="categoryId" label={tm("admin.category")}>
+            <Select id="categoryId" name="categoryId">
+              <option value="">{tm("admin.noCategory")}</option>
+              {categories.map((c) => <option value={c.id} selected={value("categoryId", item?.categoryId ?? "") === c.id}>{pickLocalized(c.name, lang)}</option>)}
+            </Select>
+          </Field>
+          <Field id="slug" label={tm("admin.slug")} hint={tm("admin.slugHint")}>
+            <Input id="slug" name="slug" value={value("slug", item?.slug ?? "")} maxlength={80} pattern="[a-z0-9]+(-[a-z0-9]+)*" class="font-mono text-sm" />
+          </Field>
+          <div class="grid grid-cols-2 gap-3">
+            <Field id="sku" label={tm("admin.sku")}>
+              <Input id="sku" name="sku" value={value("sku", item?.sku ?? "")} maxlength={60} />
+            </Field>
+            <Field id="sortOrder" label={tm("admin.sortOrder")}>
+              <Input id="sortOrder" name="sortOrder" type="number" value={value("sortOrder", String(item?.sortOrder ?? 0))} />
+            </Field>
+          </div>
+        </div>
+      </Panel>
+    </div>
+  </form>
+
+  {
+    item && (
+      <form method="POST" action={`/admin/catalog/${item.id}${actions.catalog.deleteItem}`} data-confirm={t("admin.common.confirmDelete")} class="mt-6">
+        <input type="hidden" name="id" value={item.id} />
+        <Button type="submit" variant="destructive">{t("admin.common.delete")}</Button>
+      </form>
+    )
+  }
+</AdminLayout>

@@ -29,5 +29,21 @@
     "tooLarge": "The file is too large.",
     "unsupported": "Unsupported image format.",
     "invalid": "The file is not a valid image."
-  }
+  },
+  "editor": {
+    "write": "Write",
+    "preview": "Preview",
+    "bold": "Bold",
+    "italic": "Italic",
+    "heading": "Heading",
+    "link": "Link",
+    "list": "List",
+    "quote": "Quote",
+    "image": "Image",
+    "linkPrompt": "Link URL",
+    "loading": "Loading…",
+    "hint": "Markdown: ## heading, **bold**, *italic*, [text](url), - list"
+  },
+  "moveUp": "Move up",
+  "moveDown": "Move down"
 }

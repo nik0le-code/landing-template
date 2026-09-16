@@ -66,20 +66,6 @@
     "addCategory": "Add category",
     "previewBanner": "Preview — this page is not public.",
     "draftsCount": "drafts",
-    "publishedCount": "published",
-    "editor": {
-      "write": "Write",
-      "preview": "Preview",
-      "bold": "Bold",
-      "italic": "Italic",
-      "heading": "Heading",
-      "link": "Link",
-      "list": "List",
-      "quote": "Quote",
-      "image": "Image",
-      "linkPrompt": "Link URL",
-      "loading": "Loading…",
-      "hint": "Markdown: ## heading, **bold**, *italic*, [text](url), - list"
-    }
+    "publishedCount": "published"
   }
 }

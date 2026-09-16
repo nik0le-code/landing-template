@@ -1,0 +1,67 @@
+---
+import { siteConfig } from "@site-config";
+import { pickLocalized } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import { getMediaMap } from "@/modules/media/lib/queries";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import ItemCard from "../components/ItemCard.astro";
+import { catalogPath, getCatalogCategoryBySlug, listCatalogCategories, listPublishedItems } from "../lib/items";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "catalog", key);
+const category = Astro.params.category ? await getCatalogCategoryBySlug(Astro.params.category) : null;
+if (Astro.params.category && !category) return Astro.rewrite("/404");
+
+const [items, categories] = await Promise.all([listPublishedItems({ categoryId: category?.id }), listCatalogCategories()]);
+const covers = await getMediaMap(items.map((item) => item.coverId ?? ""));
+const pathFor = (l: string) => (category ? `${catalogPath(l)}/category/${category.slug}` : catalogPath(l));
+const title = category ? pickLocalized(category.name, lang) : t("title");
+
+Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["catalog"] });
+---
+
+<PageLayout
+  seo={{ title, description: t("description"), alternates: Object.fromEntries(siteConfig.locales.map((l) => [l, pathFor(l)])) }}
+  breadcrumbs={[{ name: t("title"), path: catalogPath(lang) }, ...(category ? [{ name: title, path: pathFor(lang) }] : [])]}
+>
+  <Section spacing="sm">
+    <SectionHeading tag="h1" title={title} description={t("description")} align="left" />
+    {
+      categories.length > 0 && (
+        <nav aria-label={t("categories")} class="mt-8">
+          <ul class="flex flex-wrap gap-2">
+            <li>
+              <a href={catalogPath(lang)} aria-current={!category ? "page" : undefined} class="block rounded-full border border-border px-4 py-1.5 text-sm hover:bg-muted aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:text-primary-foreground">
+                {t("all")}
+              </a>
+            </li>
+            {categories.map((c) => (
+              <li>
+                <a href={`${catalogPath(lang)}/category/${c.slug}`} aria-current={category?.id === c.id ? "page" : undefined} class="block rounded-full border border-border px-4 py-1.5 text-sm hover:bg-muted aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:text-primary-foreground">
+                  {pickLocalized(c.name, lang)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+    {
+      items.length === 0 ? (
+        <p class="mt-12 text-muted-foreground">{t("empty")}</p>
+      ) : (
+        <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((item) => (
+            <li>
+              <ItemCard item={item} cover={covers.get(item.coverId ?? "")} lang={lang} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </Section>
+</PageLayout>

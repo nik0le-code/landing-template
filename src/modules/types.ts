@@ -22,7 +22,7 @@
 import type { Locale } from "../../site.config";
 
 export interface ModuleRoute {
-  /** URL pattern, e.g. "/[lang]/blog/[slug]" or "/admin/blog". */
+  /** URL pattern, e.g. "/[lang]/blog/[slug]" or "/admin/blog". May use `{option}` placeholders. */
   pattern: string;
   /** Entrypoint relative to the module folder, e.g. "./pages/post.astro". */
   entrypoint: string;
@@ -38,6 +38,12 @@ export interface ModuleManifest {
   /** Other modules that must be enabled for this one to work. */
   dependsOn?: string[];
   routes?: ModuleRoute[];
+  /**
+   * Defaults for `{placeholders}` in route patterns, e.g. `{ "basePath": "products" }`
+   * with a route `/[lang]/{basePath}`. Site options of the same name override them
+   * (keep options.ts defaults in sync).
+   */
+  optionDefaults?: Record<string, string>;
 }
 
 /**
@@ -102,7 +108,7 @@ export interface ModuleRuntime {
    * Links added to the public navbar (after site links, before the CTA) and the
    * footer's first column. `path` is locale-less, e.g. "/blog".
    */
-  publicNav?: { path: string; label: Partial<Record<Locale, string>> & { en: string } }[];
+  publicNav?: { path: string | (() => string); label: Partial<Record<Locale, string>> & { en: string } }[];
   /** Module translations: `translateModule(lang, "blog", "list.title")`. */
   i18n?: Partial<Record<Locale, Record<string, unknown>>>;
   /**

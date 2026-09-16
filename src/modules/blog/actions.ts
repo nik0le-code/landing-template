@@ -6,9 +6,9 @@ import { requireUser } from "@/admin/auth/guard";
 import { getDb } from "@/db";
 import { formRequiredText, formText } from "@/lib/form-schema";
 import { blogCategories, blogPosts } from "./db/schema";
-import { renderMarkdown } from "./lib/markdown";
+import { renderMarkdown } from "@/modules/media/lib/markdown";
 import { slugTaken, translationTaken } from "./lib/posts";
-import { isValidSlug, slugify } from "./lib/slug";
+import { isValidSlug, slugify } from "@/lib/slug";
 
 const locales = siteConfig.locales as unknown as [string, ...string[]];
 const fail = (message: string) => {
@@ -120,8 +120,10 @@ export const actions = {
       try {
         if (values.id) await getDb().update(blogCategories).set(row).where(eq(blogCategories.id, values.id));
         else await getDb().insert(blogCategories).values(row);
-      } catch {
-        fail("slugTaken");
+      } catch (error) {
+        // Only a duplicate slug is a user error; anything else should surface.
+        if (/UNIQUE constraint failed/i.test(`${error instanceof Error ? error.message : ""} ${error instanceof Error ? String(error.cause ?? "") : ""}`)) fail("slugTaken");
+        throw error;
       }
       await invalidate(context);
       return { ok: true };

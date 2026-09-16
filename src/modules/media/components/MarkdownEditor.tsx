@@ -5,7 +5,7 @@
  */
 import { useRef, useState, type KeyboardEvent } from "react";
 import { inputClasses } from "@/components/ui/variants";
-import { MediaLibraryDialog, type MediaLibraryHandle, type MediaLibraryLabels } from "@/modules/media/components/MediaLibraryDialog";
+import { MediaLibraryDialog, type MediaLibraryHandle, type MediaLibraryLabels } from "./MediaLibraryDialog";
 
 export interface EditorLabels {
   write: string;
@@ -79,7 +79,7 @@ export default function MarkdownEditor({ name, initial, labels, mediaLabels }: P
     setTab("preview");
     setLoadingPreview(true);
     try {
-      const response = await fetch("/api/admin/blog/preview", {
+      const response = await fetch("/api/admin/media/markdown-preview", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ markdown: value }),

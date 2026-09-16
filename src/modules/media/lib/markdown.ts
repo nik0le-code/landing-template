@@ -1,5 +1,6 @@
 /**
- * Markdown → sanitized HTML, done once when a post is saved.
+ * Markdown → sanitized HTML for rich content (blog posts, catalog items), done once
+ * when content is saved.
  *
  * - `![alt](media:<id>)` becomes a responsive <picture> from the media library
  *   (AVIF/WebP srcset, intrinsic size, no layout shift).
@@ -10,10 +11,10 @@
  */
 import { Marked, type Tokens } from "marked";
 import sanitizeHtml from "sanitize-html";
-import { getMediaMap } from "@/modules/media/lib/queries";
-import { mediaUrl, srcset } from "@/modules/media/lib/urls";
-import type { MediaFile } from "@/modules/media/db/schema";
-import { slugify } from "./slug";
+import { slugify } from "@/lib/slug";
+import type { MediaFile } from "../db/schema";
+import { getMediaMap } from "./queries";
+import { mediaUrl, srcset } from "./urls";
 
 export interface RenderedMarkdown {
   html: string;

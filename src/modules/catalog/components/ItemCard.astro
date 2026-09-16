@@ -1,0 +1,43 @@
+---
+import type { Locale } from "@site-config";
+import { pickLocalized } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import MediaImage from "@/modules/media/components/MediaImage.astro";
+import type { MediaFile } from "@/modules/media/db/schema";
+import Badge from "@/components/ui/Badge.astro";
+import Card from "@/components/ui/Card.astro";
+import type { CatalogItem } from "../db/schema";
+import { catalogPath, formatPrice } from "../lib/items";
+
+interface Props {
+  item: CatalogItem;
+  cover?: MediaFile | undefined;
+  lang: Locale;
+  headingTag?: "h2" | "h3";
+}
+
+const { item, cover, lang, headingTag: Heading = "h2" } = Astro.props;
+const t = (key: string) => translateModule(lang, "catalog", key);
+const price = formatPrice(item, lang);
+const name = pickLocalized(item.name, lang);
+---
+
+<Card as="article" padding="none" interactive class="flex h-full flex-col overflow-hidden">
+  {
+    cover ? (
+      <MediaImage media={cover} alt="" sizes="(min-width: 1024px) 24rem, (min-width: 640px) 50vw, 100vw" class="aspect-[4/3] w-full object-cover" />
+    ) : (
+      <div class="aspect-[4/3] w-full bg-gradient-to-br from-primary/15 to-accent/15" aria-hidden="true" />
+    )
+  }
+  <div class="flex flex-1 flex-col p-5">
+    <Heading class="text-lg font-semibold text-balance">
+      <a href={catalogPath(lang, item.slug)} class="after:absolute after:inset-0">{name}</a>
+    </Heading>
+    {pickLocalized(item.summary, lang) && <p class="mt-2 line-clamp-2 text-sm text-muted-foreground">{pickLocalized(item.summary, lang)}</p>}
+    <div class="mt-auto flex items-center justify-between gap-2 pt-4">
+      <span class="font-semibold">{price ?? t("askPrice")}</span>
+      {item.availability !== "InStock" && <Badge variant="outline">{t(`availability.${item.availability}`)}</Badge>}
+    </div>
+  </div>
+</Card>

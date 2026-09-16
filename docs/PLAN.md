@@ -96,6 +96,7 @@ before moving on.
 - Dockerfile (multi-stage, non-root, `/data` volume), `/api/health`
 - Memory: glibc allocator tuning for sharp in Docker (`MALLOC_ARENA_MAX=2` or jemalloc); measure idle RSS (~205 MB locally)
 - Custom Node entry (adapter `middleware` mode) so security headers, `X-Robots-Tag` on NOINDEX deployments and long-lived cache headers also apply to prerendered/static files
+- Deployment notes: `TZ` (blog/catalog publish times), `allowedDomains` for extra hostnames, single replica for media uploads
 - Performance pass (Lighthouse on demo pages, JS budget), `CLAUDE.md` + README
 
 ## Progress
@@ -111,7 +112,7 @@ before moving on.
 - [x] 8 Module: leads
 - [x] 9 Module: settings
 - [x] 10 Module: blog
-- [ ] 11 Module: catalog
+- [x] 11 Module: catalog
 - [ ] 12 Module: bookings
 - [ ] 13 Module CLI
 - [ ] 14 Production + docs

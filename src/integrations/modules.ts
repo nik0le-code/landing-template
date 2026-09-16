@@ -116,9 +116,17 @@ export function modulesIntegration(config: ModulesConfig): AstroIntegration {
         }
 
         for (const module of modules) {
+          const values = { ...module.manifest.optionDefaults, ...module.options } as Record<string, unknown>;
           for (const route of module.manifest.routes ?? []) {
+            const pattern = route.pattern.replace(/\{(\w+)\}/g, (_, key: string) => {
+              const value = values[key];
+              if (typeof value !== "string" || !/^[a-z0-9-]+$/.test(value)) {
+                throw new Error(`[modules] ${module.name}: route placeholder {${key}} needs a lowercase slug option, got ${JSON.stringify(value)}.`);
+              }
+              return value;
+            });
             injectRoute({
-              pattern: route.pattern,
+              pattern,
               entrypoint: `./${module.dir}/${route.entrypoint.replace(/^\.\//, "")}`,
               ...(route.prerender !== undefined && { prerender: route.prerender }),
             });

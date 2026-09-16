@@ -1,0 +1,75 @@
+---
+import Plus from "@lucide/astro/icons/plus";
+import { pickLocalized } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import { getMediaMap } from "@/modules/media/lib/queries";
+import { mediaUrl, pickVariant } from "@/modules/media/lib/urls";
+import AdminLayout from "@/admin/layouts/AdminLayout.astro";
+import Panel from "@/admin/components/Panel.astro";
+import Badge from "@/components/ui/Badge.astro";
+import Button from "@/components/ui/Button.astro";
+import Input from "@/components/ui/Input.astro";
+import Select from "@/components/ui/Select.astro";
+import { formatPrice, listAdminItems, listCatalogCategories } from "../../lib/items";
+
+const lang = Astro.locals.lang;
+const tm = (key: string) => translateModule(lang, "catalog", key);
+const categoryId = Astro.url.searchParams.get("category") ?? "";
+const query = (Astro.url.searchParams.get("q") ?? "").slice(0, 100);
+const [items, categories] = await Promise.all([listAdminItems({ categoryId, query }), listCatalogCategories()]);
+const covers = await getMediaMap(items.map((i) => i.coverId ?? ""));
+const categoryNames = new Map(categories.map((c) => [c.id, pickLocalized(c.name, lang)]));
+---
+
+<AdminLayout title={tm("admin.items")}>
+  <div slot="actions" class="flex gap-2">
+    <Button href="/admin/catalog/categories" variant="outline">{tm("admin.categories")}</Button>
+    <Button href="/admin/catalog/new"><Plus /> {tm("admin.newItem")}</Button>
+  </div>
+
+  <form method="GET" class="mb-6 grid gap-3 sm:grid-cols-[1fr_14rem_auto]">
+    <Input id="q" name="q" type="search" value={query} placeholder={tm("admin.search")} aria-label={tm("admin.search")} />
+    <Select id="category" name="category" aria-label={tm("admin.category")}>
+      <option value="">{tm("admin.allCategories")}</option>
+      {categories.map((c) => <option value={c.id} selected={categoryId === c.id}>{pickLocalized(c.name, lang)}</option>)}
+    </Select>
+    <Button type="submit" variant="secondary">{tm("admin.filter")}</Button>
+  </form>
+
+  {
+    items.length === 0 ? (
+      <Panel><p class="text-muted-foreground">{tm("admin.empty")}</p></Panel>
+    ) : (
+      <div class="relative overflow-x-auto rounded-lg border border-border bg-card">
+        <table class="w-full text-left text-sm">
+          <tbody class="divide-y divide-border">
+            {items.map((item) => {
+              const cover = item.coverId ? covers.get(item.coverId) : undefined;
+              return (
+                <tr>
+                  <td class="w-16 px-4 py-3">
+                    {cover ? (
+                      <img src={mediaUrl(pickVariant(cover, 96).key)} alt="" width="48" height="48" class="size-12 rounded object-cover" style={`background-color:${cover.color}`} />
+                    ) : (
+                      <span class="block size-12 rounded bg-muted" />
+                    )}
+                  </td>
+                  <td class="px-4 py-3">
+                    <a href={`/admin/catalog/${item.id}`} class="font-medium hover:text-primary">{pickLocalized(item.name, lang)}</a>
+                    <p class="text-xs text-muted-foreground">{[item.categoryId && categoryNames.get(item.categoryId), item.sku].filter(Boolean).join(" · ")}</p>
+                  </td>
+                  <td class="px-4 py-3 whitespace-nowrap">{formatPrice(item, lang) ?? "—"}</td>
+                  <td class="px-4 py-3">
+                    <Badge variant={item.published ? "success" : "outline"}>{item.published ? tm("admin.published") : tm("admin.hidden")}</Badge>
+                    {item.featured && <Badge variant="secondary" class="ml-1">★</Badge>}
+                  </td>
+                  <td class="px-4 py-3 text-right text-muted-foreground">#{item.sortOrder}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+</AdminLayout>

@@ -66,7 +66,7 @@ disabled; copy it when writing a new module.
 
 | Need | How |
 |---|---|
-| New public or admin page | Add to `routes` in module.json (`/[lang]/…` for localized pages) |
+| New public or admin page | Add to `routes` in module.json (`/[lang]/…` for localized pages); `{option}` placeholders take values from options, with defaults in `optionDefaults` |
 | Form handling / mutations | `actions.ts` (Astro Actions; forms work without JavaScript) |
 | Show UI inside core pages | `slots` in index.ts, rendered by `<ModuleSlot name="…">` |
 | Dynamic URLs in sitemap.xml | `sitemap()` in index.ts |

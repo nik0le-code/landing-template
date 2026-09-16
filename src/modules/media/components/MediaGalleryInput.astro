@@ -1,0 +1,35 @@
+---
+/**
+ * Ordered multi-image form field: `<MediaGalleryInput name="gallery" label="…" value={ids} />`.
+ * Submits "id1,id2,…". Modules using it must list "media" in `dependsOn`.
+ */
+import { translateModule } from "@/modules/registry";
+import MediaGalleryField from "./MediaGalleryField";
+import { mediaLabels } from "../lib/labels";
+import { getMediaMap } from "../lib/queries";
+import { toPublic } from "../lib/urls";
+
+interface Props {
+  name: string;
+  label: string;
+  value: string[];
+  addLabel: string;
+}
+
+const { name, label, value, addLabel } = Astro.props;
+const lang = Astro.locals.lang;
+const map = await getMediaMap(value);
+const initial = value.flatMap((id) => (map.has(id) ? [toPublic(map.get(id)!)] : []));
+const labels = {
+  ...mediaLabels(lang),
+  add: addLabel,
+  moveUp: translateModule(lang, "media", "moveUp"),
+  moveDown: translateModule(lang, "media", "moveDown"),
+  remove: translateModule(lang, "media", "remove"),
+};
+---
+
+<fieldset class="space-y-1.5">
+  <legend class="text-sm font-medium">{label}</legend>
+  <MediaGalleryField client:visible name={name} initial={initial} labels={labels} />
+</fieldset>

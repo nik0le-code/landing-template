@@ -1,10 +1,10 @@
 /**
- * Renders editor Markdown exactly like a saved post (session required via
+ * Renders editor Markdown exactly like saved content (session required via
  * /api/admin middleware). JSON body → a cross-site form can't post here, and the
  * Origin check below rejects cross-site fetches.
  */
 import type { APIRoute } from "astro";
-import { renderMarkdown } from "../../lib/markdown";
+import { renderMarkdown } from "../lib/markdown";
 
 export const POST: APIRoute = async ({ request, url }) => {
   const origin = request.headers.get("origin");

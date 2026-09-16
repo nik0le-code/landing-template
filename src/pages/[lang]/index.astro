@@ -57,6 +57,7 @@ const plans: Plan[] = copy.pricing.plans.map((plan) => ({
     image={{ src: heroImage, alt: copy.hero.imageAlt }}
   />
   <LogoCloud title={copy.logos.title} logos={logos} />
+  <ModuleSlot name="home.afterHero" />
   <FeatureGrid id="features" {...copy.features} items={copy.features.items as FeatureItem[]} tone="muted" />
   <Bento
     {...copy.bento}

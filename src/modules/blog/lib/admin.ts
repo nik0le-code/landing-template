@@ -1,22 +1,9 @@
 import type { Locale } from "@site-config";
-import { useTranslations } from "@/i18n";
-import { formErrors } from "@/admin/lib/forms";
-import { translateModule } from "@/modules/registry";
+import { moduleFormErrors } from "@/admin/lib/forms";
 import type { BlogPost } from "../db/schema";
 
 /** Admin form errors, translating blog-specific codes (slugTaken…) as well. */
-export function blogFormErrors(lang: Locale, error: unknown) {
-  const errors = formErrors(useTranslations(lang), error);
-  const translate = (message: string | undefined) => {
-    if (!message) return message;
-    const translated = translateModule(lang, "blog", `admin.${message}`);
-    return translated === `admin.${message}` ? message : translated;
-  };
-  return {
-    form: translate(errors.form),
-    fields: Object.fromEntries(Object.entries(errors.fields).map(([field, message]) => [field, translate(message)!])),
-  };
-}
+export const blogFormErrors = (lang: Locale, error: unknown) => moduleFormErrors(lang, "blog", error);
 
 export type PostState = "draft" | "published" | "scheduled";
 

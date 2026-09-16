@@ -1,0 +1,41 @@
+---
+/** Featured catalog items (server island on the prerendered home page). */
+import type { Locale } from "@site-config";
+import { translateModule } from "@/modules/registry";
+import { getMediaMap } from "@/modules/media/lib/queries";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import ItemCard from "./ItemCard.astro";
+import { catalogOptions, catalogPath, listPublishedItems } from "../lib/items";
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = (key: string) => translateModule(lang, "catalog", key);
+const limit = catalogOptions().featuredOnHome;
+const items = limit > 0 ? await listPublishedItems({ featured: true, limit }) : [];
+const covers = await getMediaMap(items.map((i) => i.coverId ?? ""));
+
+Astro.cache.set({ maxAge: 300, swr: 3600, tags: ["catalog"] });
+---
+
+{
+  items.length > 0 && (
+    <Section>
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <SectionHeading title={t("featured")} description={t("featuredDescription")} align="left" />
+        <Button href={catalogPath(lang)} variant="outline">{t("viewAll")} →</Button>
+      </div>
+      <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((item) => (
+          <li>
+            <ItemCard item={item} cover={covers.get(item.coverId ?? "")} lang={lang} headingTag="h3" />
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )
+}

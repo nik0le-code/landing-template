@@ -4,9 +4,25 @@
   "admin": true,
   "dependsOn": [],
   "routes": [
-    { "pattern": "/media/[...path]", "entrypoint": "./pages/serve.ts" },
-    { "pattern": "/api/admin/media", "entrypoint": "./pages/api.ts" },
-    { "pattern": "/admin/media", "entrypoint": "./pages/admin/index.astro" },
-    { "pattern": "/admin/media/[id]", "entrypoint": "./pages/admin/[id].astro" }
+    {
+      "pattern": "/media/[...path]",
+      "entrypoint": "./pages/serve.ts"
+    },
+    {
+      "pattern": "/api/admin/media",
+      "entrypoint": "./pages/api.ts"
+    },
+    {
+      "pattern": "/admin/media",
+      "entrypoint": "./pages/admin/index.astro"
+    },
+    {
+      "pattern": "/admin/media/[id]",
+      "entrypoint": "./pages/admin/[id].astro"
+    },
+    {
+      "pattern": "/api/admin/media/markdown-preview",
+      "entrypoint": "./pages/markdown-preview.ts"
+    }
   ]
 }

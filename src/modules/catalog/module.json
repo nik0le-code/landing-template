@@ -1,0 +1,16 @@
+{
+  "name": "catalog",
+  "description": "Products or services with per-locale content, image gallery, price and availability, categories, ordering and a published flag. Public list + detail pages with Product JSON-LD.",
+  "admin": true,
+  "dependsOn": ["media"],
+  "optionDefaults": { "basePath": "products" },
+  "routes": [
+    { "pattern": "/[lang]/{basePath}", "entrypoint": "./pages/list.astro" },
+    { "pattern": "/[lang]/{basePath}/category/[category]", "entrypoint": "./pages/list.astro" },
+    { "pattern": "/[lang]/{basePath}/[slug]", "entrypoint": "./pages/item.astro" },
+    { "pattern": "/admin/catalog", "entrypoint": "./pages/admin/index.astro" },
+    { "pattern": "/admin/catalog/new", "entrypoint": "./pages/admin/edit.astro" },
+    { "pattern": "/admin/catalog/categories", "entrypoint": "./pages/admin/categories.astro" },
+    { "pattern": "/admin/catalog/[id]", "entrypoint": "./pages/admin/edit.astro" }
+  ]
+}
