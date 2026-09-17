@@ -27,6 +27,11 @@ export interface ModuleRoute {
   /** Entrypoint relative to the module folder, e.g. "./pages/post.astro". */
   entrypoint: string;
   prerender?: boolean;
+  /**
+   * Only inject the route when this option is truthy, e.g. "content.pages" (dot path
+   * into the module's options, falling back to `optionDefaults`).
+   */
+  when?: string;
 }
 
 export interface ModuleManifest {
@@ -43,7 +48,18 @@ export interface ModuleManifest {
    * with a route `/[lang]/{basePath}`. Site options of the same name override them
    * (keep options.ts defaults in sync).
    */
-  optionDefaults?: Record<string, string>;
+  optionDefaults?: Record<string, unknown>;
+  /**
+   * Modules this one switches on, always or when one of its options is truthy:
+   * `[{ "module": "commerce", "when": "shop" }]`. Lets a site enable one module
+   * (`wordpress: true` + `shop: true`) instead of listing every building block.
+   */
+  enables?: { module: string; when?: string }[];
+  /**
+   * Not switched on in modules.config.ts: only enabled by another module's `enables`
+   * (e.g. commerce by shopify or wordpress.shop).
+   */
+  internal?: boolean;
   /**
    * Extra Content-Security-Policy sources while the module is enabled, merged into
    * astro.config.ts, e.g. `{ "img-src": ["https://cdn.shopify.com"] }`. `{env:NAME}` is
@@ -129,7 +145,7 @@ export interface ModuleRuntime {
    * Links added to the public navbar (after site links, before the CTA) and the
    * footer's first column. `path` is locale-less, e.g. "/blog".
    */
-  publicNav?: { path: string | (() => string); label: Partial<Record<Locale, string>> }[];
+  publicNav?: { path: string | (() => string); label: Partial<Record<Locale, string>>; enabled?: () => boolean }[];
   /** Module translations: `translateModule(lang, "blog", "list.title")`. */
   i18n?: Partial<Record<Locale, Record<string, unknown>>>;
   /**

@@ -1,18 +1,49 @@
 {
   "name": "commerce",
-  "description": "Storefront UI shared by every commerce backend: product listing with filters, collections, product pages with variants, cart drawer, checkout (hosted or native), order confirmation and storefront motion. Enable exactly one backend module with it (shopify or woocommerce).",
+  "description": "Storefront UI shared by every commerce backend: product listing with filters, collections, product pages with variants, cart drawer, checkout (hosted or native), order confirmation and storefront motion. Enabled by a backend: `shopify: true`, or `wordpress` with `shop: true`.",
   "admin": false,
   "dependsOn": [],
-  "optionDefaults": { "basePath": "shop", "cartPath": "cart" },
+  "optionDefaults": {
+    "basePath": "shop",
+    "cartPath": "cart"
+  },
   "routes": [
-    { "pattern": "/[lang]/{basePath}", "entrypoint": "./pages/list.astro" },
-    { "pattern": "/[lang]/{basePath}/collections/[collection]", "entrypoint": "./pages/list.astro" },
-    { "pattern": "/[lang]/{basePath}/[handle]", "entrypoint": "./pages/product.astro" },
-    { "pattern": "/[lang]/{cartPath}", "entrypoint": "./pages/cart.astro" },
-    { "pattern": "/[lang]/{cartPath}/panel", "entrypoint": "./pages/cart-panel.astro" },
-    { "pattern": "/[lang]/{cartPath}/update", "entrypoint": "./pages/cart-update.ts" },
-    { "pattern": "/[lang]/{cartPath}/checkout", "entrypoint": "./pages/checkout.astro" },
-    { "pattern": "/[lang]/{cartPath}/order/[id]", "entrypoint": "./pages/order.astro" },
-    { "pattern": "/commerce/return", "entrypoint": "./pages/return.ts" }
-  ]
+    {
+      "pattern": "/[lang]/{basePath}",
+      "entrypoint": "./pages/list.astro"
+    },
+    {
+      "pattern": "/[lang]/{basePath}/collections/[collection]",
+      "entrypoint": "./pages/list.astro"
+    },
+    {
+      "pattern": "/[lang]/{basePath}/[handle]",
+      "entrypoint": "./pages/product.astro"
+    },
+    {
+      "pattern": "/[lang]/{cartPath}",
+      "entrypoint": "./pages/cart.astro"
+    },
+    {
+      "pattern": "/[lang]/{cartPath}/panel",
+      "entrypoint": "./pages/cart-panel.astro"
+    },
+    {
+      "pattern": "/[lang]/{cartPath}/update",
+      "entrypoint": "./pages/cart-update.ts"
+    },
+    {
+      "pattern": "/[lang]/{cartPath}/checkout",
+      "entrypoint": "./pages/checkout.astro"
+    },
+    {
+      "pattern": "/[lang]/{cartPath}/order/[id]",
+      "entrypoint": "./pages/order.astro"
+    },
+    {
+      "pattern": "/commerce/return",
+      "entrypoint": "./pages/return.ts"
+    }
+  ],
+  "internal": true
 }

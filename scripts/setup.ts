@@ -250,7 +250,9 @@ async function applyLocales() {
 }
 
 async function applyModules() {
-  const available = listAvailableModules(ROOT).filter((name) => name !== "example");
+  const isInternal = (name: string) => Boolean((JSON.parse(read(`src/modules/${name}/module.json`)) as { internal?: boolean }).internal);
+  // Internal modules (commerce, woocommerce) are switched on by other modules' options.
+  const available = listAvailableModules(ROOT).filter((name) => name !== "example" && !isInternal(name));
   const chosen = (flags.modules ?? (await prompt(`Modules to enable (${available.join(", ")}):`, "leads")))
     .split(",")
     .map((value) => value.trim())
@@ -263,7 +265,7 @@ async function applyModules() {
   for (const name of [...enabled]) {
     const manifest = JSON.parse(read(`src/modules/${name}/module.json`)) as { dependsOn?: string[] };
     for (const dependency of manifest.dependsOn ?? []) {
-      if (!enabled.has(dependency)) {
+      if (!enabled.has(dependency) && !isInternal(dependency)) {
         enabled.add(dependency);
         notes.push(`  Enabled "${dependency}" as well (${name} depends on it).`);
       }
@@ -271,7 +273,7 @@ async function applyModules() {
   }
 
   let config = read("modules.config.ts");
-  for (const name of listAvailableModules(ROOT)) {
+  for (const name of listAvailableModules(ROOT).filter((module) => !isInternal(module))) {
     const key = /^[A-Za-z_$][\w$]*$/.test(name) ? name : JSON.stringify(name);
     const line = new RegExp(`^(\\s*)"?${name}"?: (?:true|false),$`, "m");
     if (line.test(config)) config = config.replace(line, `$1${key}: ${enabled.has(name)},`);

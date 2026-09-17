@@ -5,9 +5,8 @@
   },
   "admin": {
     "connected": "Connected to {url}: {products} products.",
-    "unreachable": "The WooCommerce Store API is not responding at {url}. Check WOOCOMMERCE_URL and that WooCommerce is active.",
-    "notConfigured": "Not configured: set WOOCOMMERCE_URL.",
-    "noWebhook": "WOOCOMMERCE_WEBHOOK_SECRET is not set, so product edits appear only when the page cache expires.",
+    "unreachable": "The WooCommerce Store API is not responding at {url}. Check WORDPRESS_URL and that WooCommerce is active.",
+    "notConfigured": "Not configured: set WORDPRESS_URL.",
     "payments": "Payment methods: {methods}",
     "missingPayments": "Configured but not available in WooCommerce (enable them and add credentials): {methods}"
   }

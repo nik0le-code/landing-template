@@ -1,0 +1,29 @@
+---
+/** Admin dashboard: is WordPress reachable, and is publishing wired to the cache? */
+import { translateModule } from "@/modules/registry";
+import Panel from "@/admin/components/Panel.astro";
+import { wordpressConfig } from "../lib/config";
+import { wpGet } from "../lib/rest";
+
+const lang = Astro.locals.lang;
+const tm = (key: string, params?: Record<string, string | number>) => translateModule(lang, "wordpress", key, params);
+const config = wordpressConfig();
+const status = config
+  ? await Promise.all([wpGet<unknown[]>("/posts", { per_page: 1, _fields: "id,lang" }), wpGet<unknown[]>("/pages", { per_page: 1, _fields: "id" })])
+      .then(([posts, pages]) => ({ posts: posts.total, pages: pages.total, polylang: posts.data.some((p) => typeof p === "object" && p !== null && "lang" in p) }))
+      .catch(() => null)
+  : null;
+---
+
+<Panel title="WordPress">
+  {
+    !config ? (
+      <p class="text-sm text-destructive">{tm("admin.notConfigured")}</p>
+    ) : status ? (
+      <p class="text-sm">{tm("admin.connected", { url: config.url, posts: status.posts, pages: status.pages })}</p>
+    ) : (
+      <p class="text-sm text-destructive">{tm("admin.unreachable", { url: config.url })}</p>
+    )
+  }
+  {config && !config.webhookSecret && <p class="mt-2 text-sm text-muted-foreground">{tm("admin.noWebhook")}</p>}
+</Panel>

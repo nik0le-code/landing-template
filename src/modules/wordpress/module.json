@@ -1,0 +1,25 @@
+{
+  "name": "wordpress",
+  "description": "WordPress as the site's backend: posts and pages written in wp-admin rendered with this site's design (Polylang translations, SEO, sitemap, cache invalidation on publish), WordPress plugins listed in config, a local Docker WordPress, and optionally the WooCommerce shop (`shop: true`).",
+  "admin": false,
+  "dependsOn": [],
+  "optionDefaults": { "postsPath": "blog", "shop": false, "content": { "posts": true, "pages": true } },
+  "enables": [
+    { "module": "commerce", "when": "shop" },
+    { "module": "woocommerce", "when": "shop" }
+  ],
+  "csp": {
+    "img-src": ["{env:WORDPRESS_URL}", "{env:WORDPRESS_MEDIA_URL}", "{env:WOOCOMMERCE_URL}"],
+    "form-action": ["{env:WORDPRESS_URL}", "{env:WOOCOMMERCE_URL}"]
+  },
+  "routes": [
+    { "pattern": "/[lang]/{postsPath}", "entrypoint": "./pages/posts.astro", "when": "content.posts" },
+    { "pattern": "/[lang]/{postsPath}/page/[page]", "entrypoint": "./pages/posts.astro", "when": "content.posts" },
+    { "pattern": "/[lang]/{postsPath}/category/[category]", "entrypoint": "./pages/posts.astro", "when": "content.posts" },
+    { "pattern": "/[lang]/{postsPath}/category/[category]/page/[page]", "entrypoint": "./pages/posts.astro", "when": "content.posts" },
+    { "pattern": "/[lang]/{postsPath}/rss.xml", "entrypoint": "./pages/rss.ts", "when": "content.posts" },
+    { "pattern": "/[lang]/{postsPath}/[slug]", "entrypoint": "./pages/post.astro", "when": "content.posts" },
+    { "pattern": "/[lang]/[...path]", "entrypoint": "./pages/page.astro", "when": "content.pages" },
+    { "pattern": "/api/wordpress/webhook", "entrypoint": "./pages/webhook.ts" }
+  ]
+}

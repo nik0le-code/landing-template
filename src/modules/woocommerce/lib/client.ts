@@ -3,7 +3,7 @@
  * (a signed token WooCommerce issues); requests carrying it need no nonce.
  * Reads retry on 429/5xx; writes never retry, so an item is never added twice.
  */
-import { wooConfig } from "./config";
+import { wordpressConfig } from "@/modules/wordpress/lib/config";
 
 export class WooError extends Error {
   constructor(
@@ -37,8 +37,8 @@ export interface StoreResponse<T> {
 }
 
 export async function store<T>(path: string, { method = "GET", query, body, token, clientAddress }: StoreRequest = {}): Promise<StoreResponse<T>> {
-  const config = wooConfig();
-  if (!config) throw new WooError("WooCommerce is not configured: set WOOCOMMERCE_URL.", 503, "not_configured");
+  const config = wordpressConfig();
+  if (!config) throw new WooError("WordPress is not configured: set WORDPRESS_URL.", 503, "not_configured");
 
   const url = new URL(`${config.storeApi}${path}`);
   const params = query instanceof URLSearchParams ? query : new URLSearchParams(Object.entries(query ?? {}).flatMap(([k, v]) => (v === undefined ? [] : [[k, String(v)]])));

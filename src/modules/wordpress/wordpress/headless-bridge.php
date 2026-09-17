@@ -1,0 +1,264 @@
+<?php
+/**
+ * Plugin Name: Headless bridge
+ * Description: Connects this WordPress to the headless site: language fields for Polylang in the REST API, signed change notifications (cache purge on publish), and, with WooCommerce, the return from redirect payment gateways.
+ * Version: 2.1.0
+ *
+ * Install: copy this file to wp-content/mu-plugins/ (loads automatically; `npm run wp:up`
+ * mounts it) and add to wp-config.php:
+ *
+ *   define( 'HEADLESS_SITE_URL', 'https://www.client.gr' );
+ *   define( 'HEADLESS_WEBHOOK_SECRET', '…same value as WORDPRESS_WEBHOOK_SECRET…' );
+ *
+ * Optional: define( 'HEADLESS_WEBHOOK_URL', '…' ) when WordPress reaches the site at another
+ * address than visitors do (Docker, private network). Default: HEADLESS_SITE_URL/api/wordpress/webhook.
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+// COMMERCE_SITE_URL: the name used by version 1 of this plugin.
+if ( ! defined( 'HEADLESS_SITE_URL' ) && defined( 'COMMERCE_SITE_URL' ) ) {
+	define( 'HEADLESS_SITE_URL', COMMERCE_SITE_URL );
+}
+if ( ! defined( 'HEADLESS_SITE_URL' ) ) {
+	return;
+}
+
+function headless_site_url( $path = '', array $args = array() ) {
+	return add_query_arg( $args, untrailingslashit( HEADLESS_SITE_URL ) . $path );
+}
+
+// Redirects to the site (gateways, previews) go through wp_safe_redirect(), which only allows known hosts.
+add_filter(
+	'allowed_redirect_hosts',
+	function ( $hosts ) {
+		$hosts[] = wp_parse_url( HEADLESS_SITE_URL, PHP_URL_HOST );
+		return $hosts;
+	}
+);
+
+/* ---------------------------------------------------------------- languages (Polylang) */
+
+// Pages that exist for WordPress itself (WooCommerce's cart, checkout, account and shop
+// pages, the posts page) aren't content: the site doesn't render them or list them.
+add_action(
+	'rest_api_init',
+	function () {
+		register_rest_field(
+			'page',
+			'headless_hidden',
+			array(
+				'get_callback' => function ( $page ) {
+					$system = array( (int) get_option( 'page_for_posts' ) );
+					if ( function_exists( 'wc_get_page_id' ) ) {
+						foreach ( array( 'cart', 'checkout', 'myaccount', 'shop' ) as $name ) {
+							$system[] = (int) wc_get_page_id( $name );
+						}
+					}
+					return in_array( (int) $page['id'], $system, true );
+				},
+				'schema'       => array( 'type' => 'boolean', 'context' => array( 'view', 'embed' ) ),
+			)
+		);
+	}
+);
+
+add_action(
+	'rest_api_init',
+	function () {
+		if ( ! function_exists( 'pll_get_post_language' ) ) {
+			return;
+		}
+
+		$post_types = array_values( get_post_types( array( 'show_in_rest' => true, 'public' => true ) ) );
+
+		register_rest_field(
+			$post_types,
+			'lang',
+			array(
+				'get_callback' => fn( $post ) => pll_get_post_language( $post['id'], 'slug' ),
+				'schema'       => array( 'type' => 'string', 'context' => array( 'view', 'embed' ) ),
+			)
+		);
+
+		// { "el": { "id": 12, "slug": "...", "link": "..." }, "en": { ... } }
+		register_rest_field(
+			$post_types,
+			'translations',
+			array(
+				'get_callback' => function ( $post ) {
+					$result = array();
+					foreach ( pll_get_post_translations( $post['id'] ) as $lang => $id ) {
+						if ( 'publish' === get_post_status( $id ) ) {
+							$result[ $lang ] = array( 'id' => $id, 'slug' => get_post_field( 'post_name', $id ), 'link' => get_permalink( $id ) );
+						}
+					}
+					return (object) $result;
+				},
+				'schema'       => array( 'type' => 'object', 'context' => array( 'view', 'embed' ) ),
+			)
+		);
+
+		register_rest_field(
+			array( 'category', 'post_tag' ),
+			'lang',
+			array( 'get_callback' => fn( $term ) => pll_get_term_language( $term['id'], 'slug' ) )
+		);
+
+		// ?lang=el on post, page and term collections (Polylang Pro has this; the free version doesn't).
+		foreach ( $post_types as $type ) {
+			add_filter(
+				"rest_{$type}_query",
+				function ( $args, $request ) {
+					if ( $request['lang'] ) {
+						$args['lang'] = sanitize_key( $request['lang'] );
+					}
+					return $args;
+				},
+				10,
+				2
+			);
+		}
+		foreach ( array( 'category', 'post_tag' ) as $taxonomy ) {
+			add_filter(
+				"rest_{$taxonomy}_query",
+				function ( $args, $request ) {
+					if ( $request['lang'] ) {
+						$args['lang'] = sanitize_key( $request['lang'] );
+					}
+					return $args;
+				},
+				10,
+				2
+			);
+		}
+	}
+);
+
+/* ---------------------------------------------------------------- change notifications */
+
+$headless_changes = array();
+
+function headless_queue_change( $type, $id = 0 ) {
+	global $headless_changes;
+	$headless_changes[ "{$type}:{$id}" ] = array( 'type' => $type, 'id' => (int) $id );
+}
+
+// Published content changed, or left the published state.
+add_action(
+	'transition_post_status',
+	function ( $new_status, $old_status, $post ) {
+		if ( ( 'publish' === $new_status || 'publish' === $old_status ) && ! wp_is_post_revision( $post ) && is_post_type_viewable( $post->post_type ) ) {
+			headless_queue_change( $post->post_type, $post->ID );
+		}
+	},
+	10,
+	3
+);
+add_action(
+	'post_updated',
+	function ( $id, $after ) {
+		if ( 'publish' === $after->post_status && ! wp_is_post_revision( $id ) ) {
+			headless_queue_change( $after->post_type, $id );
+		}
+	},
+	10,
+	2
+);
+add_action( 'deleted_post', fn( $id ) => headless_queue_change( 'post', $id ) );
+foreach ( array( 'created_term', 'edited_term', 'delete_term' ) as $headless_hook ) {
+	add_action( $headless_hook, fn( $term_id, $tt_id = 0, $taxonomy = '' ) => headless_queue_change( "term:{$taxonomy}", $term_id ), 10, 3 );
+}
+// Stock and price changes don't always touch the post.
+foreach ( array( 'woocommerce_product_set_stock', 'woocommerce_variation_set_stock', 'woocommerce_product_set_stock_status' ) as $headless_hook ) {
+	add_action( $headless_hook, fn( $product ) => headless_queue_change( 'product', is_object( $product ) ? $product->get_id() : $product ) );
+}
+add_action( 'wp_update_nav_menu', fn( $menu_id ) => headless_queue_change( 'menu', $menu_id ) );
+
+// One signed, non-blocking request per WordPress request, however many things changed.
+add_action(
+	'shutdown',
+	function () {
+		global $headless_changes;
+		if ( ! $headless_changes || ! defined( 'HEADLESS_WEBHOOK_SECRET' ) || ! HEADLESS_WEBHOOK_SECRET ) {
+			return;
+		}
+		$body = wp_json_encode( array( 'changes' => array_values( $headless_changes ), 'site' => home_url() ) );
+		wp_remote_post(
+			defined( 'HEADLESS_WEBHOOK_URL' ) ? HEADLESS_WEBHOOK_URL : headless_site_url( '/api/wordpress/webhook' ),
+			array(
+				// WP-CLI exits right after, which would drop a non-blocking request.
+				'blocking' => defined( 'WP_CLI' ) && WP_CLI,
+				'timeout'  => 3,
+				'headers'  => array(
+					'Content-Type'         => 'application/json',
+					'X-Headless-Signature' => base64_encode( hash_hmac( 'sha256', $body, HEADLESS_WEBHOOK_SECRET, true ) ),
+				),
+				'body'     => $body,
+			)
+		);
+	}
+);
+
+/* ---------------------------------------------------------------- shop (WooCommerce) */
+
+add_action(
+	'plugins_loaded',
+	function () {
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			return;
+		}
+
+		// Every gateway returns the shopper to the "order received" URL after paying.
+		add_filter(
+			'woocommerce_get_checkout_order_received_url',
+			fn( $url, $order ) => headless_site_url( '/commerce/return', array( 'order' => $order->get_id(), 'key' => $order->get_order_key() ) ),
+			10,
+			2
+		);
+
+		// Shoppers only reach WordPress's cart or checkout when a payment failed or was cancelled
+		// (gateways send them "back to checkout", or to the "pay for order" form). The order-pay
+		// step that forwards to the gateway (no pay_for_order) stays on WordPress.
+		add_action(
+			'template_redirect',
+			function () {
+				if ( is_wc_endpoint_url( 'order-received' ) ) {
+					return;
+				}
+				if ( is_wc_endpoint_url( 'order-pay' ) ) {
+					$order_id = absint( get_query_var( 'order-pay' ) );
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing.
+					if ( isset( $_GET['pay_for_order'] ) ) {
+						wc_clear_notices();
+						wp_safe_redirect( headless_site_url( '/commerce/return', array( 'payment' => 'failed', 'order' => $order_id ) ) );
+						exit;
+					}
+					// Some gateways (e.g. Piraeus ePay) print an error on this page when they can't start
+					// the payment. Headers are already sent by then, so send the shopper back from the page.
+					$order = wc_get_order( $order_id );
+					if ( $order ) {
+						add_action(
+							'woocommerce_receipt_' . $order->get_payment_method(),
+							function ( $receipt_order_id ) {
+								$receipt_order = wc_get_order( $receipt_order_id );
+								if ( $receipt_order && $receipt_order->has_status( array( 'failed', 'cancelled' ) ) ) {
+									$url = headless_site_url( '/commerce/return', array( 'payment' => 'failed', 'order' => $receipt_order->get_id() ) );
+									echo '<meta http-equiv="refresh" content="0;url=' . esc_url( $url ) . '">';
+								}
+							},
+							999
+						);
+					}
+					return;
+				}
+				if ( is_checkout() || is_cart() ) {
+					wc_clear_notices();
+					wp_safe_redirect( headless_site_url( '/commerce/return', array( 'payment' => 'failed' ) ) );
+					exit;
+				}
+			},
+			1
+		);
+	}
+);

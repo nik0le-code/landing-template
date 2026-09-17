@@ -22,10 +22,10 @@ import type {
   ProductVariant,
 } from "@/modules/commerce/lib/types";
 import type { SortOption } from "@/modules/commerce/options";
-import { getModuleOptions, translateModule } from "@/modules/registry";
-import { PAYMENT_ALIASES, wooDefaults } from "../options";
+import { translateModule } from "@/modules/registry";
+import { onWordPressChange, wordpressConfig, wordpressOptions } from "@/modules/wordpress/lib/config";
+import { PAYMENT_ALIASES } from "@/modules/wordpress/options";
 import { store, WooError } from "./client";
-import { wooConfig } from "./config";
 
 // ---------------------------------------------------------------- raw shapes
 
@@ -124,13 +124,13 @@ function remember<T>(key: string, load: () => Promise<T>): Promise<T> {
   const hit = cache.get(key);
   if (hit && hit.expires > Date.now()) return hit.value as Promise<T>;
   const value = load();
-  cache.set(key, { expires: Date.now() + getModuleOptions("woocommerce", wooDefaults).lookupCacheSeconds * 1000, value });
+  cache.set(key, { expires: Date.now() + wordpressOptions().lookupCacheSeconds * 1000, value });
   value.catch(() => cache.delete(key));
   return value;
 }
 
-/** Called by the webhook so renamed categories or new terms show up at once. */
-export const clearLookups = () => cache.clear();
+// A change in WordPress (webhook) drops them too, so renamed categories or new terms show up at once.
+onWordPressChange(() => cache.clear());
 
 const categories = () =>
   remember("categories", async () => (await store<WooCategory[]>("/products/categories", { query: { per_page: 100 } })).data);
@@ -138,7 +138,7 @@ const categories = () =>
 const attributes = () =>
   remember("attributes", async () => {
     const { data } = await store<{ id: number; name: string; taxonomy: string }[]>("/products/attributes");
-    const { filterAttributes } = getModuleOptions("woocommerce", wooDefaults);
+    const { filterAttributes } = wordpressOptions();
     const wanted = filterAttributes.length ? data.filter((a) => filterAttributes.includes(a.taxonomy)) : data;
     return Promise.all(
       wanted.map(async (a) => ({ ...a, terms: (await store<WooTerm[]>(`/products/attributes/${a.id}/terms`, { query: { per_page: 100 } })).data })),
@@ -286,7 +286,7 @@ function cart(c: WooCart): Cart {
 
 /** The configured payment methods (aliases resolved) that WooCommerce offers for this cart, in config order. */
 export function allowedPaymentMethods(available: string[]): string[] {
-  const configured = getModuleOptions("woocommerce", wooDefaults).paymentMethods;
+  const configured = wordpressOptions().paymentMethods;
   if (!configured.length) return available;
   const ids = configured.map((name) => PAYMENT_ALIASES[name as keyof typeof PAYMENT_ALIASES] ?? name);
   return [...new Set(ids)].filter((id) => available.includes(id));
@@ -391,7 +391,7 @@ async function facets(base: URLSearchParams, filters: ParsedFilters, lang: Local
   }
 
   const inStock = Number(data.stock_status_counts?.find((s) => s.status === "instock")?.count ?? 0);
-  if (getModuleOptions("woocommerce", wooDefaults).stockFilter && (inStock > 0 || filters.inStock)) {
+  if (wordpressOptions().stockFilter && (inStock > 0 || filters.inStock)) {
     const t = (key: string) => translateModule(lang, "woocommerce", key);
     result.push({
       id: "stock_status",
@@ -513,7 +513,7 @@ const ORDER_STATUS: Record<string, OrderSummary["status"]> = {
 
 export const wooProvider: CommerceProvider = {
   name: "WooCommerce",
-  isConfigured: () => wooConfig() !== null,
+  isConfigured: () => wordpressConfig() !== null,
   sorts: { all: SORTS, collection: SORTS, search: SORTS },
 
   listProducts: (query) => listing(query, {}, true),
@@ -673,7 +673,7 @@ export const wooProvider: CommerceProvider = {
 /** Connection check for the admin dashboard. */
 export async function wooStatus(): Promise<{ products: number; paymentMethods: string[]; missing: string[] }> {
   const [{ headers }, { data }] = await Promise.all([store<WooProduct[]>("/products", { query: { per_page: 1 } }), store<WooCart>("/cart")]);
-  const configured = getModuleOptions("woocommerce", wooDefaults).paymentMethods.map((name) => PAYMENT_ALIASES[name as keyof typeof PAYMENT_ALIASES] ?? name);
+  const configured = wordpressOptions().paymentMethods.map((name) => PAYMENT_ALIASES[name as keyof typeof PAYMENT_ALIASES] ?? name);
   return {
     products: Number(headers.get("X-WP-Total") ?? 0),
     paymentMethods: allowedPaymentMethods(data.payment_methods),

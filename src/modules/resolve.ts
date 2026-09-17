@@ -4,7 +4,10 @@
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { mergeOptions, readPath } from "./merge";
 import type { ModuleManifest, ModulesConfig } from "./types";
+
+export { mergeOptions };
 
 export interface ResolvedModule {
   name: string;
@@ -20,7 +23,7 @@ const MODULES_DIR = "src/modules";
 
 /** Module folders present but not listed in modules.config.ts (treated as disabled). */
 export function listUnconfiguredModules(root: string, config: ModulesConfig): string[] {
-  return listAvailableModules(root).filter((name) => !(name in config.modules));
+  return listAvailableModules(root).filter((name) => !(name in config.modules) && !readManifest(root, name).internal);
 }
 
 /**
@@ -70,14 +73,22 @@ function readManifest(root: string, name: string): ModuleManifest {
   return manifest;
 }
 
+/** Reads a dot path ("content.pages") from a module's options merged over its manifest defaults. */
+export function optionValue(manifest: ModuleManifest, options: Record<string, unknown>, dotPath: string): unknown {
+  return readPath(mergeOptions(manifest.optionDefaults ?? {}, options), dotPath);
+}
+
 /**
  * Enabled modules in a stable order (dependencies first), validated:
  * unknown names and missing dependencies fail loudly instead of half-working.
+ * Modules switched on through another module's `enables` are included.
  */
 export function resolveModules(root: string, config: ModulesConfig): ResolvedModule[] {
   const available = new Set(listAvailableModules(root));
+  const optionsOf = (name: string) =>
+    ((config.options as Record<string, Record<string, unknown>> | undefined)?.[name] ?? {}) as Record<string, unknown>;
 
-  const enabled = Object.entries(config.modules).flatMap(([name, on]) => {
+  const explicit = Object.entries(config.modules).flatMap(([name, on]) => {
     if (!on) return [];
     if (!available.has(name)) {
       throw new Error(
@@ -85,14 +96,33 @@ export function resolveModules(root: string, config: ModulesConfig): ResolvedMod
           `Available: ${[...available].join(", ") || "none"}.`,
       );
     }
-    const options = ((config.options as Record<string, Record<string, unknown>> | undefined)?.[name] ?? {}) as Record<string, unknown>;
-    return [{ name, options }];
+    const manifest = readManifest(root, name);
+    if (manifest.internal) {
+      const via = [...available].flatMap((other) =>
+        (readManifest(root, other).enables ?? []).filter((e) => e.module === name).map((e) => (e.when ? `${other}: { ${e.when}: true }` : `${other}: true`)),
+      );
+      throw new Error(`[modules] "${name}" isn't switched on directly; it is enabled by ${via.join(" or ") || "another module"}. Remove it from modules.config.ts.`);
+    }
+    return [name];
   });
 
-  const enabledNames = new Set(enabled.map((m) => m.name));
+  // Follow `enables` until nothing new is switched on.
+  const enabledNames = new Set(explicit);
+  for (let queue = [...explicit]; queue.length; ) {
+    const name = queue.shift()!;
+    const manifest = readManifest(root, name);
+    for (const { module, when } of manifest.enables ?? []) {
+      if (enabledNames.has(module) || (when && !optionValue(manifest, optionsOf(name), when))) continue;
+      if (!available.has(module)) throw new Error(`[modules] "${name}" enables "${module}", but ${MODULES_DIR}/${module}/module.json does not exist.`);
+      enabledNames.add(module);
+      queue.push(module);
+    }
+  }
+
   const resolved = new Map<string, ResolvedModule>();
 
-  for (const { name, options } of enabled) {
+  for (const name of enabledNames) {
+    const options = optionsOf(name);
     const manifest = readManifest(root, name);
     for (const dependency of manifest.dependsOn ?? []) {
       if (!enabledNames.has(dependency)) {

@@ -43,6 +43,7 @@ export const navLabel = (label: Partial<Record<Locale, string>>, lang: Locale) =
 export function getPublicNav(lang: Locale) {
   return modules
     .flatMap((module) => module.publicNav ?? [])
+    .filter((item) => item.enabled?.() ?? true)
     .map((item) => ({ path: typeof item.path === "function" ? item.path() : item.path, label: navLabel(item.label, lang) }));
 }
 

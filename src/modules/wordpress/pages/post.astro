@@ -1,0 +1,135 @@
+---
+import { siteConfig } from "@site-config";
+import { localeRegions } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Container from "@/components/ui/Container.astro";
+import Prose from "@/components/ui/Prose.astro";
+import Section from "@/components/ui/Section.astro";
+import { articleSchema } from "@/lib/seo/schema";
+import PostCard from "../components/PostCard.astro";
+import WpImage from "../components/WpImage.astro";
+import "../components/wp-content.css";
+import { wordpressOptions } from "../lib/config";
+import { categoryPath, getPost, listRelatedPosts, postsPath, WORDPRESS_CACHE_TAG, type Post, type PostSummary } from "../lib/content";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "wordpress", key, params);
+
+let post: Post | null;
+let related: PostSummary[] = [];
+try {
+  post = await getPost(Astro.params.slug ?? "", lang);
+  if (post) related = await listRelatedPosts(post, lang).catch(() => []);
+} catch (error) {
+  // Don't turn an outage into a cached 404 that search engines would drop.
+  console.error("[wordpress] post:", error);
+  return new Response(t("unavailable"), { status: 503, headers: { "Retry-After": "60", "Content-Type": "text/plain; charset=utf-8" } });
+}
+if (!post) return Astro.rewrite("/404");
+
+const format = (date: Date) => new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "long" }).format(date);
+const showUpdated = post.updatedAt.getTime() - post.publishedAt.getTime() > 86_400_000;
+const category = post.categories[0];
+const ogImage = post.seo.image ?? post.image?.url;
+
+Astro.cache.set({ maxAge: wordpressOptions().cacheSeconds, swr: 3600, tags: [WORDPRESS_CACHE_TAG] });
+---
+
+<PageLayout
+  seo={{
+    title: post.seo.title ?? post.title,
+    rawTitle: Boolean(post.seo.title),
+    description: post.seo.description ?? siteConfig.description[lang],
+    image: ogImage,
+    imageAlt: post.image?.alt || post.title,
+    type: "article",
+    publishedTime: post.publishedAt,
+    modifiedTime: post.updatedAt,
+    noindex: post.seo.noindex,
+    alternates: post.alternates,
+  }}
+  schema={[
+    articleSchema({
+      title: post.title,
+      description: post.excerpt,
+      path: postsPath(lang, post.slug),
+      image: ogImage,
+      publishedAt: post.publishedAt,
+      updatedAt: post.updatedAt,
+      authorName: post.author ?? undefined,
+      lang,
+    }),
+  ]}
+  breadcrumbs={[
+    { name: t("title"), path: postsPath(lang) },
+    ...(category ? [{ name: category.name, path: categoryPath(lang, category.slug) }] : []),
+    { name: post.title, path: postsPath(lang, post.slug) },
+  ]}
+>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={`${siteConfig.name} - ${t("title")}`} href={`${postsPath(lang)}/rss.xml`} />
+  <article>
+    <Container size="md" class="pt-16 sm:pt-20">
+      <header class="mx-auto max-w-3xl text-center">
+        {
+          category && (
+            <a href={categoryPath(lang, category.slug)} class="text-sm font-medium underline-offset-4 hover:underline">
+              {category.name}
+            </a>
+          )
+        }
+        <h1 class="mt-3 text-3xl font-medium tracking-tight text-balance sm:text-5xl">{post.title}</h1>
+        {post.excerpt && <p class="mt-5 text-lg text-pretty text-muted-foreground">{post.excerpt}</p>}
+        <p class="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+          {post.author && <span>{t("by", { name: post.author })}</span>}
+          <time datetime={post.publishedAt.toISOString()}>{format(post.publishedAt)}</time>
+          {showUpdated && <span>· {t("updated")} <time datetime={post.updatedAt.toISOString()}>{format(post.updatedAt)}</time></span>}
+          <span>· {t("minutes", { n: post.readingMinutes })}</span>
+        </p>
+      </header>
+      {post.image && <WpImage image={post.image} sizes="(min-width: 1024px) 64rem, 100vw" priority class="mt-10 aspect-[16/9] w-full" />}
+    </Container>
+
+    <Container size="md" class="py-10 sm:py-14">
+      <div class="grid gap-10 lg:grid-cols-[1fr_14rem]">
+        {/* Editor-authored HTML from wp-admin; the CSP blocks any script in it. */}
+        <Prose class="wp-content mx-auto w-full lg:mx-0"><Fragment set:html={post.html} /></Prose>
+        {
+          post.headings.length >= 3 && (
+            <nav aria-label={t("onThisPage")} class="order-first lg:order-last">
+              <div class="lg:sticky lg:top-24">
+                <p class="text-sm font-medium">{t("onThisPage")}</p>
+                <ul class="mt-3 space-y-2 border-l border-border text-sm">
+                  {post.headings.map((heading) => (
+                    <li>
+                      <a href={`#${heading.id}`} class="-ml-px block border-l border-transparent pl-4 text-muted-foreground hover:border-foreground hover:text-foreground">
+                        {heading.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </nav>
+          )
+        }
+      </div>
+    </Container>
+  </article>
+
+  {
+    related.length > 0 && (
+      <Section tone="muted" spacing="sm">
+        <h2 class="text-2xl font-medium tracking-tight">{t("related")}</h2>
+        <ul class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {related.map((item) => (
+            <li>
+              <PostCard post={item} lang={lang} headingTag="h3" />
+            </li>
+          ))}
+        </ul>
+      </Section>
+    )
+  }
+</PageLayout>

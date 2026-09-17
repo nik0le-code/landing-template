@@ -1,0 +1,48 @@
+# Local WordPress for development (npm run wp:up). Not for production:
+# host WordPress normally and sync plugins with `npm run wp:plugins -- --ssh …`.
+name: landing-wordpress
+
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: wordpress
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wordpress
+      MARIADB_PASSWORD: wordpress
+    volumes: [db:/var/lib/mysql]
+
+  wordpress:
+    image: wordpress:php8.3-apache
+    depends_on: [db]
+    # Change notifications reach the dev server on the host (Linux needs the mapping).
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    ports: ["${WORDPRESS_PORT:-8088}:80"]
+    environment: &wp-env
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress:/var/www/html
+      - ./headless-bridge.php:/var/www/html/wp-content/mu-plugins/headless-bridge.php:ro
+      # Zip plugins referenced in modules.config.ts (wordpress.plugins) are read from here.
+      - ../../../../wordpress-plugins:/plugins:ro
+
+  cli:
+    image: wordpress:cli-php8.3
+    depends_on: [wordpress]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    user: "33:33"
+    environment:
+      <<: *wp-env
+      WP_CLI_CACHE_DIR: /tmp/wp-cli-cache
+    volumes:
+      - wordpress:/var/www/html
+      - ./headless-bridge.php:/var/www/html/wp-content/mu-plugins/headless-bridge.php:ro
+      - ../../../../wordpress-plugins:/plugins:ro
+    entrypoint: ["sleep", "infinity"]
+
+volumes:
+  db: {}
+  wordpress: {}

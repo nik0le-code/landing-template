@@ -4,6 +4,10 @@
  *   true   the module is part of the site
  *   false  it contributes nothing: no routes, admin pages, actions or JavaScript
  *
+ * Some modules are building blocks switched on by others' options instead of
+ * listed here: `commerce` (by shopify or wordpress.shop) and `woocommerce` (by
+ * wordpress.shop).
+ *
  * Toggling needs no other step (the dev server restarts itself; database tables
  * for every module already exist). Options are optional and only read for
  * enabled modules.
@@ -15,13 +19,12 @@ export default defineModulesConfig({
     blog: false,
     bookings: false,
     catalog: false,
-    commerce: true,
     example: false,
     leads: false,
     media: false,
     settings: false,
     shopify: false,
-    woocommerce: true,
+    wordpress: true,
   },
 
   options: {
@@ -45,8 +48,16 @@ export default defineModulesConfig({
       },
     },
     media: { maxUploadMb: 15 },
-    commerce: { basePath: "shop", cartPath: "cart", pageSize: 24, featuredCollection: "", featuredOnHome: 4, cacheSeconds: 300, countries: ["GR", "CY"], paymentMethodLabels: { mockpay: { title: { el: "Κάρτα (δοκιμαστική)", en: "Card (test gateway)" }, description: { el: "Δοκιμαστική σελίδα πληρωμής.", en: "Test payment page: choose Pay, Fail or Cancel." } } } },
     shopify: { country: "" },
-    woocommerce: { paymentMethods: ["viva", "epay", "mockpay", "cod", "bacs"], filterAttributes: [], stockFilter: true },
+    wordpress: {
+      shop: true, // WooCommerce storefront (commerce options below)
+      content: { posts: true, pages: true },
+      postsPath: "blog",
+      // WordPress plugins (npm run wp:up / wp:plugins); configure them in wp-admin.
+      plugins: ["viva-com-smart-for-woocommerce", "secure-card-gateway-for-epay-paycenter-piraeus-bank"],
+      paymentMethods: ["viva", "epay", "cod", "bacs"],
+    },
+    // Storefront used by the shop (wordpress.shop or shopify).
+    commerce: { basePath: "shop", cartPath: "cart", pageSize: 24, featuredCollection: "", featuredOnHome: 4, cacheSeconds: 300, countries: ["GR", "CY"] },
   },
 });

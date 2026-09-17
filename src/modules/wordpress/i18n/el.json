@@ -1,0 +1,25 @@
+{
+  "nav": "Άρθρα",
+  "title": "Blog",
+  "description": "Νέα, οδηγοί και ιδέες.",
+  "minutes": "{n} λεπτά ανάγνωσης",
+  "by": "Από {name}",
+  "allPosts": "Όλα τα άρθρα",
+  "categories": "Κατηγορίες",
+  "empty": "Δεν υπάρχουν ακόμη άρθρα.",
+  "related": "Σχετικά άρθρα",
+  "onThisPage": "Σε αυτό το άρθρο",
+  "page": "Σελίδα {n}",
+  "previous": "Νεότερα",
+  "next": "Παλαιότερα",
+  "latest": "Τελευταία άρθρα",
+  "latestDescription": "Νέα και οδηγοί από την ομάδα μας.",
+  "updated": "Ενημερώθηκε",
+  "unavailable": "Το περιεχόμενο δεν είναι προσωρινά διαθέσιμο. Δοκιμάστε ξανά σε λίγο.",
+  "admin": {
+    "connected": "Συνδεδεμένο με {url}: {posts} άρθρα, {pages} σελίδες.",
+    "unreachable": "Το WordPress δεν απαντά στο {url}. Ελέγξτε το WORDPRESS_URL.",
+    "notConfigured": "Δεν έχει ρυθμιστεί: ορίστε WORDPRESS_URL.",
+    "noWebhook": "Δεν έχει οριστεί WORDPRESS_WEBHOOK_SECRET, οπότε οι αλλαγές στο WordPress εμφανίζονται μόλις λήξει η cache."
+  }
+}

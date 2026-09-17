@@ -1,0 +1,9 @@
+---
+/** Fills "home.beforeCta" with the latest WordPress posts, when posts are on. */
+import LatestPosts from "./LatestPosts.astro";
+import { wordpressOptions } from "../lib/config";
+
+const { content, latestOnHome } = wordpressOptions();
+---
+
+{content.posts && latestOnHome > 0 && <LatestPosts server:defer lang={Astro.locals.lang} />}

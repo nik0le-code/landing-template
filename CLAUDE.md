@@ -74,7 +74,11 @@ imports of enabled modules only.
 - Scaffold with `npm run module:new -- <name>`; copy `src/modules/example` for
   reference.
 - `module.json` route patterns may use `{option}` placeholders (`optionDefaults`
-  holds the fallback).
+  holds the fallback), and `when: "content.pages"` injects a route only when that option
+  is truthy.
+- A module can switch others on: `enables: [{ module, when }]`. Building blocks marked
+  `internal` (`commerce`, `woocommerce`) are never listed in `modules.config.ts`; they
+  follow `shopify` or `wordpress: { shop: true }`.
 - Adding/editing a `db/schema.ts` → `npm run db:generate` (migrations cover every
   module folder, so toggling a module needs no DB step).
 - The `shopify` module has a playbook in

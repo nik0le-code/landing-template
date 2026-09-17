@@ -112,7 +112,14 @@ before moving on.
 - Native checkout for Woo: address → shipping rates → offline payment methods → order, order confirmation (details only for the ordering browser), purchase tracking
 - Module CSP entries accept `{env:NAME}`; verified against a local WordPress + WooCommerce in Docker
 - Redirect payment gateways (Viva.com, bank gateways, PayPal): follow the gateway URL, keep the cart until paid, `/commerce/return` + WordPress bridge mu-plugin, order page states (paid / confirming / failed with retry); flow verified with a mock gateway that mirrors Viva's plugin
+- `woocommerce.plugins` + `npm run wp:up / wp:plugins / wp:down / wp`: local Docker WordPress (bridge, WooCommerce, demo catalogue) and plugin sync (wordpress.org slugs, pinned versions, zips, `--ssh`, `--prune`)
 - Payment method choice in config (`woocommerce.paymentMethods`, aliases `viva` / `epay`), labels for Viva.com and Piraeus ePay Paycenter; both plugins' failure paths verified with dummy credentials
+
+### 17. Module: wordpress (content, plugins, shop as an option)
+- Module system: `enables` (a module switches others on from its options), `internal` building blocks, route `when`, nested option defaults, conditional `publicNav`
+- `wordpress` module: connection, `plugins`, `npm run wp:*` (moved from woocommerce), headless bridge v2 (Polylang REST fields and `?lang=`, signed change notifications, hidden system pages, shop redirects)
+- Content: posts (list, categories, pagination, post page with TOC, RSS, latest on home) and pages (lowest-priority catch-all), translations/hreflang, Yoast SEO, sitemap, link rewriting, block styles, cache purge on publish
+- `commerce` and `woocommerce` become internal: `wordpress: { shop: true }` or `shopify: true`; `WOOCOMMERCE_*` env names still read as fallbacks
 
 ## Progress
 
@@ -133,3 +140,4 @@ before moving on.
 - [x] 14 Production + docs
 - [x] 15 Module: shopify
 - [x] 16 Commerce layer + WooCommerce
+- [x] 17 Module: wordpress

@@ -13,7 +13,7 @@ import { themeScript } from "./src/lib/theme-script";
 // Astro hashes its own inline scripts for the CSP, but not `is:inline` ones, so the
 // theme bootstrap is hashed here from the same source string.
 /** Sources enabled modules add to the CSP (e.g. the Shopify image CDN). */
-// .env is read here too: e.g. the WooCommerce media origin comes from WOOCOMMERCE_URL.
+// .env is read here too: e.g. the WordPress media origin comes from WORDPRESS_URL.
 const moduleCsp = moduleCspSources(process.cwd(), modulesConfig, { ...loadEnv(process.env.NODE_ENV ?? "production", process.cwd(), ""), ...process.env });
 const withModuleSources = <Directive extends string>(directive: Directive) =>
   [directive, ...(moduleCsp[directive.split(" ")[0]!] ?? [])].join(" ") as Directive;

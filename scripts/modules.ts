@@ -92,11 +92,13 @@ function list() {
   const text = readConfigText();
   const configured = configuredModules(text);
   const available = listAvailableModules(ROOT);
+  const enablers = (name: string) =>
+    available.flatMap((other) => (manifestOf(other).enables ?? []).filter((e) => e.module === name).map((e) => (e.when ? `${other}.${e.when}` : other)));
   const rows = available.map((name) => {
     const manifest = manifestOf(name);
     return {
       module: name,
-      enabled: configured[name] ? "on" : name in configured ? "off" : "MISSING",
+      enabled: manifest.internal ? `via ${enablers(name).join(" / ")}` : configured[name] ? "on" : name in configured ? "off" : "MISSING",
       admin: manifest.admin ? "yes" : "",
       needs: (manifest.dependsOn ?? []).join(", "),
       tables: existsSync(path.join(MODULES_DIR, name, "db", "schema.ts")) ? "yes" : "",
@@ -104,7 +106,7 @@ function list() {
     };
   });
   console.table(rows, ["module", "enabled", "admin", "needs", "tables", "routes"]);
-  const unlisted = available.filter((name) => !(name in configured));
+  const unlisted = available.filter((name) => !(name in configured) && !manifestOf(name).internal);
   if (unlisted.length) console.log(`! Not listed in modules.config.ts (treated as off): ${unlisted.join(", ")}`);
   const unknown = Object.keys(configured).filter((name) => !available.includes(name));
   if (unknown.length) console.log(`! In modules.config.ts but no folder: ${unknown.join(", ")}`);

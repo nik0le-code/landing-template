@@ -1,0 +1,25 @@
+{
+  "nav": "Articles",
+  "title": "Blog",
+  "description": "News, guides and ideas.",
+  "minutes": "{n} min read",
+  "by": "By {name}",
+  "allPosts": "All posts",
+  "categories": "Categories",
+  "empty": "No posts yet.",
+  "related": "Related posts",
+  "onThisPage": "In this article",
+  "page": "Page {n}",
+  "previous": "Newer",
+  "next": "Older",
+  "latest": "Latest posts",
+  "latestDescription": "News and guides from our team.",
+  "updated": "Updated",
+  "unavailable": "The content is temporarily unavailable. Please try again shortly.",
+  "admin": {
+    "connected": "Connected to {url}: {posts} posts, {pages} pages.",
+    "unreachable": "WordPress is not responding at {url}. Check WORDPRESS_URL.",
+    "notConfigured": "Not configured: set WORDPRESS_URL.",
+    "noWebhook": "WORDPRESS_WEBHOOK_SECRET is not set, so edits in WordPress appear only when the page cache expires."
+  }
+}

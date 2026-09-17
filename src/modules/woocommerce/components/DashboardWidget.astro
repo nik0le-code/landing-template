@@ -2,12 +2,12 @@
 /** Admin dashboard: is the WooCommerce store reachable? (Shown only when another module enables the admin.) */
 import { translateModule } from "@/modules/registry";
 import Panel from "@/admin/components/Panel.astro";
-import { wooConfig } from "../lib/config";
+import { wordpressConfig } from "@/modules/wordpress/lib/config";
 import { wooStatus } from "../lib/provider";
 
 const lang = Astro.locals.lang;
 const tm = (key: string, params?: Record<string, string | number>) => translateModule(lang, "woocommerce", key, params);
-const config = wooConfig();
+const config = wordpressConfig();
 const status = config ? await wooStatus().catch(() => null) : null;
 ---
 
@@ -25,5 +25,4 @@ const status = config ? await wooStatus().catch(() => null) : null;
       <p class="text-sm text-destructive">{tm("admin.unreachable", { url: config.url })}</p>
     )
   }
-  {config && !config.webhookSecret && <p class="mt-2 text-sm text-muted-foreground">{tm("admin.noWebhook")}</p>}
 </Panel>

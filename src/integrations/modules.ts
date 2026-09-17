@@ -18,7 +18,9 @@ import {
   listAvailableModules,
   listUnconfiguredModules,
   migratedTables,
+  mergeOptions,
   moduleTables,
+  optionValue,
   resolveModules,
   type ResolvedModule,
 } from "../modules/resolve";
@@ -124,7 +126,7 @@ export function modulesIntegration(config: ModulesConfig): AstroIntegration {
         }
 
         for (const module of modules) {
-          const values = { ...module.manifest.optionDefaults, ...module.options } as Record<string, unknown>;
+          const values = mergeOptions(module.manifest.optionDefaults ?? {}, module.options);
           for (const route of module.manifest.routes ?? []) {
             const pattern = route.pattern.replace(/\{(\w+)\}/g, (_, key: string) => {
               const value = values[key];
@@ -133,6 +135,7 @@ export function modulesIntegration(config: ModulesConfig): AstroIntegration {
               }
               return value;
             });
+            if (route.when && !optionValue(module.manifest, module.options, route.when)) continue;
             injectRoute({
               pattern,
               entrypoint: `./${module.dir}/${route.entrypoint.replace(/^\.\//, "")}`,

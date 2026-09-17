@@ -91,6 +91,8 @@ disabled; copy it when writing a new module.
 | Show UI inside core pages | `slots` in index.ts, rendered by `<ModuleSlot name="…">` |
 | Dynamic URLs in sitemap.xml | `sitemap()` in index.ts |
 | Extra CSP sources (CDN images, embeds) | `"csp": { "img-src": ["https://…"] }` in module.json, merged into astro.config.ts while enabled |
+| Switch other modules on from this one | `"enables": [{ "module": "commerce", "when": "shop" }]` in module.json; mark building blocks `"internal": true` so sites don't list them |
+| A route only for some option values | `"when": "content.pages"` on the route (dot path into options, `optionDefaults` as fallback) |
 | Implement a service another module consumes | Consumer declares it in `ModuleServices` (declaration merging, like options); provider sets `provides: { name: () => import(...) }` and `dependsOn` the consumer. See `commerce` + `shopify`/`woocommerce` |
 | Admin sidebar entry | `adminNav` in index.ts |
 | Public menu link (navbar + footer) | `publicNav` in index.ts |

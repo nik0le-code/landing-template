@@ -2,7 +2,23 @@
   "name": "shopify",
   "description": "Shopify backend for the commerce module (Storefront API): catalogue, Search & Discovery filters, cart and Shopify's hosted checkout. Webhooks invalidate the page cache. Needs no database.",
   "admin": false,
-  "dependsOn": ["commerce"],
-  "csp": { "img-src": ["https://cdn.shopify.com"] },
-  "routes": [{ "pattern": "/api/shopify/webhook", "entrypoint": "./pages/webhook.ts" }]
+  "dependsOn": [
+    "commerce"
+  ],
+  "csp": {
+    "img-src": [
+      "https://cdn.shopify.com"
+    ]
+  },
+  "routes": [
+    {
+      "pattern": "/api/shopify/webhook",
+      "entrypoint": "./pages/webhook.ts"
+    }
+  ],
+  "enables": [
+    {
+      "module": "commerce"
+    }
+  ]
 }
