@@ -75,6 +75,10 @@ imports of enabled modules only.
   holds the fallback).
 - Adding/editing a `db/schema.ts` → `npm run db:generate` (migrations cover every
   module folder, so toggling a module needs no DB step).
+- The `shopify` module has a playbook in
+  [`.claude/skills/headless-shopify-storefront/`](.claude/skills/headless-shopify-storefront/SKILL.md):
+  the Shopify admin steps the client has to do, where the two APIs live, and the
+  `npm run shopify:*` commands. Read it before touching anything Shopify.
 
 ## Forms and actions
 
