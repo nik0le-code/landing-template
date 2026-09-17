@@ -24,7 +24,7 @@ export default defineModulesConfig({
     media: false,
     settings: false,
     shopify: false,
-    wordpress: true,
+    wordpress: false,
   },
 
   options: {
