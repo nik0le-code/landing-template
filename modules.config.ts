@@ -15,11 +15,13 @@ export default defineModulesConfig({
     blog: false,
     bookings: false,
     catalog: false,
+    commerce: true,
     example: false,
     leads: false,
     media: false,
     settings: false,
     shopify: false,
+    woocommerce: true,
   },
 
   options: {
@@ -43,6 +45,8 @@ export default defineModulesConfig({
       },
     },
     media: { maxUploadMb: 15 },
-    shopify: { basePath: "shop", cartPath: "cart", pageSize: 24, country: "", featuredCollection: "", featuredOnHome: 4, cacheSeconds: 300 },
+    commerce: { basePath: "shop", cartPath: "cart", pageSize: 24, featuredCollection: "", featuredOnHome: 4, cacheSeconds: 300, countries: ["GR", "CY"], paymentMethodLabels: { mockpay: { title: { el: "Κάρτα (δοκιμαστική)", en: "Card (test gateway)" }, description: { el: "Δοκιμαστική σελίδα πληρωμής.", en: "Test payment page: choose Pay, Fail or Cancel." } } } },
+    shopify: { country: "" },
+    woocommerce: { paymentMethods: ["viva", "epay", "mockpay", "cod", "bacs"], filterAttributes: [], stockFilter: true },
   },
 });

@@ -1,0 +1,29 @@
+---
+/**
+ * One cart change. Posts to the no-JS endpoint; the cart script intercepts
+ * `[data-cart-form]` and sends it through `actions.commerce.cart` instead.
+ */
+import type { Locale } from "@site-config";
+import { cn } from "@/lib/cn";
+import { cartPath } from "../lib/format";
+
+interface Props {
+  lang: Locale;
+  intent: "add" | "update" | "remove" | "discount" | "discount-remove";
+  /** Where the no-JS endpoint redirects after the change. */
+  returnTo: string;
+  fields?: Record<string, string>;
+  class?: string;
+  [data: `data-${string}`]: string | undefined;
+}
+
+const { lang, intent, returnTo, fields = {}, class: className, ...rest } = Astro.props;
+---
+
+<form method="POST" action={cartPath(lang, "update")} data-cart-form={intent} class={cn(className)} {...rest}>
+  <input type="hidden" name="intent" value={intent} />
+  <input type="hidden" name="lang" value={lang} />
+  <input type="hidden" name="returnTo" value={returnTo} />
+  {Object.entries(fields).map(([name, value]) => <input type="hidden" name={name} value={value} />)}
+  <slot />
+</form>

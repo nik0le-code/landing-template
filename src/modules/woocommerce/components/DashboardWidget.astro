@@ -1,0 +1,29 @@
+---
+/** Admin dashboard: is the WooCommerce store reachable? (Shown only when another module enables the admin.) */
+import { translateModule } from "@/modules/registry";
+import Panel from "@/admin/components/Panel.astro";
+import { wooConfig } from "../lib/config";
+import { wooStatus } from "../lib/provider";
+
+const lang = Astro.locals.lang;
+const tm = (key: string, params?: Record<string, string | number>) => translateModule(lang, "woocommerce", key, params);
+const config = wooConfig();
+const status = config ? await wooStatus().catch(() => null) : null;
+---
+
+<Panel title="WooCommerce">
+  {
+    !config ? (
+      <p class="text-sm text-destructive">{tm("admin.notConfigured")}</p>
+    ) : status ? (
+      <>
+        <p class="text-sm">{tm("admin.connected", { url: config.url, products: status.products })}</p>
+        <p class="mt-1 text-sm text-muted-foreground">{tm("admin.payments", { methods: status.paymentMethods.join(", ") || "-" })}</p>
+        {status.missing.length > 0 && <p class="mt-1 text-sm text-destructive">{tm("admin.missingPayments", { methods: status.missing.join(", ") })}</p>}
+      </>
+    ) : (
+      <p class="text-sm text-destructive">{tm("admin.unreachable", { url: config.url })}</p>
+    )
+  }
+  {config && !config.webhookSecret && <p class="mt-2 text-sm text-muted-foreground">{tm("admin.noWebhook")}</p>}
+</Panel>

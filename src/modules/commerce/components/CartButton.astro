@@ -1,0 +1,107 @@
+---
+/**
+ * Header cart link + drawer (slot "header.actions"). Rendered at build time on
+ * prerendered pages, so nothing here is per-visitor: the badge reads the count
+ * cookie and the drawer loads its contents from /[lang]/<cartPath>/panel on open.
+ * Without JavaScript the link simply opens the cart page.
+ */
+import ShoppingBag from "@lucide/astro/icons/shopping-bag";
+import X from "@lucide/astro/icons/x";
+import { translateModule } from "@/modules/registry";
+import { cartPath } from "../lib/format";
+import "./motion.css";
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "commerce", key);
+const errors = Object.fromEntries(["invalid", "rateLimited", "unavailable", "notFound", "coupon", "backend"].map((code) => [code, t(`errors.${code}`)]));
+---
+
+<a
+  href={cartPath(lang)}
+  data-cart-toggle
+  data-press
+  class="relative inline-flex size-10 items-center justify-center text-foreground/70 transition-colors hover:text-accent"
+>
+  <ShoppingBag class="size-5" aria-hidden="true" />
+  <span class="sr-only">{t("cart.title")}</span>
+  <span
+    data-cart-count
+    hidden
+    class="absolute top-0.5 right-0 inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-accent px-1 text-[0.6875rem] leading-none font-medium text-accent-foreground tabular-nums"
+  ></span>
+</a>
+
+<div
+  id="cart-drawer"
+  popover
+  data-cart-drawer
+  data-panel-url={cartPath(lang, "panel")}
+  data-loading={t("cart.loading")}
+  data-cart-errors={JSON.stringify(errors)}
+  aria-label={t("cart.title")}
+  class="cart-drawer m-0 ml-auto h-dvh max-h-none w-full max-w-md border-l border-border bg-background p-0 text-foreground shadow-xl"
+>
+  <div class="flex h-full flex-col">
+    <div class="flex h-[4.5rem] shrink-0 items-center justify-between border-b border-border px-5">
+      <p class="text-lg font-medium">{t("cart.title")}</p>
+      <button
+        type="button"
+        popovertarget="cart-drawer"
+        popovertargetaction="hide"
+        data-press
+        class="-mr-2 inline-flex size-10 items-center justify-center hover:text-accent"
+      >
+        <X class="size-5" aria-hidden="true" />
+        <span class="sr-only">{t("cart.close")}</span>
+      </button>
+    </div>
+    <div data-cart-panel aria-live="polite" class="min-h-0 flex-1 px-5 py-4"></div>
+  </div>
+</div>
+
+<style>
+  /* Spring slide-in with a fading backdrop (the Xristos drawer, in CSS). */
+  .cart-drawer {
+    translate: 100% 0;
+  }
+  .cart-drawer:popover-open {
+    translate: 0 0;
+  }
+  .cart-drawer::backdrop {
+    background: oklch(0 0 0 / 0);
+  }
+  .cart-drawer:popover-open::backdrop {
+    background: oklch(0 0 0 / 0.4);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cart-drawer {
+      transition:
+        translate var(--shop-spring-duration) var(--shop-spring),
+        overlay var(--shop-spring-duration) allow-discrete,
+        display var(--shop-spring-duration) allow-discrete;
+    }
+    .cart-drawer:not(:popover-open) {
+      transition-duration: 0.25s;
+      transition-timing-function: ease-in;
+    }
+    .cart-drawer::backdrop {
+      transition:
+        background 0.25s ease,
+        overlay 0.25s allow-discrete,
+        display 0.25s allow-discrete;
+    }
+    @starting-style {
+      .cart-drawer:popover-open {
+        translate: 100% 0;
+      }
+      .cart-drawer:popover-open::backdrop {
+        background: oklch(0 0 0 / 0);
+      }
+    }
+  }
+</style>
+
+<script>
+  import { initCart } from "./cart-client";
+  initCart();
+</script>

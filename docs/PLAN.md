@@ -106,6 +106,14 @@ before moving on.
 - Webhook with HMAC invalidates the `shopify` cache tag; module `csp` sources merged into astro.config.ts
 - Motion ported from the Xristos store without a library: fly-to-cart arc, cart bounce, badge pop, spring drawers, line stagger/exit, lens zoom, cross-document view transitions (card image morph, card glide on sort/filter); filter rail with swatches, chips and a price slider
 
+### 16. Commerce layer + WooCommerce
+- `commerce` module owns every storefront page, component, cart session, checkout and motion; backends implement `CommerceProvider` (`ModuleServices` + `provides.commerce`)
+- `shopify` reduced to a provider (hosted checkout); `woocommerce` provider on the Store API (Cart-Token sessions, attribute/stock/price facets, variations)
+- Native checkout for Woo: address → shipping rates → offline payment methods → order, order confirmation (details only for the ordering browser), purchase tracking
+- Module CSP entries accept `{env:NAME}`; verified against a local WordPress + WooCommerce in Docker
+- Redirect payment gateways (Viva.com, bank gateways, PayPal): follow the gateway URL, keep the cart until paid, `/commerce/return` + WordPress bridge mu-plugin, order page states (paid / confirming / failed with retry); flow verified with a mock gateway that mirrors Viva's plugin
+- Payment method choice in config (`woocommerce.paymentMethods`, aliases `viva` / `epay`), labels for Viva.com and Piraeus ePay Paycenter; both plugins' failure paths verified with dummy credentials
+
 ## Progress
 
 - [x] 0 Foundation
@@ -124,3 +132,4 @@ before moving on.
 - [x] 13 Module CLI
 - [x] 14 Production + docs
 - [x] 15 Module: shopify
+- [x] 16 Commerce layer + WooCommerce

@@ -68,7 +68,9 @@ imports of enabled modules only.
 - Read [`src/modules/README.md`](src/modules/README.md) before writing a module.
 - **Core never imports a module.** Core pages expose `<ModuleSlot name="…">`;
   modules fill slots, add `publicNav`/`adminNav`, `sitemap()` entries and services
-  (`provides.siteSettings`). A module may import another only via `dependsOn`.
+  (`provides.siteSettings`, or typed services declared through `ModuleServices`, e.g.
+  `provides.commerce` implemented by `shopify`/`woocommerce` for `commerce`). A module may
+  import another only via `dependsOn`.
 - Scaffold with `npm run module:new -- <name>`; copy `src/modules/example` for
   reference.
 - `module.json` route patterns may use `{option}` placeholders (`optionDefaults`

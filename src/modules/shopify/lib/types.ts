@@ -1,5 +1,5 @@
-/** The subset of Storefront API types this module queries. */
-export interface Money {
+/** Raw Storefront API shapes this module queries (mapped to commerce types in provider.ts). */
+export interface ShopifyMoney {
   amount: string;
   currencyCode: string;
 }
@@ -11,60 +11,52 @@ export interface ShopifyImage {
   height: number | null;
 }
 
-export interface PageInfo {
+export interface ShopifyPageInfo {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   startCursor: string | null;
   endCursor: string | null;
 }
 
-export interface SelectedOption {
+export interface ShopifySelectedOption {
   name: string;
   value: string;
 }
 
-export interface ProductCardData {
+export interface ShopifyProductCard {
   id: string;
   handle: string;
   title: string;
   vendor: string;
   availableForSale: boolean;
   featuredImage: ShopifyImage | null;
-  priceRange: { minVariantPrice: Money; maxVariantPrice: Money };
-  compareAtPriceRange: { minVariantPrice: Money };
-  variants: { nodes: { id: string; availableForSale: boolean }[] };
+  priceRange: { minVariantPrice: ShopifyMoney; maxVariantPrice: ShopifyMoney };
+  compareAtPriceRange: { minVariantPrice: ShopifyMoney };
 }
 
-export interface ProductVariant {
+export interface ShopifyVariant {
   id: string;
   title: string;
   sku: string | null;
   availableForSale: boolean;
-  selectedOptions: SelectedOption[];
-  price: Money;
-  compareAtPrice: Money | null;
+  selectedOptions: ShopifySelectedOption[];
+  price: ShopifyMoney;
+  compareAtPrice: ShopifyMoney | null;
   image: ShopifyImage | null;
 }
 
-export interface ProductOption {
-  name: string;
-  optionValues: { name: string; swatch: { color: string | null } | null }[];
-}
-
-export interface Product extends ProductCardData {
+export interface ShopifyProduct extends ShopifyProductCard {
   description: string;
   descriptionHtml: string;
-  productType: string;
-  tags: string[];
   updatedAt: string;
   seo: { title: string | null; description: string | null };
   images: { nodes: ShopifyImage[] };
-  options: ProductOption[];
-  variants: { nodes: ProductVariant[] };
+  options: { name: string; optionValues: { name: string; swatch: { color: string | null } | null }[] }[];
+  variants: { nodes: ShopifyVariant[] };
   collections: { nodes: { handle: string; title: string }[] };
 }
 
-export interface Collection {
+export interface ShopifyCollection {
   id: string;
   handle: string;
   title: string;
@@ -74,45 +66,44 @@ export interface Collection {
   seo: { title: string | null; description: string | null };
 }
 
-/** Search & Discovery filters, as returned next to collection and search results. */
-export interface ProductFilter {
+export interface ShopifyFilter {
   id: string;
   label: string;
   type: "LIST" | "PRICE_RANGE" | "BOOLEAN";
   values: { id: string; label: string; count: number; input: string; swatch: { color: string | null } | null }[];
 }
 
-export interface ProductConnection {
-  pageInfo: PageInfo;
-  filters: ProductFilter[];
-  nodes: ProductCardData[];
+export interface ShopifyProductConnection {
+  pageInfo: ShopifyPageInfo;
+  filters?: ShopifyFilter[];
+  nodes: ShopifyProductCard[];
 }
 
-export interface CartLine {
+export interface ShopifyCartLine {
   id: string;
   quantity: number;
-  cost: { totalAmount: Money; amountPerQuantity: Money; compareAtAmountPerQuantity: Money | null };
+  cost: { totalAmount: ShopifyMoney; amountPerQuantity: ShopifyMoney; compareAtAmountPerQuantity: ShopifyMoney | null };
   merchandise: {
     id: string;
     title: string;
     availableForSale: boolean;
     quantityAvailable: number | null;
-    selectedOptions: SelectedOption[];
+    selectedOptions: ShopifySelectedOption[];
     image: ShopifyImage | null;
     product: { handle: string; title: string; featuredImage: ShopifyImage | null };
   };
 }
 
-export interface Cart {
+export interface ShopifyCart {
   id: string;
   checkoutUrl: string;
   totalQuantity: number;
-  cost: { subtotalAmount: Money; totalAmount: Money; totalTaxAmount: Money | null };
-  lines: { nodes: CartLine[] };
+  cost: { subtotalAmount: ShopifyMoney; totalAmount: ShopifyMoney; totalTaxAmount: ShopifyMoney | null };
+  lines: { nodes: ShopifyCartLine[] };
   discountCodes: { code: string; applicable: boolean }[];
 }
 
-export interface CartUserError {
+export interface ShopifyUserError {
   field: string[] | null;
   message: string;
   code: string | null;

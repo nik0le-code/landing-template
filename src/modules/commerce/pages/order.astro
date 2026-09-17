@@ -1,0 +1,200 @@
+---
+/**
+ * Order confirmation for native checkout. Details are shown only to the browser
+ * that placed the order (id + key + email in an httpOnly cookie); anyone else
+ * opening the URL sees a generic confirmation without personal data.
+ */
+import { siteConfig } from "@site-config";
+import CircleCheck from "@lucide/astro/icons/circle-check";
+import { pickLocalized } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import OrderTotals from "../components/OrderTotals.astro";
+import { readRememberedOrder } from "../lib/checkout";
+import CircleX from "@lucide/astro/icons/circle-x";
+import LoaderCircle from "@lucide/astro/icons/loader-circle";
+import { cartPath, commerceOptions, decodeEntities, paymentMethodLabel, shopPath } from "../lib/format";
+import { getCommerce } from "../lib/provider";
+import type { OrderSummary } from "../lib/types";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "commerce", key, params);
+Astro.response.headers.set("Cache-Control", "no-store");
+
+const id = Astro.params.id ?? "";
+const remembered = readRememberedOrder(Astro.cookies);
+const mine = remembered?.id === id ? remembered : null;
+
+let order: OrderSummary | null = null;
+if (mine) {
+  try {
+    const commerce = await getCommerce();
+    if (commerce.checkout.kind === "native") order = await commerce.checkout.getOrder(lang, mine);
+  } catch (error) {
+    console.error("[commerce] order:", error);
+  }
+}
+
+const number = mine?.number ?? order?.number ?? id;
+const instructions = mine ? pickLocalized(commerceOptions().paymentInstructions[mine.paymentMethod], lang) || t(`payment.${mine.paymentMethod}.instructions`) : "";
+const paymentTitle = mine ? paymentMethodLabel(mine.paymentMethod, lang) : "";
+
+/**
+ * paid: thank-you page. confirming: back from the gateway, but its notification to
+ * the store hasn't arrived yet (the page re-checks for two minutes). failed: declined
+ * or cancelled; the cart was kept, so the shopper can retry or pick another method.
+ */
+const MAX_CHECKS = 24;
+const check = Math.min(MAX_CHECKS, Number(Astro.url.searchParams.get("check")) || 0);
+const returnedFailed = Astro.url.searchParams.get("payment") === "failed";
+const state: "paid" | "confirming" | "failed" =
+  !order || order.status === "paid" || order.status === "other"
+    ? "paid"
+    : order.status === "failed" || order.status === "cancelled" || returnedFailed
+      ? "failed"
+      : mine?.paymentUrl
+        ? "confirming"
+        : "paid";
+const canRetry = state === "failed" && Boolean(mine?.paymentUrl && order?.needsPayment);
+const hasInstructions = state === "paid" && instructions && !instructions.startsWith("payment.");
+const refreshUrl = `${cartPath(lang, `order/${id}`)}?check=${check + 1}`;
+const address = order?.shippingAddress?.address_1 ? order.shippingAddress : order?.billingAddress;
+---
+
+<PageLayout
+  seo={{
+    title: t(state === "failed" ? "order.failedTitle" : state === "confirming" ? "order.confirmingTitle" : "order.title"),
+    noindex: true,
+    alternates: Object.fromEntries(siteConfig.locales.map((l) => [l, cartPath(l, `order/${id}`)])),
+  }}
+>
+  {state === "confirming" && check < MAX_CHECKS && <meta slot="head" http-equiv="refresh" content={`5;url=${refreshUrl}`} />}
+  <Section spacing="sm" width="md">
+    {
+      state === "paid" ? (
+        <div data-order-confirmation data-order-id={id} data-value={order?.total.amount} data-currency={order?.total.currencyCode} class="text-center">
+          <CircleCheck class="order-check mx-auto size-14 text-success" stroke-width={1.5} aria-hidden="true" />
+          <h1 class="mt-6 text-4xl font-medium tracking-tight text-balance sm:text-5xl">{t("order.title")}</h1>
+          <p class="mt-4 text-muted-foreground">{t("order.number", { number })}</p>
+          {mine && <p class="mt-1 text-muted-foreground">{t("order.emailNote", { email: mine.email })}</p>}
+        </div>
+      ) : state === "confirming" ? (
+        <div class="text-center" role="status">
+          <LoaderCircle class="mx-auto size-14 text-muted-foreground motion-safe:animate-spin" stroke-width={1.5} aria-hidden="true" />
+          <h1 class="mt-6 text-4xl font-medium tracking-tight text-balance sm:text-5xl">{t("order.confirmingTitle")}</h1>
+          <p class="mt-4 text-muted-foreground">{t("order.number", { number })}</p>
+          <p class="mt-1 text-muted-foreground">{check < MAX_CHECKS ? t("order.confirmingText") : t("order.stillConfirming", { email: mine?.email ?? "" })}</p>
+        </div>
+      ) : (
+        <div class="text-center">
+          <CircleX class="order-check mx-auto size-14 text-destructive" stroke-width={1.5} aria-hidden="true" />
+          <h1 class="mt-6 text-4xl font-medium tracking-tight text-balance sm:text-5xl">{t("order.failedTitle")}</h1>
+          <p class="mx-auto mt-4 max-w-md text-muted-foreground">{t("order.failedText")}</p>
+          <div class="mt-8 flex flex-wrap justify-center gap-3">
+            {canRetry && <Button href={mine!.paymentUrl!}>{t("order.retry", { method: paymentTitle })}</Button>}
+            <Button href={cartPath(lang, "checkout")} variant={canRetry ? "outline" : "primary"}>{t("order.changeMethod")}</Button>
+          </div>
+        </div>
+      )
+    }
+
+    {
+      hasInstructions && (
+        <div class="mt-10 border border-border bg-card p-6">
+          <h2 class="font-medium">{paymentTitle}</h2>
+          <p class="mt-2 text-sm whitespace-pre-line text-muted-foreground">{instructions}</p>
+        </div>
+      )
+    }
+
+    {
+      order && state !== "failed" && (
+        <div class="mt-10 grid gap-10 sm:grid-cols-5">
+          <div class="sm:col-span-3">
+            <h2 class="mb-5 text-lg font-medium">{t("order.details")}</h2>
+            <OrderTotals
+              lang={lang}
+              lines={order.lines.map((line) => ({ title: decodeEntities(line.title), quantity: line.quantity, total: line.total }))}
+              subtotal={order.subtotal}
+              discount={order.discount}
+              shipping={order.shipping}
+              needsShipping={Boolean(order.shipping)}
+              tax={order.tax}
+              total={order.total}
+            />
+          </div>
+          {address && (
+            <div class="text-sm sm:col-span-2">
+              <h2 class="mb-5 text-lg font-medium">{t("order.shippingTo")}</h2>
+              <address class="leading-relaxed text-muted-foreground not-italic">
+                {address.first_name} {address.last_name}
+                <br />
+                {address.address_1}
+                {address.address_2 && <><br />{address.address_2}</>}
+                <br />
+                {address.postcode} {address.city}
+                <br />
+                {new Intl.DisplayNames([lang], { type: "region" }).of(address.country) ?? address.country}
+              </address>
+              {paymentTitle && (
+                <>
+                  <h2 class="mt-8 mb-2 text-lg font-medium">{t("checkout.payment")}</h2>
+                  <p class="text-muted-foreground">{paymentTitle}</p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    {
+      state !== "failed" && (
+        <div class="mt-12 text-center">
+          <Button href={shopPath(lang)} variant="outline">{t("cart.continue")}</Button>
+        </div>
+      )
+    }
+  </Section>
+</PageLayout>
+
+<style>
+  @keyframes order-check-in {
+    from {
+      opacity: 0;
+      scale: 0.6;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .order-check {
+      animation: order-check-in 0.5s var(--shop-spring, ease-out) both;
+    }
+  }
+</style>
+
+<script>
+  import { trackConversion, trackEvent } from "@/lib/tracking";
+
+  const root = document.querySelector<HTMLElement>("[data-order-confirmation]");
+  const id = root?.dataset.orderId;
+  // Once per order per browser, so a reload doesn't count a second purchase.
+  if (root?.dataset.value && id && !localStorageHas(`commerce-purchase-${id}`)) {
+    const params = { transaction_id: id, value: Number(root.dataset.value), currency: root.dataset.currency };
+    trackEvent("purchase", params);
+    trackConversion("purchase", params);
+  }
+
+  function localStorageHas(key: string) {
+    try {
+      if (localStorage.getItem(key)) return true;
+      localStorage.setItem(key, "1");
+    } catch {
+      // Storage blocked: GA4 still de-duplicates by transaction_id.
+    }
+    return false;
+  }
+</script>

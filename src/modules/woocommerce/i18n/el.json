@@ -1,0 +1,14 @@
+{
+  "filters": {
+    "availability": "Διαθεσιμότητα",
+    "inStock": "Άμεσα διαθέσιμο"
+  },
+  "admin": {
+    "connected": "Συνδεδεμένο με {url}: {products} προϊόντα.",
+    "unreachable": "Το WooCommerce Store API δεν απαντά στο {url}. Ελέγξτε το WOOCOMMERCE_URL και ότι το WooCommerce είναι ενεργό.",
+    "notConfigured": "Δεν έχει ρυθμιστεί: ορίστε WOOCOMMERCE_URL.",
+    "noWebhook": "Δεν έχει οριστεί WOOCOMMERCE_WEBHOOK_SECRET, οπότε οι αλλαγές προϊόντων εμφανίζονται μόλις λήξει η cache.",
+    "payments": "Τρόποι πληρωμής: {methods}",
+    "missingPayments": "Έχουν οριστεί αλλά δεν είναι διαθέσιμοι στο WooCommerce (ενεργοποιήστε τους και προσθέστε κωδικούς): {methods}"
+  }
+}

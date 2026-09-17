@@ -3,7 +3,7 @@
 import { translateModule } from "@/modules/registry";
 import Panel from "@/admin/components/Panel.astro";
 import { storefrontConfig } from "../lib/config";
-import { getShopInfo } from "../lib/products";
+import { getShopInfo } from "../lib/provider";
 
 const lang = Astro.locals.lang;
 const tm = (key: string, params?: Record<string, string>) => translateModule(lang, "shopify", key, params);

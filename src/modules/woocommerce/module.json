@@ -1,0 +1,8 @@
+{
+  "name": "woocommerce",
+  "description": "WooCommerce backend for the commerce module, through the public Store API of a headless WordPress: catalogue with attribute, price and stock filters, cart, and native checkout on this site (cash on delivery, bank transfer and other offline gateways). No API keys; webhooks invalidate the page cache.",
+  "admin": false,
+  "dependsOn": ["commerce"],
+  "csp": { "img-src": ["{env:WOOCOMMERCE_URL}", "{env:WOOCOMMERCE_MEDIA_URL}"], "form-action": ["{env:WOOCOMMERCE_URL}"] },
+  "routes": [{ "pattern": "/api/woocommerce/webhook", "entrypoint": "./pages/webhook.ts" }]
+}

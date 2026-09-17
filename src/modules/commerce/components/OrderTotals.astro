@@ -1,0 +1,89 @@
+---
+/** Lines and totals, shared by the checkout sidebar and the order confirmation. */
+import type { Locale } from "@site-config";
+import { translateModule } from "@/modules/registry";
+import { cn } from "@/lib/cn";
+import { formatMoney } from "../lib/format";
+import type { CommerceImage, Money } from "../lib/types";
+import ProductImage from "./ProductImage.astro";
+
+interface Props {
+  lang: Locale;
+  lines: { title: string; detail?: string; quantity: number; total: Money; image?: CommerceImage | null }[];
+  subtotal: Money;
+  discount: Money | null;
+  /** null = not known yet (no address). */
+  shipping: Money | null;
+  needsShipping: boolean;
+  tax: Money | null;
+  total: Money;
+  class?: string;
+}
+
+const { lang, lines, subtotal, discount, shipping, needsShipping, tax, total, class: className } = Astro.props;
+const t = (key: string) => translateModule(lang, "commerce", key);
+const positive = (money: Money | null): money is Money => Boolean(money && Number(money.amount) > 0);
+---
+
+<div class={cn("space-y-5", className)}>
+  <ul class="space-y-4">
+    {
+      lines.map((line) => (
+        <li class="flex items-center gap-4">
+          {line.image !== undefined && (
+            <div class="relative shrink-0">
+              {line.image ? <ProductImage image={line.image} alt="" sizes="3.5rem" class="aspect-[4/5] w-14" /> : <div class="aspect-[4/5] w-14 bg-muted" />}
+              <span class="absolute -top-2 -right-2 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[0.6875rem] font-medium text-primary-foreground tabular-nums">
+                {line.quantity}
+              </span>
+            </div>
+          )}
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium text-balance">
+              {line.title}
+              {line.image === undefined && <span class="text-muted-foreground"> × {line.quantity}</span>}
+            </p>
+            {line.detail && <p class="text-xs text-muted-foreground">{line.detail}</p>}
+          </div>
+          <p class="text-sm tabular-nums">{formatMoney(line.total, lang)}</p>
+        </li>
+      ))
+    }
+  </ul>
+  <dl class="space-y-2 border-t border-border pt-4 text-sm">
+    <div class="flex justify-between gap-4">
+      <dt class="text-muted-foreground">{t("cart.subtotal")}</dt>
+      <dd class="tabular-nums">{formatMoney(subtotal, lang)}</dd>
+    </div>
+    {
+      positive(discount) && (
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted-foreground">{t("cart.discount")}</dt>
+          <dd class="tabular-nums">-{formatMoney(discount, lang)}</dd>
+        </div>
+      )
+    }
+    {
+      needsShipping && (
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted-foreground">{t("checkout.shipping")}</dt>
+          <dd class="tabular-nums">
+            {shipping ? (Number(shipping.amount) > 0 ? formatMoney(shipping, lang) : t("checkout.free")) : <span class="text-muted-foreground">{t("checkout.shippingLater")}</span>}
+          </dd>
+        </div>
+      )
+    }
+    {
+      positive(tax) && (
+        <div class="flex justify-between gap-4">
+          <dt class="text-muted-foreground">{t("checkout.tax")}</dt>
+          <dd class="tabular-nums">{formatMoney(tax, lang)}</dd>
+        </div>
+      )
+    }
+    <div class="flex items-baseline justify-between gap-4 border-t border-border pt-3">
+      <dt class="font-medium">{t("checkout.total")}</dt>
+      <dd class="text-xl font-medium tabular-nums" data-checkout-total>{formatMoney(total, lang)}</dd>
+    </div>
+  </dl>
+</div>

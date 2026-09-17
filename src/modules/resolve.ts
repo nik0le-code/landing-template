@@ -125,11 +125,20 @@ export function resolveModules(root: string, config: ModulesConfig): ResolvedMod
 }
 
 /** CSP sources contributed by enabled modules (`csp` in module.json), per directive. */
-export function moduleCspSources(root: string, config: ModulesConfig): Record<string, string[]> {
+export function moduleCspSources(root: string, config: ModulesConfig, env: Record<string, string | undefined> = process.env): Record<string, string[]> {
   const sources: Record<string, string[]> = {};
   for (const module of resolveModules(root, config)) {
     for (const [directive, values] of Object.entries(module.manifest.csp ?? {})) {
-      sources[directive] = [...new Set([...(sources[directive] ?? []), ...values])];
+      const resolved = values.flatMap((value) => {
+        const name = /^\{env:(\w+)\}$/.exec(value)?.[1];
+        if (!name) return [value];
+        try {
+          return env[name] ? [new URL(env[name]!).origin] : [];
+        } catch {
+          return [];
+        }
+      });
+      sources[directive] = [...new Set([...(sources[directive] ?? []), ...resolved])];
     }
   }
   return sources;

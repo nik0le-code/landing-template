@@ -7,7 +7,7 @@
  */
 import type { APIRoute } from "astro";
 import { storefrontConfig } from "../lib/config";
-import { SHOPIFY_CACHE_TAG } from "../lib/products";
+import { COMMERCE_CACHE_TAG } from "@/modules/commerce/lib/products";
 import { verifyWebhook } from "../lib/webhook";
 
 export const prerender = false;
@@ -22,6 +22,6 @@ export const POST: APIRoute = async ({ request, cache }) => {
   if (!verifyWebhook(body, request.headers.get("x-shopify-hmac-sha256"), secret)) {
     return new Response("Invalid signature", { status: 401 });
   }
-  await cache.invalidate({ tags: [SHOPIFY_CACHE_TAG, "sitemap"] });
+  await cache.invalidate({ tags: [COMMERCE_CACHE_TAG, "sitemap"] });
   return new Response(null, { status: 204 });
 };

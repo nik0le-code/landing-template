@@ -1,0 +1,168 @@
+{
+  "nav": "Shop",
+  "from": "From",
+  "was": "Was",
+  "soldOut": "Sold out",
+  "sale": "Sale",
+  "list": {
+    "title": "Shop",
+    "description": "Browse our products and order online.",
+    "products": "Products",
+    "collections": "Collections",
+    "all": "All",
+    "search": "Search products",
+    "searchPlaceholder": "Search products…",
+    "searchTitle": "Results for “{term}”",
+    "sortBy": "Sort by",
+    "apply": "Apply",
+    "filters": "Filters",
+    "empty": "No products available yet.",
+    "noResults": "No products match. Try another search or fewer filters.",
+    "pagination": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "price": "Price"
+  },
+  "sort": {
+    "featured": "Featured",
+    "relevance": "Relevance",
+    "best-selling": "Best selling",
+    "newest": "Newest",
+    "price-asc": "Price, low to high",
+    "price-desc": "Price, high to low",
+    "title": "Name, A to Z"
+  },
+  "product": {
+    "images": "Product images",
+    "imageOf": "{title}, image {index}",
+    "showImage": "Show image {index}",
+    "addToCart": "Add to cart",
+    "related": "You may also like"
+  },
+  "cart": {
+    "title": "Cart",
+    "items": "Items in your cart",
+    "empty": "Your cart is empty.",
+    "continue": "Continue shopping",
+    "view": "View cart",
+    "close": "Close cart",
+    "loading": "Loading…",
+    "quantity": "Quantity",
+    "increase": "Increase quantity of {product}",
+    "decrease": "Decrease quantity of {product}",
+    "remove": "Remove",
+    "discountCode": "Discount code",
+    "apply": "Apply",
+    "discountApplied": "applied",
+    "discountNotApplicable": "not applicable to this cart",
+    "subtotal": "Subtotal",
+    "taxesNote": "Shipping and taxes are calculated at checkout.",
+    "checkout": "Checkout",
+    "discount": "Discount"
+  },
+  "featured": {
+    "title": "Popular products",
+    "description": "What our customers order most.",
+    "viewAll": "Shop all"
+  },
+  "errors": {
+    "invalid": "That change could not be applied. Please try again.",
+    "rateLimited": "Too many changes in a short time. Please wait a minute.",
+    "unavailable": "This item is unavailable in that option or quantity.",
+    "notFound": "Your cart has expired. Please add the items again.",
+    "backend": "The shop is temporarily unavailable. Please try again shortly.",
+    "coupon": "This discount code can not be used."
+  },
+  "filters": {
+    "allCollections": "All products",
+    "allPrices": "All prices",
+    "upTo": "Up to {price}",
+    "maxPrice": "Maximum price",
+    "clear": "Clear ({count})",
+    "close": "Close filters",
+    "show": "Show products",
+    "active": "Active filters",
+    "remove": "Remove filter",
+    "reset": "Reset filters"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "contact": "Contact",
+    "email": "Email",
+    "phone": "Phone",
+    "delivery": "Delivery address",
+    "billingAddress": "Billing address",
+    "billingSame": "Billing address is the same as delivery",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "address1": "Street and number",
+    "address2": "Apartment, floor (optional)",
+    "city": "City",
+    "postcode": "Postcode",
+    "country": "Country",
+    "shippingMethod": "Shipping method",
+    "noRates": "Enter your address to see shipping options.",
+    "updateShipping": "Update shipping options",
+    "payment": "Payment",
+    "noPayment": "No payment method is available. Please contact us.",
+    "note": "Order notes (optional)",
+    "summary": "Order summary",
+    "shipping": "Shipping",
+    "shippingLater": "Calculated next",
+    "free": "Free",
+    "tax": "Tax",
+    "total": "Total",
+    "place": "Place order",
+    "placing": "Placing order…",
+    "secure": "Your details are sent securely.",
+    "backToCart": "Back to cart",
+    "errors": {
+      "required": "Required.",
+      "invalidEmail": "Enter a valid email address.",
+      "invalidPhone": "Enter a valid phone number.",
+      "invalidCountry": "We don't deliver to this country."
+    }
+  },
+  "payment": {
+    "cod": {
+      "title": "Cash on delivery",
+      "description": "Pay in cash when your order arrives.",
+      "instructions": "Please have the exact amount ready when your order arrives."
+    },
+    "bacs": {
+      "title": "Bank transfer",
+      "description": "Transfer the amount to our bank account. Your order ships once the payment arrives.",
+      "instructions": "Use your order number as the payment reference. Your order ships once the payment arrives."
+    },
+    "cheque": {
+      "title": "Check payment",
+      "description": "Send a check to our store address."
+    },
+    "vivacom_smart": {
+      "title": "Card, Apple Pay, Google Pay",
+      "description": "You will pay securely on Viva.com and return here."
+    },
+    "ppcp-gateway": {
+      "title": "PayPal",
+      "description": "You will pay on PayPal and return here."
+    },
+    "epay_paycenter": {
+      "title": "Card (Piraeus Bank)",
+      "description": "You will pay securely on Piraeus Bank's payment page and return here."
+    }
+  },
+  "order": {
+    "title": "Thank you for your order",
+    "number": "Order number: {number}",
+    "emailNote": "A confirmation was sent to {email}.",
+    "details": "Order details",
+    "shippingTo": "Delivery to",
+    "failedTitle": "Payment not completed",
+    "failedText": "The payment was declined or cancelled, so your order has not been placed yet. Your cart is still saved.",
+    "retry": "Try again with {method}",
+    "changeMethod": "Choose another payment method",
+    "confirmingTitle": "Confirming your payment",
+    "confirmingText": "This usually takes a few seconds. The page updates by itself.",
+    "stillConfirming": "Your payment is still being confirmed. We will email {email} as soon as it is."
+  }
+}

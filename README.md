@@ -217,7 +217,9 @@ export default defineModulesConfig({
 | `media` | Image uploads, automatic AVIF/WebP versions, picker for the other modules |
 | `blog` | Posts per language linked as translations, Markdown editor, categories, RSS |
 | `catalog` | Products/services with prices, gallery, categories (`basePath` sets the URL) |
-| `shopify` | Headless Shopify store: products, collections, filters, cart drawer, Shopify checkout (no database) |
+| `commerce` | Online shop UI for any backend: listing with filters, product pages, cart drawer, checkout, order confirmation (enable with one backend below) |
+| `shopify` | Commerce backend: Shopify Storefront API, Shopify's hosted checkout |
+| `woocommerce` | Commerce backend: headless WooCommerce Store API, checkout on this site (cash on delivery, bank transfer) |
 | `bookings` | Appointment requests with rules, admin workflow, customer emails |
 | `settings` | Announcement bar, socials, notification emails — editable without a redeploy |
 | `example` | Reference module showing every extension point (keep off) |

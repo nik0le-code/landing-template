@@ -46,7 +46,8 @@ export interface ModuleManifest {
   optionDefaults?: Record<string, string>;
   /**
    * Extra Content-Security-Policy sources while the module is enabled, merged into
-   * astro.config.ts, e.g. `{ "img-src": ["https://cdn.shopify.com"] }`.
+   * astro.config.ts, e.g. `{ "img-src": ["https://cdn.shopify.com"] }`. `{env:NAME}` is
+   * replaced by the origin of that build-time environment variable (skipped when unset).
    */
   csp?: Record<string, string[]>;
 }
@@ -63,6 +64,19 @@ export interface ModuleManifest {
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ModuleOptionsMap {}
+
+/**
+ * Services one module implements for another (e.g. a commerce backend), typed by
+ * declaration merging from the consuming module, like ModuleOptionsMap:
+ *
+ * ```ts
+ * declare module "@/modules/types" {
+ *   interface ModuleServices { commerce: CommerceProvider }
+ * }
+ * ```
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ModuleServices {}
 
 /**
  * modules.config.ts shape. Toggles are plain booleans; options live separately so
@@ -124,5 +138,5 @@ export interface ModuleRuntime {
    */
   provides?: {
     siteSettings?: () => Promise<{ getSettings(): Promise<import("../lib/settings").SiteSettings> }>;
-  };
+  } & { [Service in keyof ModuleServices]?: () => Promise<ModuleServices[Service]> };
 }

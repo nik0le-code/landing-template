@@ -1,0 +1,285 @@
+---
+/**
+ * Checkout. Hosted backends (Shopify) redirect to their own checkout. Native
+ * backends (WooCommerce) render this page: delivery address, shipping method,
+ * payment method, then the order is placed through the backend's API.
+ *
+ * Works without JavaScript as plain form posts (intent=address recalculates
+ * shipping, intent=place places the order). With JavaScript, address and shipping
+ * changes refresh the shipping options and totals in place.
+ */
+import { siteConfig } from "@site-config";
+import Lock from "@lucide/astro/icons/lock";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Button from "@/components/ui/Button.astro";
+import Field from "@/components/ui/Field.astro";
+import Input from "@/components/ui/Input.astro";
+import Section from "@/components/ui/Section.astro";
+import Select from "@/components/ui/Select.astro";
+import Textarea from "@/components/ui/Textarea.astro";
+import OrderTotals from "../components/OrderTotals.astro";
+import { emptyAddress, runCheckout } from "../lib/checkout";
+import { cartPath, commerceOptions, decodeEntities, formatMoney, paymentMethodLabel } from "../lib/format";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "commerce", key, params);
+Astro.response.headers.set("Cache-Control", "no-store");
+
+const outcome = await runCheckout({
+  context: { cookies: Astro.cookies, url: Astro.url, clientAddress: Astro.clientAddress, lang },
+  request: Astro.request,
+});
+if ("redirect" in outcome) {
+  return new Response(null, { status: 303, headers: { Location: outcome.redirect, "Cache-Control": "no-store" } });
+}
+if (outcome.status !== 200) Astro.response.status = outcome.status;
+const { state, submitted, fieldErrors, formError } = outcome;
+const { countries } = commerceOptions();
+const cart = state.cart;
+const shipping = submitted?.shipping ?? { ...emptyAddress(), ...state.shipping, email: state.billing.email, phone: state.billing.phone || state.shipping.phone };
+const billing = submitted?.billing ?? state.billing;
+const billingSame = submitted?.billingSame ?? true;
+if (!shipping.country) shipping.country = countries[0] ?? "";
+const selectedPayment = submitted?.paymentMethod || state.paymentMethods[0] || "";
+const hasRates = state.packages.some((p) => p.rates.length > 0);
+const regionNames = new Intl.DisplayNames([lang], { type: "region" });
+const error = (field: string) => (fieldErrors[field] ? t(`checkout.errors.${fieldErrors[field]}`) : undefined);
+const paymentLabel = (id: string, part: "title" | "description") => paymentMethodLabel(id, lang, part);
+
+const addressFields = (prefix: "ship_" | "bill_", address: typeof shipping) => [
+  { name: "first_name", label: t("checkout.firstName"), autocomplete: "given-name", half: true, required: true },
+  { name: "last_name", label: t("checkout.lastName"), autocomplete: "family-name", half: true, required: true },
+  { name: "address_1", label: t("checkout.address1"), autocomplete: "address-line1", required: true },
+  { name: "address_2", label: t("checkout.address2"), autocomplete: "address-line2" },
+  { name: "city", label: t("checkout.city"), autocomplete: "address-level2", half: true, required: true, refresh: true },
+  { name: "postcode", label: t("checkout.postcode"), autocomplete: "postal-code", half: true, required: true, refresh: true },
+].map((field) => ({
+  ...field,
+  id: `${prefix}${field.name}`,
+  value: address[field.name as keyof typeof address],
+  autocomplete: `${prefix === "ship_" ? "shipping" : "billing"} ${field.autocomplete}`,
+}));
+---
+
+<PageLayout
+  seo={{ title: t("checkout.title"), noindex: true, alternates: Object.fromEntries(siteConfig.locales.map((l) => [l, cartPath(l, "checkout")])) }}
+  breadcrumbs={[{ name: t("cart.title"), path: cartPath(lang) }, { name: t("checkout.title"), path: cartPath(lang, "checkout") }]}
+>
+  <Section spacing="sm">
+    <h1 class="text-4xl font-medium tracking-tight sm:text-5xl">{t("checkout.title")}</h1>
+
+    <form method="POST" action={cartPath(lang, "checkout")} data-checkout class="mt-10 grid gap-10 lg:grid-cols-12 lg:gap-14">
+      <div class="space-y-10 lg:col-span-7">
+        {formError && <p role="alert" class="border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">{formError}</p>}
+
+        <fieldset class="space-y-5">
+          <legend class="mb-5 text-lg font-medium">{t("checkout.contact")}</legend>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <Field id="email" label={t("checkout.email")} required error={error("email")}>
+              <Input id="email" name="email" type="email" autocomplete="email" required value={shipping.email} invalid={Boolean(fieldErrors.email)} />
+            </Field>
+            <Field id="phone" label={t("checkout.phone")} required error={error("phone")}>
+              <Input id="phone" name="phone" type="tel" autocomplete="tel" required value={shipping.phone} invalid={Boolean(fieldErrors.phone)} />
+            </Field>
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-5">
+          <legend class="mb-5 text-lg font-medium">{state.needsShipping ? t("checkout.delivery") : t("checkout.billingAddress")}</legend>
+          <div class="grid gap-5 sm:grid-cols-2">
+            {
+              addressFields("ship_", shipping).map((field) => (
+                <Field id={field.id} label={field.label} required={field.required} error={error(field.id)} class={field.half ? undefined : "sm:col-span-2"}>
+                  <Input
+                    id={field.id}
+                    name={field.id}
+                    autocomplete={field.autocomplete}
+                    required={field.required}
+                    value={field.value}
+                    invalid={Boolean(fieldErrors[field.id])}
+                    data-refresh={field.refresh ? "" : undefined}
+                  />
+                </Field>
+              ))
+            }
+            <Field id="ship_country" label={t("checkout.country")} required error={error("ship_country")} class="sm:col-span-2">
+              <Select id="ship_country" name="ship_country" autocomplete="shipping country" data-refresh>
+                {countries.map((code) => <option value={code} selected={code === shipping.country}>{regionNames.of(code) ?? code}</option>)}
+              </Select>
+            </Field>
+          </div>
+
+          <label class="flex items-center gap-2.5 text-sm">
+            <input type="checkbox" name="billing_same" checked={billingSame} data-billing-same class="size-4 accent-primary" />
+            {t("checkout.billingSame")}
+          </label>
+          <div data-billing class="grid gap-5 border-l border-border pl-5 sm:grid-cols-2">
+            <p class="text-sm font-medium sm:col-span-2">{t("checkout.billingAddress")}</p>
+            {
+              addressFields("bill_", billing).map((field) => (
+                <Field id={field.id} label={field.label} required={field.required} error={error(field.id)} class={field.half ? undefined : "sm:col-span-2"}>
+                  <Input id={field.id} name={field.id} autocomplete={field.autocomplete} value={field.value} invalid={Boolean(fieldErrors[field.id])} />
+                </Field>
+              ))
+            }
+            <Field id="bill_country" label={t("checkout.country")} required error={error("bill_country")} class="sm:col-span-2">
+              <Select id="bill_country" name="bill_country" autocomplete="billing country">
+                {countries.map((code) => <option value={code} selected={code === (billing.country || shipping.country)}>{regionNames.of(code) ?? code}</option>)}
+              </Select>
+            </Field>
+          </div>
+        </fieldset>
+
+        {
+          state.needsShipping && (
+            <fieldset data-checkout-shipping>
+              <legend class="mb-5 text-lg font-medium">{t("checkout.shippingMethod")}</legend>
+              {hasRates ? (
+                <div class="space-y-6">
+                  {state.packages.map((pkg) => (
+                    <div class="divide-y divide-border border border-border">
+                      {pkg.rates.map((rate) => (
+                        <label class="flex cursor-pointer items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60 has-[:checked]:bg-muted">
+                          <input type="radio" name="shipping_rate" value={`${pkg.packageId}|${rate.id}`} checked={rate.selected} data-refresh class="size-4 accent-primary" />
+                          <span class="flex-1 text-sm">{decodeEntities(rate.label)}</span>
+                          <span class="text-sm tabular-nums">{Number(rate.price.amount) > 0 ? formatMoney(rate.price, lang) : t("checkout.free")}</span>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p class="text-sm text-muted-foreground">{t("checkout.noRates")}</p>
+              )}
+              <Button type="submit" name="intent" value="address" variant="outline" size="sm" class="mt-4" formnovalidate data-no-js-only>
+                {t("checkout.updateShipping")}
+              </Button>
+            </fieldset>
+          )
+        }
+
+        <fieldset>
+          <legend class="mb-5 text-lg font-medium">{t("checkout.payment")}</legend>
+          {
+            state.paymentMethods.length === 0 ? (
+              <p class="text-sm text-destructive">{t("checkout.noPayment")}</p>
+            ) : (
+              <div class="divide-y divide-border border border-border">
+                {state.paymentMethods.map((id) => (
+                  <label class="group flex cursor-pointer gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60 has-[:checked]:bg-muted">
+                    <input type="radio" name="payment_method" value={id} checked={id === selectedPayment} class="mt-0.5 size-4 accent-primary" />
+                    <span class="flex-1">
+                      <span class="block text-sm font-medium">{paymentLabel(id, "title")}</span>
+                      {paymentLabel(id, "description") && (
+                        <span class="mt-1 hidden text-sm text-muted-foreground group-has-[:checked]:block">{paymentLabel(id, "description")}</span>
+                      )}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )
+          }
+          {error("payment_method") && <p class="mt-2 text-sm text-destructive">{error("payment_method")}</p>}
+        </fieldset>
+
+        <Field id="note" label={t("checkout.note")}>
+          <Textarea id="note" name="note" rows={3} maxlength={1000}>{submitted?.note ?? ""}</Textarea>
+        </Field>
+      </div>
+
+      <aside class="lg:col-span-5">
+        <div class="space-y-6 border border-border bg-card p-6 lg:sticky lg:top-24">
+          <h2 class="text-lg font-medium">{t("checkout.summary")}</h2>
+          <div data-checkout-summary>
+            <OrderTotals
+              lang={lang}
+              lines={cart.lines.map((line) => ({
+                title: line.productTitle,
+                detail: line.options.map((o) => o.value).join(" · ") || undefined,
+                quantity: line.quantity,
+                total: line.total,
+                image: line.image,
+              }))}
+              subtotal={cart.subtotal}
+              discount={cart.discount}
+              shipping={hasRates ? cart.shipping : null}
+              needsShipping={state.needsShipping}
+              tax={cart.tax}
+              total={cart.total}
+            />
+          </div>
+          <Button type="submit" name="intent" value="place" size="lg" class="w-full" data-place-order data-placing={t("checkout.placing")} disabled={state.paymentMethods.length === 0}>
+            {t("checkout.place")}
+          </Button>
+          <p class="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+            <Lock class="size-3.5" aria-hidden="true" />
+            {t("checkout.secure")}
+          </p>
+          <a href={cartPath(lang)} class="block text-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+            {t("checkout.backToCart")}
+          </a>
+        </div>
+      </aside>
+    </form>
+  </Section>
+</PageLayout>
+
+<style>
+  /* Billing fields only when they differ from delivery (no JS needed). */
+  form:has([data-billing-same]:checked) [data-billing] {
+    display: none;
+  }
+</style>
+
+<script>
+  for (const form of document.querySelectorAll<HTMLFormElement>("[data-checkout]")) {
+    for (const el of form.querySelectorAll<HTMLElement>("[data-no-js-only]")) el.hidden = true;
+    const placeButton = form.querySelector<HTMLButtonElement>("[data-place-order]");
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let controller: AbortController | undefined;
+
+    /** Recalculates shipping options and totals for the current address without leaving the page. */
+    async function refresh() {
+      controller?.abort();
+      controller = new AbortController();
+      const data = new FormData(form);
+      data.set("intent", "address");
+      form.querySelector("[data-checkout-summary]")?.setAttribute("aria-busy", "true");
+      try {
+        const response = await fetch(form.action, { method: "POST", body: data, headers: { "x-checkout-refresh": "1" }, signal: controller.signal });
+        const next = new DOMParser().parseFromString(await response.text(), "text/html");
+        for (const selector of ["[data-checkout-shipping]", "[data-checkout-summary]"]) {
+          const current = form.querySelector(selector);
+          const fresh = next.querySelector(selector);
+          if (current && fresh) current.replaceWith(fresh);
+        }
+        for (const el of form.querySelectorAll<HTMLElement>("[data-no-js-only]")) el.hidden = true;
+      } catch {
+        // Aborted by a newer change, or offline: the submit still recalculates on the server.
+      } finally {
+        form.querySelector("[data-checkout-summary]")?.removeAttribute("aria-busy");
+      }
+    }
+
+    form.addEventListener("change", (event) => {
+      if (!(event.target as Element).matches("[data-refresh]")) return;
+      clearTimeout(timer);
+      timer = setTimeout(refresh, (event.target as HTMLInputElement).type === "radio" ? 0 : 500);
+    });
+
+    form.addEventListener("submit", (event) => {
+      const submitter = (event as SubmitEvent).submitter as HTMLButtonElement | null;
+      if (submitter !== placeButton || !placeButton) return;
+      // Double clicks must not place two orders.
+      if (form.dataset.placing) return event.preventDefault();
+      form.dataset.placing = "true";
+      setTimeout(() => {
+        placeButton.disabled = true;
+        placeButton.textContent = placeButton.dataset.placing ?? placeButton.textContent;
+      });
+    });
+  }
+</script>
