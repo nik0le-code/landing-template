@@ -1,0 +1,22 @@
+---
+/** HTML fragment the cart script swaps into the drawer or the cart page. */
+import { isLocale } from "@/i18n";
+import CartLines from "../components/CartLines.astro";
+import { readCart } from "../lib/cart";
+
+export const prerender = false;
+export const partial = true;
+
+const lang = isLocale(Astro.params.lang) ? Astro.params.lang : Astro.locals.lang;
+let error: string | null = null;
+const cart = await readCart({ cookies: Astro.cookies, url: Astro.url, clientAddress: Astro.clientAddress, lang }).catch((e: unknown) => {
+  console.error("[shopify] cart panel:", e);
+  error = "shopify";
+  return null;
+});
+
+Astro.response.headers.set("Cache-Control", "no-store");
+Astro.response.headers.set("X-Robots-Tag", "noindex");
+---
+
+<CartLines cart={cart} lang={lang} layout={Astro.url.searchParams.get("layout") === "page" ? "page" : "drawer"} error={error} />

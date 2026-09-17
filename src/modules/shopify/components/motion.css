@@ -1,0 +1,55 @@
+/*
+ * Storefront motion, ported from the Xristos store without an animation library.
+ * Same rules as src/styles/effects.css: compositor properties only, nothing moves
+ * unless the visitor allows motion, and the final state never depends on JS.
+ */
+
+:root {
+  /* A soft spring (stiffness ~300, damping ~30): settles with a hint of overshoot. */
+  --shop-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --shop-spring-duration: 0.5s;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --shop-spring: linear(0, 0.063, 0.22 5%, 0.43 8.5%, 0.64 12.5%, 0.8 17%, 0.91 22%, 0.975 28%, 1.008 35%, 1.015 42%, 1.01 52%, 1.002 65%, 1);
+  }
+}
+
+@keyframes shop-line-in {
+  from {
+    opacity: 0;
+    translate: 0 15px;
+  }
+}
+
+@keyframes shop-pop-in {
+  from {
+    opacity: 0;
+    translate: 0 -8px;
+    scale: 0.98;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Drawer lines enter one after another when the drawer opens. */
+  [data-cart-panel][data-enter] [data-cart-line] {
+    animation: shop-line-in 0.35s var(--shop-spring) both;
+  }
+  [data-cart-panel][data-enter] [data-cart-line]:nth-child(2) { animation-delay: 40ms; }
+  [data-cart-panel][data-enter] [data-cart-line]:nth-child(3) { animation-delay: 80ms; }
+  [data-cart-panel][data-enter] [data-cart-line]:nth-child(4) { animation-delay: 120ms; }
+  [data-cart-panel][data-enter] [data-cart-line]:nth-child(n + 5) { animation-delay: 160ms; }
+
+  /* Inline messages (cart errors) appear instead of blinking in. */
+  [data-cart-message]:not(:empty) {
+    animation: shop-pop-in 0.2s ease-out;
+  }
+
+  /* Tactile press on small controls (buttons already nudge down in the UI kit). */
+  [data-press] {
+    transition: scale 0.15s ease-out, color 0.2s, border-color 0.2s, background-color 0.2s, opacity 0.2s;
+  }
+  [data-press]:active {
+    scale: 0.9;
+  }
+}

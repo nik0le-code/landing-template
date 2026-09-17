@@ -123,3 +123,14 @@ export function resolveModules(root: string, config: ModulesConfig): ResolvedMod
   for (const name of [...resolved.keys()].sort()) visit(name);
   return ordered;
 }
+
+/** CSP sources contributed by enabled modules (`csp` in module.json), per directive. */
+export function moduleCspSources(root: string, config: ModulesConfig): Record<string, string[]> {
+  const sources: Record<string, string[]> = {};
+  for (const module of resolveModules(root, config)) {
+    for (const [directive, values] of Object.entries(module.manifest.csp ?? {})) {
+      sources[directive] = [...new Set([...(sources[directive] ?? []), ...values])];
+    }
+  }
+  return sources;
+}

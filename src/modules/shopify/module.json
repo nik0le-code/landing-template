@@ -1,0 +1,18 @@
+{
+  "name": "shopify",
+  "description": "Headless Shopify storefront: product listing with search, sorting and Shopify filters, collections, product pages with variants, a cookie-based cart (works without JavaScript, drawer with it) and Shopify's hosted checkout. Webhooks invalidate the page cache.",
+  "admin": false,
+  "dependsOn": [],
+  "optionDefaults": { "basePath": "shop", "cartPath": "cart" },
+  "csp": { "img-src": ["https://cdn.shopify.com"] },
+  "routes": [
+    { "pattern": "/[lang]/{basePath}", "entrypoint": "./pages/list.astro" },
+    { "pattern": "/[lang]/{basePath}/collections/[collection]", "entrypoint": "./pages/list.astro" },
+    { "pattern": "/[lang]/{basePath}/[handle]", "entrypoint": "./pages/product.astro" },
+    { "pattern": "/[lang]/{cartPath}", "entrypoint": "./pages/cart.astro" },
+    { "pattern": "/[lang]/{cartPath}/panel", "entrypoint": "./pages/cart-panel.astro" },
+    { "pattern": "/[lang]/{cartPath}/update", "entrypoint": "./pages/cart-update.ts" },
+    { "pattern": "/[lang]/{cartPath}/checkout", "entrypoint": "./pages/checkout.ts" },
+    { "pattern": "/api/shopify/webhook", "entrypoint": "./pages/webhook.ts" }
+  ]
+}

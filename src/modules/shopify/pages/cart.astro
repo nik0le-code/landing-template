@@ -1,0 +1,35 @@
+---
+/** The visitor's cart. Per-visitor, so never cached. */
+import { siteConfig } from "@site-config";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Section from "@/components/ui/Section.astro";
+import CartLines from "../components/CartLines.astro";
+import { readCart } from "../lib/cart";
+import { cartPath } from "../lib/format";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "shopify", key);
+let error = Astro.url.searchParams.get("cart_error");
+const cart = await readCart({ cookies: Astro.cookies, url: Astro.url, clientAddress: Astro.clientAddress, lang }).catch((e: unknown) => {
+  console.error("[shopify] cart page:", e);
+  error = "shopify";
+  return null;
+});
+
+Astro.response.headers.set("Cache-Control", "no-store");
+---
+
+<PageLayout
+  seo={{ title: t("cart.title"), noindex: true, alternates: Object.fromEntries(siteConfig.locales.map((l) => [l, cartPath(l)])) }}
+  breadcrumbs={[{ name: t("cart.title"), path: cartPath(lang) }]}
+>
+  <Section spacing="sm" width="sm">
+    <h1 class="text-4xl font-medium tracking-tight sm:text-5xl">{t("cart.title")}</h1>
+    <div class="mt-8" data-cart-page data-panel-url={`${cartPath(lang, "panel")}?layout=page`}>
+      <CartLines cart={cart} lang={lang} layout="page" error={error} />
+    </div>
+  </Section>
+</PageLayout>

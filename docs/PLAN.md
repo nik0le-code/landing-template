@@ -99,6 +99,13 @@ before moving on.
 - Deployment notes: `TZ` (blog/catalog publish times), `allowedDomains` for extra hostnames, single replica for media uploads
 - Performance pass (Lighthouse on demo pages, JS budget), `CLAUDE.md` + README
 
+### 15. Module: shopify
+- Headless Storefront API client (retries, timeout, buyer IP, `@inContext` country/language); mock.shop in dev when unconfigured
+- Listing (search, sort, Search & Discovery filters, cursor pagination), collections, product page with variant picker, recommendations, Product JSON-LD, sitemap
+- Cart in Shopify, id in an httpOnly cookie: no-JS endpoint + `actions.shopify.cart`, drawer (`header.actions` slot), hosted checkout redirect
+- Webhook with HMAC invalidates the `shopify` cache tag; module `csp` sources merged into astro.config.ts
+- Motion ported from the Xristos store without a library: fly-to-cart arc, cart bounce, badge pop, spring drawers, line stagger/exit, lens zoom, cross-document view transitions (card image morph, card glide on sort/filter); filter rail with swatches, chips and a price slider
+
 ## Progress
 
 - [x] 0 Foundation
@@ -116,3 +123,4 @@ before moving on.
 - [x] 12 Module: bookings
 - [x] 13 Module CLI
 - [x] 14 Production + docs
+- [x] 15 Module: shopify

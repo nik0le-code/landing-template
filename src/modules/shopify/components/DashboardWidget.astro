@@ -1,0 +1,28 @@
+---
+/** Admin dashboard: is the storefront connected? (Shown only when another module enables the admin.) */
+import { translateModule } from "@/modules/registry";
+import Panel from "@/admin/components/Panel.astro";
+import { storefrontConfig } from "../lib/config";
+import { getShopInfo } from "../lib/products";
+
+const lang = Astro.locals.lang;
+const tm = (key: string, params?: Record<string, string>) => translateModule(lang, "shopify", key, params);
+const config = storefrontConfig();
+const shop = config ? await getShopInfo(lang).catch(() => null) : null;
+---
+
+<Panel title="Shopify">
+  {
+    shop ? (
+      <>
+        <p class="text-lg font-semibold">{shop.name}</p>
+        <p class="text-sm text-muted-foreground">
+          {config?.isMock ? tm("admin.mock") : tm("admin.connected", { domain: config!.domain, currency: shop.paymentSettings.currencyCode })}
+        </p>
+      </>
+    ) : (
+      <p class="text-sm text-destructive">{config ? tm("admin.unreachable") : tm("admin.notConfigured")}</p>
+    )
+  }
+  {config && !config.webhookSecret && !config.isMock && <p class="mt-2 text-sm text-muted-foreground">{tm("admin.noWebhook")}</p>}
+</Panel>

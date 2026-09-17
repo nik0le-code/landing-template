@@ -6,10 +6,16 @@ import tailwindcss from "@tailwindcss/vite";
 import { siteConfig } from "./site.config";
 import modulesConfig from "./modules.config";
 import { modulesIntegration } from "./src/integrations/modules";
+import { moduleCspSources } from "./src/modules/resolve";
 import { themeScript } from "./src/lib/theme-script";
 
 // Astro hashes its own inline scripts for the CSP, but not `is:inline` ones, so the
 // theme bootstrap is hashed here from the same source string.
+/** Sources enabled modules add to the CSP (e.g. the Shopify image CDN). */
+const moduleCsp = moduleCspSources(process.cwd(), modulesConfig);
+const withModuleSources = <Directive extends string>(directive: Directive) =>
+  [directive, ...(moduleCsp[directive.split(" ")[0]!] ?? [])].join(" ") as Directive;
+
 const themeScriptHash = `'sha256-${createHash("sha256").update(themeScript).digest("base64")}'`;
 
 export default defineConfig({
@@ -89,7 +95,7 @@ export default defineConfig({
      * them at runtime. Remove those two lines for sites without tracking.
      */
     csp: {
-      directives: [
+      directives: ([
         "default-src 'self'",
         "base-uri 'self'",
         "object-src 'none'",
@@ -99,7 +105,7 @@ export default defineConfig({
         "font-src 'self'",
         "connect-src 'self' https://www.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
         "frame-src 'self' https://www.google.com https://www.youtube-nocookie.com",
-      ],
+      ] as const).map(withModuleSources),
       // Astro adds hashes for its own inline scripts/styles to these.
       scriptDirective: { resources: ["'self'", "https://www.googletagmanager.com", themeScriptHash] },
       styleDirective: { resources: ["'self'"] },

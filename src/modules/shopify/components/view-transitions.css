@@ -1,0 +1,36 @@
+/*
+ * Cross-document view transitions between shop pages: the clicked product's image
+ * morphs into the product page (and back), and product cards glide to their new
+ * place when the sort or filters change. The browser does the animation; the
+ * names are assigned just in time by view-transitions.ts.
+ *
+ * Only pages that include this file opt in, so the rest of the site keeps normal
+ * navigations. Unsupported browsers simply navigate.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.2s;
+}
+
+::view-transition-group(shop-product-image) {
+  animation-duration: 0.45s;
+  animation-timing-function: var(--shop-spring, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+/* The image keeps its crop while morphing between the card and the gallery. */
+::view-transition-old(shop-product-image),
+::view-transition-new(shop-product-image) {
+  height: 100%;
+  object-fit: cover;
+}
+
+::view-transition-group(*.shop-card) {
+  animation-duration: 0.35s;
+  animation-timing-function: var(--shop-spring, cubic-bezier(0.16, 1, 0.3, 1));
+}

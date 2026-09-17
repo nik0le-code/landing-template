@@ -11,6 +11,7 @@ import { mainNav, navCta } from "@/config/navigation";
 import { localizePath, useTranslations } from "@/i18n";
 import { ariaCurrent, navHref } from "@/lib/nav";
 import { getPublicNav } from "@/modules/registry";
+import ModuleSlot from "@/components/modules/ModuleSlot.astro";
 import Button from "@/components/ui/Button.astro";
 import Container from "@/components/ui/Container.astro";
 import Dropdown from "./Dropdown.astro";
@@ -86,6 +87,8 @@ const linkClass =
       {siteConfig.darkMode && <ThemeToggle class="hidden sm:inline-flex" />}
       <div class="hidden lg:block"><LanguageSwitcher alternates={alternates} /></div>
       <Button href={navHref(navCta, lang)} size="sm" class="hidden sm:inline-flex">{t(navCta.label)}</Button>
+      <!-- Module controls that stay visible on every width (e.g. the cart). -->
+      <ModuleSlot name="header.actions" />
       <button
         type="button"
         popovertarget="mobile-menu"

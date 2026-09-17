@@ -1,0 +1,93 @@
+{
+  "nav": "Shop",
+  "from": "From",
+  "was": "Was",
+  "soldOut": "Sold out",
+  "sale": "Sale",
+  "list": {
+    "title": "Shop",
+    "description": "Browse our products and order online.",
+    "products": "Products",
+    "collections": "Collections",
+    "all": "All",
+    "search": "Search products",
+    "searchPlaceholder": "Search products…",
+    "searchTitle": "Results for “{term}”",
+    "sortBy": "Sort by",
+    "apply": "Apply",
+    "filters": "Filters",
+    "empty": "No products available yet.",
+    "noResults": "No products match. Try another search or fewer filters.",
+    "pagination": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "price": "Price"
+  },
+  "sort": {
+    "featured": "Featured",
+    "relevance": "Relevance",
+    "best-selling": "Best selling",
+    "newest": "Newest",
+    "price-asc": "Price, low to high",
+    "price-desc": "Price, high to low",
+    "title": "Name, A to Z"
+  },
+  "product": {
+    "images": "Product images",
+    "imageOf": "{title}, image {index}",
+    "showImage": "Show image {index}",
+    "addToCart": "Add to cart",
+    "related": "You may also like"
+  },
+  "cart": {
+    "title": "Cart",
+    "items": "Items in your cart",
+    "empty": "Your cart is empty.",
+    "continue": "Continue shopping",
+    "view": "View cart",
+    "close": "Close cart",
+    "loading": "Loading…",
+    "quantity": "Quantity",
+    "increase": "Increase quantity of {product}",
+    "decrease": "Decrease quantity of {product}",
+    "remove": "Remove",
+    "discountCode": "Discount code",
+    "apply": "Apply",
+    "discountApplied": "applied",
+    "discountNotApplicable": "not applicable to this cart",
+    "subtotal": "Subtotal",
+    "taxesNote": "Shipping and taxes are calculated at checkout.",
+    "checkout": "Checkout"
+  },
+  "featured": {
+    "title": "Popular products",
+    "description": "What our customers order most.",
+    "viewAll": "Shop all"
+  },
+  "errors": {
+    "invalid": "That change could not be applied. Please try again.",
+    "rateLimited": "Too many changes in a short time. Please wait a minute.",
+    "unavailable": "This item is unavailable in that option or quantity.",
+    "notFound": "Your cart has expired. Please add the items again.",
+    "shopify": "The shop is temporarily unavailable. Please try again shortly."
+  },
+  "admin": {
+    "connected": "Connected to {domain} ({currency}).",
+    "mock": "Demo data from mock.shop. Set SHOPIFY_STORE_DOMAIN to connect a store.",
+    "unreachable": "The Storefront API is not responding. Check the domain and token.",
+    "notConfigured": "Not configured: set SHOPIFY_STORE_DOMAIN and SHOPIFY_STOREFRONT_TOKEN.",
+    "noWebhook": "SHOPIFY_WEBHOOK_SECRET is not set, so product edits appear only when the page cache expires."
+  },
+  "filters": {
+    "allCollections": "All products",
+    "allPrices": "All prices",
+    "upTo": "Up to {price}",
+    "maxPrice": "Maximum price",
+    "clear": "Clear ({count})",
+    "close": "Close filters",
+    "show": "Show products",
+    "active": "Active filters",
+    "remove": "Remove filter",
+    "reset": "Reset filters"
+  }
+}

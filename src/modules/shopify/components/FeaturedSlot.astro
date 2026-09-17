@@ -1,0 +1,6 @@
+---
+/** Fills "home.afterHero" with featured products as a server island (fresh without a rebuild). */
+import FeaturedProducts from "./FeaturedProducts.astro";
+---
+
+<FeaturedProducts server:defer lang={Astro.locals.lang} />

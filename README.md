@@ -37,9 +37,58 @@ npm run setup -- --name "Ανθός Florist" --domain https://www.anthos.gr \
   --admin-email me@agency.gr --origin git@github.com:agency/anthos-site.git --yes
 ```
 
-After that you only touch content: `src/i18n/locales/*` (all page copy),
-`src/config/navigation.ts` (menu), `src/assets/demo/` (images) and
-`src/content/legal/` (privacy/terms).
+## ✍️ What You Edit By Hand
+
+`npm run setup` handles the mechanical parts (config, languages, modules, brand
+colour, admin user, git remotes). Everything below is the work it can't do for you,
+in the order it's worth doing. A typical client site is these eight files.
+
+**1. `src/i18n/locales/{el,en}/*.json` — all page copy.** The biggest job by far.
+One file per page (`home.json`, `about.json`, `services.json`, `contact.json`), plus
+`nav.json`, `footer.json`, `common.json`, `consent.json`, `legal.json`. Write the
+client's real copy here, not in the `.astro` files. **A key missing from one locale
+is a type error**, so both languages stay in sync by construction.
+
+**2. `src/config/navigation.ts` — menu, dropdowns, footer columns.** Labels are
+translation keys (`nav.about`), paths are locale-less (`/about`); the components
+localize them. Add a key to every `nav.json` when you add a link.
+
+**3. `public/favicon.svg` — the client's logo,** then `npm run brand:assets` to
+regenerate the favicons, app icons and the OG image from it. If the logo is coloured
+rather than monochrome, drop the `logo-mark` class in
+`src/components/layout/Logo.astro` (it inverts monochrome marks in dark mode).
+
+**4. `src/styles/theme.css` — brand tokens.** `npm run setup` sets the accent for
+you; adjust `--foreground` / `--background` / `--accent` here if the brand needs
+more than that. Both light and dark values live in this one file.
+
+**5. `src/assets/demo/*.jpg` — photography.** Replace with the client's real photos,
+keeping the file names (or update the imports in `src/pages/[lang]/*.astro`).
+`npm run demo:images` refills them with neutral placeholders in the meantime.
+
+**6. `src/content/legal/{el,en}/privacy.md` and `terms.md`.** Markdown with
+`title` / `description` / `updatedAt` frontmatter. The shipped text is a placeholder
+and says so: **replace it with what the client's lawyer approved.**
+
+**7. `site.config.ts` — the details the wizard didn't ask for:** postal address,
+opening hours, `socials`, `organization.type` (use a LocalBusiness subtype like
+`"Dentist"` or `"Restaurant"` when it applies — it feeds the JSON-LD), and
+`tracking.ga4Id` / `googleAdsId` / `conversions` once the client sends their ids.
+
+**8. `.env`** (copy `.env.example`): `SITE_URL` for production, plus `RESEND_API_KEY`
+and `EMAIL_FROM` if a module sends email. `NOINDEX=true` on staging.
+
+Then, as the site needs them:
+
+- **New pages** → `src/pages/[lang]/<name>.astro` (see [Adding a Page](#-adding-a-page)).
+- **Features** → flip a boolean in `modules.config.ts` (blog, leads, bookings, …).
+- **Section order per page** → the `.astro` page files; the sections themselves take
+  copy as props, so reordering is moving lines.
+
+**What you should not need to touch:** `src/components/ui/`, `src/components/sections/`,
+`src/layouts/`, `src/lib/`, `astro.config.ts`, `server.mjs`. If a client needs a
+section that doesn't exist, add it to `src/components/sections/` rather than
+hand-rolling markup in a page.
 
 ## 📁 Project Structure
 
@@ -168,6 +217,7 @@ export default defineModulesConfig({
 | `media` | Image uploads, automatic AVIF/WebP versions, picker for the other modules |
 | `blog` | Posts per language linked as translations, Markdown editor, categories, RSS |
 | `catalog` | Products/services with prices, gallery, categories (`basePath` sets the URL) |
+| `shopify` | Headless Shopify store: products, collections, filters, cart drawer, Shopify checkout (no database) |
 | `bookings` | Appointment requests with rules, admin workflow, customer emails |
 | `settings` | Announcement bar, socials, notification emails — editable without a redeploy |
 | `example` | Reference module showing every extension point (keep off) |

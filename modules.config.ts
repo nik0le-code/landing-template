@@ -19,6 +19,7 @@ export default defineModulesConfig({
     leads: false,
     media: false,
     settings: false,
+    shopify: false,
   },
 
   options: {
@@ -42,5 +43,6 @@ export default defineModulesConfig({
       },
     },
     media: { maxUploadMb: 15 },
+    shopify: { basePath: "shop", cartPath: "cart", pageSize: 24, country: "", featuredCollection: "", featuredOnHome: 4, cacheSeconds: 300 },
   },
 });

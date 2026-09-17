@@ -1,0 +1,27 @@
+---
+import type { Locale } from "@site-config";
+import type { ProductCardData } from "../lib/types";
+import ProductCard from "./ProductCard.astro";
+
+interface Props {
+  products: ProductCardData[];
+  lang: Locale;
+  headingTag?: "h2" | "h3";
+  /** Eager-load the first row (listing pages, where it is the LCP). */
+  priorityCount?: number;
+  /** Desktop columns: 3 next to the filter rail, 4 full width. */
+  columns?: 3 | 4;
+}
+
+const { products, lang, headingTag, priorityCount = 0, columns = 4 } = Astro.props;
+---
+
+<ul class:list={["grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3", columns === 4 && "lg:grid-cols-4"]}>
+  {
+    products.map((product, index) => (
+      <li>
+        <ProductCard product={product} lang={lang} headingTag={headingTag} priority={index < priorityCount} />
+      </li>
+    ))
+  }
+</ul>

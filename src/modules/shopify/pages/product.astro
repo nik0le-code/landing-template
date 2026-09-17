@@ -1,0 +1,119 @@
+---
+import { siteConfig } from "@site-config";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Container from "@/components/ui/Container.astro";
+import Prose from "@/components/ui/Prose.astro";
+import Section from "@/components/ui/Section.astro";
+import { productSchema } from "@/lib/seo/schema";
+import Price from "../components/Price.astro";
+import ProductForm from "../components/ProductForm.astro";
+import ProductGallery from "../components/ProductGallery.astro";
+import ProductGrid from "../components/ProductGrid.astro";
+import ShopTransitions from "../components/ShopTransitions.astro";
+import { collectionPath, imageUrl, numericId, shopifyOptions, shopPath } from "../lib/format";
+import { getProduct, getRecommendations, SHOPIFY_CACHE_TAG } from "../lib/products";
+import type { Product, ProductCardData } from "../lib/types";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string) => translateModule(lang, "shopify", key);
+const handle = Astro.params.handle ?? "";
+
+let product: Product | null;
+try {
+  product = await getProduct(handle, lang);
+} catch (error) {
+  // Don't turn an outage into a cached 404 that search engines would drop.
+  console.error("[shopify] product:", error);
+  return new Response(t("errors.shopify"), { status: 503, headers: { "Retry-After": "60", "Content-Type": "text/plain; charset=utf-8" } });
+}
+if (!product) return Astro.rewrite("/404");
+
+const variants = product.variants.nodes;
+const requested = Astro.url.searchParams.get("variant");
+const selected =
+  (requested && variants.find((v) => numericId(v.id) === requested)) || variants.find((v) => v.availableForSale) || variants[0];
+
+const recommendations: ProductCardData[] = await getRecommendations(product.id, lang).catch(() => []);
+const images = product.images.nodes;
+const initialIndex = Math.max(0, images.findIndex((image) => image.url === selected?.image?.url));
+const collection = product.collections.nodes[0];
+const description = (product.seo.description || product.description).slice(0, 160);
+const ogImage = images[initialIndex] ?? product.featuredImage;
+
+Astro.cache.set({ maxAge: shopifyOptions().cacheSeconds, swr: 3600, tags: [SHOPIFY_CACHE_TAG] });
+---
+
+<PageLayout
+  seo={{
+    title: product.seo.title || product.title,
+    description: description || siteConfig.description[lang],
+    image: ogImage ? imageUrl(ogImage, 1200) : undefined,
+    imageAlt: ogImage?.altText || product.title,
+    alternates: Object.fromEntries(siteConfig.locales.map((l) => [l, shopPath(l, product.handle)])),
+  }}
+  schema={[
+    productSchema({
+      name: product.title,
+      description,
+      path: shopPath(lang, product.handle),
+      image: ogImage ? imageUrl(ogImage, 1200) : undefined,
+      price: selected ? Number(selected.price.amount) : undefined,
+      currency: selected?.price.currencyCode,
+      sku: selected?.sku || undefined,
+      availability: selected?.availableForSale ? "InStock" : "OutOfStock",
+    }),
+  ]}
+  breadcrumbs={[
+    { name: t("list.title"), path: shopPath(lang) },
+    ...(collection ? [{ name: collection.title, path: collectionPath(lang, collection.handle) }] : []),
+    { name: product.title, path: shopPath(lang, product.handle) },
+  ]}
+>
+  <ShopTransitions />
+  <Container class="pt-16 pb-14 sm:pt-20 sm:pb-20">
+    <div data-product class="grid gap-8 lg:grid-cols-2 lg:gap-14">
+      <div class="lg:sticky lg:top-24 lg:self-start">
+        <ProductGallery images={images} title={product.title} lang={lang} initialIndex={initialIndex} />
+      </div>
+
+      <div>
+        {product.vendor && <p class="text-sm text-muted-foreground">{product.vendor}</p>}
+        <h1 class="mt-1 text-3xl font-medium tracking-tight text-balance sm:text-4xl">{product.title}</h1>
+        {
+          selected && (
+            <div data-product-price class="mt-4">
+              <Price price={selected.price} compareAt={selected.compareAtPrice} lang={lang} class="text-xl" />
+            </div>
+          )
+        }
+
+        <div class="mt-8">
+          <ProductForm product={product} selected={selected} lang={lang} />
+        </div>
+
+        {
+          product.descriptionHtml && (
+            <Prose class="mt-10 border-t border-border pt-8">
+              {/* Merchant-authored HTML from Shopify admin; the CSP blocks any script in it. */}
+              <Fragment set:html={product.descriptionHtml} />
+            </Prose>
+          )
+        }
+      </div>
+    </div>
+  </Container>
+
+  {
+    recommendations.length > 0 && (
+      <Section tone="muted" spacing="sm">
+        <h2 class="text-2xl font-medium tracking-tight">{t("product.related")}</h2>
+        <div class="mt-8">
+          <ProductGrid products={recommendations} lang={lang} headingTag="h3" />
+        </div>
+      </Section>
+    )
+  }
+</PageLayout>

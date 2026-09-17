@@ -1,0 +1,42 @@
+---
+/** Featured products (server island on the prerendered home page). */
+import type { Locale } from "@site-config";
+import { translateModule } from "@/modules/registry";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import { collectionPath, shopifyOptions, shopPath } from "../lib/format";
+import { getFeaturedProducts, SHOPIFY_CACHE_TAG } from "../lib/products";
+import ProductGrid from "./ProductGrid.astro";
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = (key: string) => translateModule(lang, "shopify", key);
+const { featuredCollection, cacheSeconds } = shopifyOptions();
+const products = await getFeaturedProducts(lang).catch((error: unknown) => {
+  console.error("[shopify] featured products:", error);
+  return null;
+});
+
+// Failures aren't cached, so the section comes back as soon as Shopify does.
+if (products) Astro.cache.set({ maxAge: cacheSeconds, swr: 3600, tags: [SHOPIFY_CACHE_TAG] });
+---
+
+{
+  products && products.length > 0 && (
+    <Section>
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <SectionHeading title={t("featured.title")} description={t("featured.description")} align="left" />
+        <Button href={featuredCollection ? collectionPath(lang, featuredCollection) : shopPath(lang)} variant="outline">
+          {t("featured.viewAll")} →
+        </Button>
+      </div>
+      <div class="mt-10">
+        <ProductGrid products={products} lang={lang} headingTag="h3" />
+      </div>
+    </Section>
+  )
+}

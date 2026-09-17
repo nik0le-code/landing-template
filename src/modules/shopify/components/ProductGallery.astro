@@ -1,0 +1,118 @@
+---
+/**
+ * Swipeable image strip (CSS scroll snap, works without JS) with thumbnails that
+ * scroll to an image. The product form scrolls it to a variant's image.
+ */
+import type { Locale } from "@site-config";
+import { translateModule } from "@/modules/registry";
+import { cn } from "@/lib/cn";
+import type { ShopifyImage } from "../lib/types";
+import ProductImage from "./ProductImage.astro";
+
+interface Props {
+  images: ShopifyImage[];
+  title: string;
+  lang: Locale;
+  /** Index shown first (the selected variant's image). */
+  initialIndex?: number;
+}
+
+const { images, title, lang, initialIndex = 0 } = Astro.props;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "shopify", key, params);
+---
+
+<div data-gallery data-initial-index={initialIndex} class="space-y-3">
+  {
+    images.length === 0 ? (
+      <div class="aspect-[4/5] w-full bg-muted" />
+    ) : (
+      <ul
+        data-gallery-track
+        class="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        aria-label={t("product.images")}
+      >
+        {images.map((image, index) => (
+          <li class="w-full shrink-0 snap-start overflow-hidden" id={`product-image-${index}`} data-zoom>
+            <ProductImage
+              image={image}
+              alt={image.altText || (index === 0 ? title : t("product.imageOf", { title, index: index + 1 }))}
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              priority={index === initialIndex}
+              class="aspect-[4/5] w-full"
+            />
+          </li>
+        ))}
+      </ul>
+    )
+  }
+  {
+    images.length > 1 && (
+      <ul class="grid grid-cols-5 gap-2 sm:grid-cols-6">
+        {images.map((image, index) => (
+          <li>
+            <button
+              type="button"
+              data-gallery-thumb={index}
+              aria-current={index === initialIndex ? "true" : undefined}
+              class={cn(
+                "block w-full border border-transparent opacity-70 transition hover:opacity-100",
+                "aria-[current]:border-foreground aria-[current]:opacity-100",
+              )}
+            >
+              <ProductImage image={image} alt="" sizes="6rem" class="aspect-square w-full" />
+              <span class="sr-only">{t("product.showImage", { index: index + 1 })}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</div>
+
+<style>
+  /* Lens zoom: on a fine pointer the image magnifies around the cursor. */
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    [data-zoom] {
+      cursor: zoom-in;
+    }
+    [data-zoom] :global(img) {
+      transition: scale 0.35s var(--shop-spring, ease-out);
+    }
+    [data-zoom]:hover :global(img) {
+      scale: 2;
+    }
+  }
+</style>
+
+<script>
+  const finePointer = matchMedia("(hover: hover) and (pointer: fine)");
+  for (const frame of document.querySelectorAll<HTMLElement>("[data-zoom]")) {
+    const image = frame.querySelector("img");
+    if (!image) continue;
+    // Only transform-origin changes per move: the scale itself stays on the compositor.
+    frame.addEventListener("pointermove", (event) => {
+      if (!finePointer.matches) return;
+      const rect = frame.getBoundingClientRect();
+      image.style.transformOrigin = `${((event.clientX - rect.left) / rect.width) * 100}% ${((event.clientY - rect.top) / rect.height) * 100}%`;
+    });
+  }
+
+  for (const gallery of document.querySelectorAll<HTMLElement>("[data-gallery]")) {
+    const track = gallery.querySelector<HTMLElement>("[data-gallery-track]");
+    const thumbs = [...gallery.querySelectorAll<HTMLButtonElement>("[data-gallery-thumb]")];
+    if (!track) continue;
+
+    const markCurrent = (index: number) => thumbs.forEach((thumb, i) => (i === index ? thumb.setAttribute("aria-current", "true") : thumb.removeAttribute("aria-current")));
+    const show = (index: number, behavior: ScrollBehavior = "smooth") => {
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      track.scrollTo({ left: track.clientWidth * index, behavior: reduced ? "auto" : behavior });
+      markCurrent(index);
+    };
+
+    const initial = Number(gallery.dataset.initialIndex ?? 0);
+    if (initial > 0) show(initial, "auto");
+    thumbs.forEach((thumb, index) => thumb.addEventListener("click", () => show(index)));
+    track.addEventListener("scrollend", () => markCurrent(Math.round(track.scrollLeft / track.clientWidth)));
+    gallery.addEventListener("gallery:show", (event) => show((event as CustomEvent<number>).detail));
+  }
+</script>

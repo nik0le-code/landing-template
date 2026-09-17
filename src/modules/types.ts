@@ -44,6 +44,11 @@ export interface ModuleManifest {
    * (keep options.ts defaults in sync).
    */
   optionDefaults?: Record<string, string>;
+  /**
+   * Extra Content-Security-Policy sources while the module is enabled, merged into
+   * astro.config.ts, e.g. `{ "img-src": ["https://cdn.shopify.com"] }`.
+   */
+  csp?: Record<string, string[]>;
 }
 
 /**
@@ -76,6 +81,7 @@ export type SlotName =
   | "home.afterHero"
   | "home.beforeCta"
   | "layout.beforeFooter"
+  | "header.actions"
   | "admin.dashboard"
   | (string & {});
 

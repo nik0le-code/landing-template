@@ -1,0 +1,13 @@
+---
+/** Opts a shop page into the product-image morph and card glide (see view-transitions.css). */
+import "./view-transitions.css";
+import { shopPath } from "../lib/format";
+---
+
+<div hidden data-shop-transitions data-shop-base={shopPath(Astro.locals.lang)}></div>
+
+<script>
+  import { initViewTransitions } from "./view-transitions";
+  const base = document.querySelector<HTMLElement>("[data-shop-transitions]")?.dataset.shopBase;
+  if (base) initViewTransitions(base);
+</script>
