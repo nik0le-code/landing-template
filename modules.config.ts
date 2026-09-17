@@ -24,7 +24,7 @@ export default defineModulesConfig({
     media: false,
     settings: false,
     shopify: false,
-    wordpress: false,
+    wordpress: true,
   },
 
   options: {
@@ -51,7 +51,7 @@ export default defineModulesConfig({
     shopify: { country: "" },
     wordpress: {
       shop: true, // WooCommerce storefront (commerce options below)
-      content: { posts: true, pages: true },
+      content: { posts: true, pages: true, sitePages: true }, // sitePages: home/about/… copy editable in wp-admin
       postsPath: "blog",
       // WordPress plugins (npm run wp:up / wp:plugins); configure them in wp-admin.
       plugins: ["viva-com-smart-for-woocommerce", "secure-card-gateway-for-epay-paycenter-piraeus-bank"],

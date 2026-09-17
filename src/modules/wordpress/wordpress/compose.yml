@@ -26,6 +26,7 @@ services:
     volumes:
       - wordpress:/var/www/html
       - ./headless-bridge.php:/var/www/html/wp-content/mu-plugins/headless-bridge.php:ro
+      - ./headless-fields.json:/var/www/html/wp-content/mu-plugins/headless-fields.json:ro
       # Zip plugins referenced in modules.config.ts (wordpress.plugins) are read from here.
       - ../../../../wordpress-plugins:/plugins:ro
 
@@ -40,6 +41,7 @@ services:
     volumes:
       - wordpress:/var/www/html
       - ./headless-bridge.php:/var/www/html/wp-content/mu-plugins/headless-bridge.php:ro
+      - ./headless-fields.json:/var/www/html/wp-content/mu-plugins/headless-fields.json:ro
       - ../../../../wordpress-plugins:/plugins:ro
     entrypoint: ["sleep", "infinity"]
 

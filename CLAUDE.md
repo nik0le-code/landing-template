@@ -50,11 +50,15 @@ Then `npm run build` for anything touching rendering, modules or the server.
 | Editable bits of static pages | `<Component server:defer />` (server island) | Admin edits appear without a rebuild |
 | Admin | server-rendered, `no-store` | Never cached |
 
+| Code pages with CMS-editable copy | `getPageContent(Astro, key)` instead of `getDictionary(lang)[key]` (keys in `src/config/editable-pages.ts`) | Prerendered normally; server-rendered + cached (tag-invalidated) only while a module provides page content (wordpress `content.sitePages`) |
+
 Rules that follow from this:
 
 - **Never** add on-demand rendering to a content page just to read the database;
   use a server island for that part instead.
 - Anything in an island must take `lang` as a prop — islands don't see the page URL.
+- Pages whose copy is editable read it through `getPageContent()`; never read those
+  namespaces with `getDictionary()` directly on the page, or CMS edits won't show there.
 - After a mutation, invalidate: `await context.cache.invalidate({ tags: ["blog", "sitemap"] })`.
 - Prerendered pages bake in `SITE_URL`; keep `siteConfig.url` correct.
 

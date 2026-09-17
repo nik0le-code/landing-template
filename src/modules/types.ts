@@ -61,6 +61,11 @@ export interface ModuleManifest {
    */
   internal?: boolean;
   /**
+   * The module provides page content (`provides.pageContent`) while this option is truthy
+   * (or always, with `true`): pages calling getPageContent() are then server-rendered.
+   */
+  pageContent?: boolean | string;
+  /**
    * Extra Content-Security-Policy sources while the module is enabled, merged into
    * astro.config.ts, e.g. `{ "img-src": ["https://cdn.shopify.com"] }`. `{env:NAME}` is
    * replaced by the origin of that build-time environment variable (skipped when unset).
@@ -94,6 +99,9 @@ export interface ModuleOptionsMap {}
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ModuleServices {}
 
+/** Nested option objects may be given partially (`content: { pages: false }`); arrays are whole. */
+type DeepPartial<T> = { [K in keyof T]?: T[K] extends readonly unknown[] ? T[K] : T[K] extends object ? DeepPartial<T[K]> : T[K] };
+
 /**
  * modules.config.ts shape. Toggles are plain booleans; options live separately so
  * switching a module is always a one-word change.
@@ -102,7 +110,7 @@ export interface ModulesConfig {
   /** Every module folder, `true` = enabled. Unlisted modules are disabled. */
   modules: { [Name in keyof ModuleOptionsMap]?: boolean } & Record<string, boolean>;
   /** Optional per-module options; ignored while the module is disabled. */
-  options?: { [Name in keyof ModuleOptionsMap]?: Partial<ModuleOptionsMap[Name]> };
+  options?: { [Name in keyof ModuleOptionsMap]?: DeepPartial<ModuleOptionsMap[Name]> };
 }
 
 /** Named places in core pages where modules can render UI (see <ModuleSlot>). */
@@ -154,5 +162,7 @@ export interface ModuleRuntime {
    */
   provides?: {
     siteSettings?: () => Promise<{ getSettings(): Promise<import("../lib/settings").SiteSettings> }>;
+    /** Editable copy and images of code-built pages (src/config/editable-pages.ts). */
+    pageContent?: () => Promise<import("../lib/page-content").PageContentProvider | null>;
   } & { [Service in keyof ModuleServices]?: () => Promise<ModuleServices[Service]> };
 }

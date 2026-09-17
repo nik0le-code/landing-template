@@ -2,16 +2,18 @@
 import PageLayout from "@/layouts/PageLayout.astro";
 import ContactSection from "@/components/sections/ContactSection.astro";
 import Faq from "@/components/sections/Faq.astro";
-import { getDictionary, localeStaticPaths, localizePath } from "@/i18n";
+import { localeStaticPaths, localizePath } from "@/i18n";
+import { getPageContent } from "@/lib/page-content";
 import { organizationSchema } from "@/lib/seo/schema";
 
 // Static content → rendered once at build time (HTML + optimized images on disk).
+// While a CMS provides page content (wordpress: content.sitePages), getPageContent makes
+// this page server-rendered and cached instead, so edits appear without a rebuild.
 export const prerender = true;
 export const getStaticPaths = () => localeStaticPaths();
 
 const lang = Astro.locals.lang;
-const dict = getDictionary(lang);
-const copy = dict.contact;
+const [{ copy }, { copy: home }] = await Promise.all([getPageContent(Astro, "contact"), getPageContent(Astro, "home")]);
 ---
 
 <PageLayout
@@ -20,5 +22,5 @@ const copy = dict.contact;
   breadcrumbs={[{ name: copy.meta.title, path: localizePath("/contact", lang) }]}
 >
   <ContactSection title={copy.title} description={copy.description} labels={copy.labels} headingTag="h1" />
-  <Faq {...dict.home.faq} tone="muted" />
+  <Faq {...home.faq} tone="muted" />
 </PageLayout>

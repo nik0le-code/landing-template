@@ -121,6 +121,11 @@ before moving on.
 - Content: posts (list, categories, pagination, post page with TOC, RSS, latest on home) and pages (lowest-priority catch-all), translations/hreflang, Yoast SEO, sitemap, link rewriting, block styles, cache purge on publish
 - `commerce` and `woocommerce` become internal: `wordpress: { shop: true }` or `shopify: true`; `WOOCOMMERCE_*` env names still read as fallbacks
 
+### 18. Editable site pages + WordPress front end
+- `getPageContent()` (core) + `provides.pageContent`: dictionary copy merged with CMS values field by field, images/galleries; pages using it become server-rendered + cached only while a provider is active (integration `astro:route:setup` + getStaticPaths strip)
+- `src/config/editable-pages.ts`: page keys, paths, image slots; `npm run wp:fields` generates ACF (Secure Custom Fields) groups from the JSON copy (tabs, groups, repeaters, images, galleries) and creates the WordPress pages per language
+- Bridge 2.2: field groups on the site pages, `headless/v1/page-content/<key>` endpoint, classic editor for them, "View page" links and front-end redirects to the site, cache purge on field saves
+
 ## Progress
 
 - [x] 0 Foundation
@@ -141,3 +146,4 @@ before moving on.
 - [x] 15 Module: shopify
 - [x] 16 Commerce layer + WooCommerce
 - [x] 17 Module: wordpress
+- [x] 18 Editable site pages + WordPress front end

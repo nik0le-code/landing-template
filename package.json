@@ -28,6 +28,7 @@
     "wp:up": "tsx scripts/wordpress.ts up",
     "wp:down": "tsx scripts/wordpress.ts down",
     "wp:plugins": "tsx scripts/wordpress.ts plugins",
+    "wp:fields": "tsx scripts/wordpress.ts fields",
     "wp": "tsx scripts/wordpress.ts cli",
     "module:list": "tsx scripts/modules.ts list",
     "module:new": "tsx scripts/modules.ts new",

@@ -12,16 +12,20 @@ import Stats from "@/components/sections/Stats.astro";
 import Steps from "@/components/sections/Steps.astro";
 import Testimonials from "@/components/sections/Testimonials.astro";
 import type { FeatureItem } from "@/components/sections/types";
-import { getDictionary, localeStaticPaths, localizePath } from "@/i18n";
+import { localeStaticPaths, localizePath } from "@/i18n";
+import { getPageContent } from "@/lib/page-content";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 import heroImage from "@/assets/demo/hero.jpg";
 
 // Static content → rendered once at build time (HTML + optimized images on disk).
+// While a CMS provides page content (wordpress: content.sitePages), getPageContent makes
+// this page server-rendered and cached instead, so edits appear without a rebuild.
 export const prerender = true;
 export const getStaticPaths = () => localeStaticPaths();
 
 const lang = Astro.locals.lang;
-const copy = getDictionary(lang).home;
+const { copy, images } = await getPageContent(Astro, "home");
+const hero = images.get("hero.image");
 const contactHref = localizePath("/contact", lang);
 
 // Replace with the client's real customer logos ({ src: logoFile, alt: "Name" }).
@@ -50,7 +54,7 @@ const plans: Plan[] = copy.pricing.plans.map((plan) => ({
       { label: copy.hero.primary, href: contactHref },
       { label: copy.hero.secondary, href: "#how-it-works" },
     ]}
-    image={{ src: heroImage, alt: copy.hero.imageAlt }}
+    image={{ src: hero?.src ?? heroImage, alt: hero?.alt || copy.hero.imageAlt }}
   />
   <LogoCloud title={copy.logos.title} logos={logos} />
   <ModuleSlot name="home.afterHero" />
@@ -58,7 +62,7 @@ const plans: Plan[] = copy.pricing.plans.map((plan) => ({
   <Bento
     {...copy.bento}
     eyebrow={undefined}
-    items={(copy.bento.items as BentoItem[]).map((item) => (item.size === "large" ? { ...item, image: { src: heroImage, alt: "" } } : item))}
+    items={(copy.bento.items as BentoItem[]).map((item) => (item.size === "large" ? { ...item, image: { src: hero?.src ?? heroImage, alt: "" } } : item))}
   />
   <Steps id="how-it-works" {...copy.steps} eyebrow={undefined} steps={copy.steps.items} tone="muted" />
   <Stats items={copy.stats.items} />

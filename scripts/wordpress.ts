@@ -5,6 +5,7 @@
  *   npm run wp:up [-- --demo]            local WordPress + WooCommerce in Docker, plugins from modules.config.ts
  *   npm run wp:plugins [-- --ssh user@host:/var/www/wordpress] [--force] [--prune]
  *   npm run wp:down [-- --volumes]       stop the local WordPress (--volumes also deletes its data)
+ *   npm run wp:fields [-- --ssh …]       regenerate the site pages' fields from src/i18n + src/config/editable-pages.ts
  *   npm run wp -- plugin list            any WP-CLI command (local, or --ssh)
  *
  * `wordpress.plugins` in modules.config.ts is the list of plugins the site needs
@@ -14,10 +15,12 @@
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import modulesConfig from "../modules.config";
+import { editablePages, type EditableImage } from "../src/config/editable-pages";
+import { commerceDefaults } from "../src/modules/commerce/options";
 import { siteConfig } from "../site.config";
 import { mergeOptions } from "../src/modules/merge";
 import { wordpressDefaults, type WordPressOptions, type WordPressPlugin } from "../src/modules/wordpress/options";
@@ -29,7 +32,10 @@ try {
 } catch {
   // No .env: flags and the environment still work.
 }
-const COMPOSE = path.join(ROOT, "src/modules/wordpress/wordpress/compose.yml");
+const WORDPRESS_DIR = path.join(ROOT, "src/modules/wordpress/wordpress");
+const COMPOSE = path.join(WORDPRESS_DIR, "compose.yml");
+const BRIDGE = path.join(WORDPRESS_DIR, "headless-bridge.php");
+const FIELDS = path.join(WORDPRESS_DIR, "headless-fields.json");
 const PLUGINS_DIR = path.join(ROOT, "wordpress-plugins");
 
 const { positionals, values: flags } = parseArgs({
@@ -80,7 +86,11 @@ function pluginSpecs(): PluginSpec[] {
     return { slug: spec.slug, version: spec.version || undefined, zip: "zip" in spec ? spec.zip : undefined, activate: "activate" in spec ? spec.activate !== false : true };
   });
   // Required by the site's options; listing them only matters to pin a version.
-  const required = [...(options().shop ? ["woocommerce"] : []), ...(multilingualContent() ? ["polylang"] : [])];
+  const required = [
+    ...(options().shop ? ["woocommerce"] : []),
+    ...(multilingualContent() ? ["polylang"] : []),
+    ...(options().content.sitePages ? ["secure-custom-fields"] : []),
+  ];
   return [...required.filter((slug) => !configured.some((p) => p.slug === slug)).map((slug) => ({ slug, activate: true })), ...configured];
 }
 
@@ -88,6 +98,8 @@ function pluginSpecs(): PluginSpec[] {
 
 interface Target {
   label: string;
+  /** Copies the bridge plugin and field definitions into mu-plugins (the local Docker WordPress mounts them). */
+  installBridge(): void;
   /** Runs WP-CLI and returns stdout; throws with its output on failure. */
   wp(args: string[], options?: { quiet?: boolean }): string;
   /** Makes a zip from wordpress-plugins/ available to WP-CLI and returns the path it sees. */
@@ -109,6 +121,7 @@ function run(bin: string, args: string[], quiet = false): string {
 function localTarget(): Target {
   return {
     label: "local WordPress (Docker)",
+    installBridge: () => {},
     wp: (args, options) => run("docker", ["compose", "-f", COMPOSE, "exec", "-T", "cli", "wp", ...args], options?.quiet),
     zipPath(file) {
       const relative = path.relative(PLUGINS_DIR, path.resolve(ROOT, file));
@@ -125,6 +138,12 @@ function sshTarget(spec: string): Target {
   const [, host, wordpressPath] = match!;
   return {
     label: `${host}:${wordpressPath}`,
+    installBridge() {
+      const muPlugins = `${wordpressPath}/wp-content/mu-plugins`;
+      run("ssh", [host!, `mkdir -p ${shellQuote(muPlugins!)}`]);
+      run("scp", ["-q", BRIDGE, FIELDS, `${host}:${muPlugins}/`]);
+      done(`Bridge plugin and field definitions copied to ${muPlugins}`);
+    },
     wp: (args, options) => run("ssh", [host!, `cd ${shellQuote(wordpressPath!)} && wp ${args.map(shellQuote).join(" ")}`], options?.quiet),
     zipPath(file) {
       const local = path.resolve(ROOT, file);
@@ -198,6 +217,134 @@ function syncPlugins(t: Target) {
   }
   if (failures) fail(`${failures} plugin(s) failed.`);
   done("Plugins match modules.config.ts. Configure them in wp-admin.");
+}
+
+// ---------------------------------------------------------------- site pages (editable content)
+
+type AcfField = Record<string, unknown>;
+
+const humanize = (key: string) =>
+  key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/^./, (c) => c.toUpperCase())
+    .replace(/\bcta\b/i, "Call to action")
+    .replace(/^Meta$/, "SEO");
+
+const LONG_TEXT = /description|bio|quote|answer|text|body|note|content/i;
+const fieldKey = (page: string, dotPath: string) => `field_hl_${page}_${dotPath.replace(/[^a-zA-Z0-9]+/g, "_")}`;
+
+function imageField(page: string, dotPath: string, name: string, image: EditableImage): AcfField {
+  const common = { key: fieldKey(page, dotPath), name, label: image.label, return_format: "array", preview_size: "medium", library: "all" };
+  return image.type === "gallery"
+    ? { ...common, type: "gallery", insert: "append", instructions: "Empty: the site's own images." }
+    : { ...common, type: "image", instructions: "Empty: the site's own image." };
+}
+
+/** An ACF field for a dictionary value; images declared in editable-pages.ts are added where their path points. */
+function acfField(page: string, name: string, value: unknown, dotPath: string, images: Record<string, EditableImage>): AcfField {
+  const base = { key: fieldKey(page, dotPath), name, label: humanize(name) };
+  const extraImages = (parent: string) =>
+    Object.entries(images)
+      .filter(([imagePath]) => imagePath.slice(0, imagePath.lastIndexOf(".")) === parent)
+      .map(([imagePath, image]) => imageField(page, imagePath, imagePath.slice(imagePath.lastIndexOf(".") + 1), image));
+
+  if (typeof value === "string") {
+    const hint = value.length > 120 ? `${value.slice(0, 117)}…` : value;
+    const icon = name === "icon" ? " Icon name from lucide.dev/icons, e.g. zap." : "";
+    return LONG_TEXT.test(name) || value.length > 80
+      ? { ...base, type: "textarea", rows: 3, new_lines: "", instructions: `Default: ${hint}${icon}` }
+      : { ...base, type: "text", placeholder: value, instructions: `Default: ${hint}${icon}` };
+  }
+  if (typeof value === "number") return { ...base, type: "number", placeholder: value, instructions: `Default: ${value}` };
+  if (typeof value === "boolean") return { ...base, type: "true_false", ui: 1, default_value: value ? 1 : 0 };
+  if (Array.isArray(value)) {
+    const empty = "Empty list: the site's default items.";
+    if (value.every((item) => typeof item === "string")) {
+      return {
+        ...base,
+        type: "repeater",
+        layout: "table",
+        button_label: "Add",
+        instructions: `${empty} Default: ${(value as string[]).join(", ").slice(0, 120)}`,
+        sub_fields: [{ key: fieldKey(page, `${dotPath}.value`), name: "value", label: humanize(name).replace(/s$/, ""), type: "text" }],
+      };
+    }
+    // Every key used by any item, in first-seen order; hints from the first item.
+    const sample: Record<string, unknown> = {};
+    for (const item of value as Record<string, unknown>[]) for (const [key, itemValue] of Object.entries(item)) if (!(key in sample)) sample[key] = itemValue;
+    const subFields = [...Object.entries(sample).map(([key, itemValue]) => acfField(page, key, itemValue, `${dotPath}.${key}`, images)), ...extraImages(dotPath)];
+    return { ...base, type: "repeater", layout: "block", button_label: "Add", collapsed: subFields[0]?.key, instructions: empty, sub_fields: subFields };
+  }
+  if (value && typeof value === "object") {
+    return {
+      ...base,
+      type: "group",
+      layout: "block",
+      sub_fields: [...Object.entries(value).map(([key, itemValue]) => acfField(page, key, itemValue, `${dotPath}.${key}`, images)), ...extraImages(dotPath)],
+    };
+  }
+  return { ...base, type: "text" };
+}
+
+function readDictionary(lang: string, namespace: string): Record<string, unknown> {
+  const file = path.join(ROOT, "src/i18n/locales", lang, `${namespace}.json`);
+  return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>) : {};
+}
+
+/** headless-fields.json: the site's pages, their paths, titles and fields, for the bridge plugin. */
+function writeFieldDefinitions() {
+  const pages = Object.fromEntries(
+    Object.entries(editablePages).map(([key, page]) => {
+      const copy = readDictionary(siteConfig.defaultLocale, key);
+      const images = page.images as Record<string, EditableImage>;
+      // One tab per section, so long pages stay navigable.
+      const fields = Object.entries(copy).flatMap(([section, value]) => [
+        { key: fieldKey(key, `${section}__tab`), name: "", label: humanize(section), type: "tab", placement: "top" },
+        acfField(key, section, value, section, images),
+      ]);
+      const title = Object.fromEntries(
+        siteConfig.locales.map((lang) => [lang, ((readDictionary(lang, key).meta as { title?: string } | undefined)?.title ?? humanize(key))]),
+      );
+      return [key, { path: page.path, title, fields }];
+    }),
+  );
+  const shopPath = (modulesConfig.options?.commerce?.basePath as string | undefined) ?? commerceDefaults.basePath;
+  const content = `${JSON.stringify({ generatedBy: "npm run wp:fields", defaultLang: siteConfig.defaultLocale, shopPath, pages }, null, 2)}\n`;
+  const changed = !existsSync(FIELDS) || readFileSync(FIELDS, "utf8") !== content;
+  if (changed) writeFileSync(FIELDS, content);
+  done(`Field definitions ${changed ? "written" : "unchanged"}: ${path.relative(ROOT, FIELDS)} (${Object.keys(pages).join(", ")})`);
+}
+
+/** The WordPress page for each site page, in every language, linked as translations. */
+const ENSURE_SITE_PAGES = `
+$file = WPMU_PLUGIN_DIR . '/headless-fields.json';
+if ( ! is_readable( $file ) ) { echo "no headless-fields.json in mu-plugins\n"; return; }
+$config = json_decode( file_get_contents( $file ), true );
+$langs = function_exists( 'pll_languages_list' ) && pll_languages_list() ? pll_languages_list() : array( $config['defaultLang'] );
+$created = array();
+foreach ( $config['pages'] as $key => $page ) {
+  $ids = array();
+  foreach ( $langs as $lang ) {
+    $id = null;
+    foreach ( headless_page_ids( $key ) as $candidate ) { if ( headless_post_lang( $candidate ) === $lang ) $id = $candidate; }
+    if ( ! $id ) {
+      $id = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $page['title'][ $lang ] ?? $key, 'post_name' => "site-{$key}" ) );
+      update_post_meta( $id, 'headless_page_key', $key );
+      if ( function_exists( 'pll_set_post_language' ) ) pll_set_post_language( $id, $lang );
+      $created[] = "{$key} ({$lang})";
+    }
+    $ids[ $lang ] = $id;
+  }
+  if ( function_exists( 'pll_save_post_translations' ) && count( $ids ) > 1 ) pll_save_post_translations( $ids );
+}
+echo $created ? 'created ' . implode( ', ', $created ) . "\n" : "all present\n";
+`;
+
+function syncSitePages(t: Target) {
+  writeFieldDefinitions();
+  t.installBridge();
+  info(`Site pages in WordPress: ${t.wp(["eval", ENSURE_SITE_PAGES], { quiet: true })}`);
 }
 
 // ---------------------------------------------------------------- local WordPress
@@ -297,6 +444,8 @@ function up() {
   const wordpressUrl = `http://localhost:${port}`;
   const { shop, content, postsPath } = options();
 
+  // Docker mounts the field definitions, so they must exist before WordPress starts.
+  writeFieldDefinitions();
   info(`Starting WordPress on ${wordpressUrl}`);
   execFileSync("docker", ["compose", "-f", COMPOSE, "up", "-d", "--wait"], { stdio: "inherit", env: { ...process.env, WORDPRESS_PORT: port } });
 
@@ -340,6 +489,7 @@ function up() {
   syncPlugins(t);
 
   if (multilingualContent()) info(`Polylang: ${t.wp(["eval", setupPolylang(siteConfig.locales, siteConfig.defaultLocale)], { quiet: true })}`);
+  if (content.sitePages) syncSitePages(t);
   t.wp(["rewrite", "flush"], { quiet: true });
 
   if (shop) {
@@ -371,9 +521,18 @@ switch (command) {
   case "up":
     up();
     break;
-  case "plugins":
-    syncPlugins(target());
+  case "plugins": {
+    const t = target();
+    syncPlugins(t);
+    if (options().content.sitePages) syncSitePages(t);
     break;
+  }
+  case "fields": {
+    const t = target();
+    if (options().content.sitePages) syncSitePages(t);
+    else writeFieldDefinitions();
+    break;
+  }
   case "down":
     execFileSync("docker", ["compose", "-f", COMPOSE, "down", ...(flags.volumes ? ["--volumes"] : [])], { stdio: "inherit" });
     break;
@@ -385,5 +544,5 @@ switch (command) {
     break;
   }
   default:
-    fail("Usage: npm run wp:up | wp:plugins | wp:down | wp -- <wp-cli command>");
+    fail("Usage: npm run wp:up | wp:plugins | wp:fields | wp:down | wp -- <wp-cli command>");
 }

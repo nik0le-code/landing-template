@@ -33,6 +33,12 @@ export interface WordPressOptions {
     posts: boolean;
     /** Pages at /[lang]/<page path>, for paths no page in src/pages/ or module owns. */
     pages: boolean;
+    /**
+     * The site's own pages (home, about… in src/config/editable-pages.ts) get editable
+     * copy, lists and images in wp-admin; empty fields keep the code copy. Those pages
+     * become server-rendered and cached while this is on.
+     */
+    sitePages: boolean;
   };
   /** URL segment for posts. Don't enable the blog module with the same path. */
   postsPath: string;
@@ -43,8 +49,9 @@ export interface WordPressOptions {
   cacheSeconds: number;
   /**
    * WordPress plugins the site needs, for anything the site itself doesn't do (payment
-   * gateways, invoicing, ERP/courier sync, forms…). WooCommerce (with `shop`) and
-   * Polylang (with content in more than one language) are added automatically.
+   * gateways, invoicing, ERP/courier sync, forms…). WooCommerce (with `shop`), Polylang
+   * (with content in more than one language) and Secure Custom Fields (with
+   * `content.sitePages`) are added automatically.
    */
   plugins: WordPressPlugin[];
 
@@ -64,7 +71,7 @@ export interface WordPressOptions {
 
 export const wordpressDefaults: WordPressOptions = {
   shop: false, // keep in sync with optionDefaults in module.json
-  content: { posts: true, pages: true },
+  content: { posts: true, pages: true, sitePages: true },
   postsPath: "blog",
   postsPerPage: 9,
   latestOnHome: 3,

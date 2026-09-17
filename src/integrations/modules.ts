@@ -103,13 +103,52 @@ function actionsSource(modules: ResolvedModule[], available: { name: string; has
   );
 }
 
+/** Pages whose source reads editable content (getPageContent) can't be prerendered while a CMS provides it. */
+function readsPageContent(root: string, component: string) {
+  try {
+    return /\bgetPageContent\s*\(/.test(readFileSync(path.join(root, component), "utf8"));
+  } catch {
+    return false;
+  }
+}
+
 export function modulesIntegration(config: ModulesConfig): AstroIntegration {
+  let pageContentEnabled = false;
+  let projectRoot = process.cwd();
   return {
     name: "landing-template:modules",
     hooks: {
-      "astro:config:setup": ({ config: astroConfig, injectRoute, addWatchFile, logger }) => {
+      "astro:route:setup": ({ route, logger }) => {
+        if (pageContentEnabled && route.component.endsWith(".astro") && readsPageContent(projectRoot, route.component)) {
+          if (route.prerender !== false) logger.debug(`${route.component}: server-rendered (editable page content)`);
+          route.prerender = false;
+        }
+      },
+      "astro:config:setup": ({ config: astroConfig, injectRoute, addWatchFile, updateConfig, logger }) => {
         const root = fileURLToPath(astroConfig.root);
+        projectRoot = root;
+        // Pages switched to server rendering would warn "getStaticPaths() ignored" on every
+        // request; their getStaticPaths export is dropped while page content is editable.
+        updateConfig({
+          vite: {
+            plugins: [
+              {
+                name: "landing-template:editable-pages",
+                enforce: "pre" as const,
+                transform(code: string, id: string) {
+                  const file = id.split("?")[0]!;
+                  if (!pageContentEnabled || !file.startsWith(path.join(root, "src/pages")) || !file.endsWith(".astro") || !/\bgetPageContent\s*\(/.test(code)) return;
+                  // Astro warns when the word appears anywhere in the page code, so the name goes too.
+                  return { code: code.replace(/export\s+const\s+getStaticPaths\s*=/, "const staticPathsWhenPrerendered ="), map: null };
+                },
+              },
+            ],
+          },
+        });
         const modules = resolveModules(root, config);
+        pageContentEnabled = modules.some(
+          (m) => m.manifest.pageContent === true || (typeof m.manifest.pageContent === "string" && Boolean(optionValue(m.manifest, m.options, m.manifest.pageContent))),
+        );
 
         const adminEnabled = modules.some((m) => m.manifest.admin);
         const databaseEnabled = adminEnabled || modules.some((m) => m.schemaFile);

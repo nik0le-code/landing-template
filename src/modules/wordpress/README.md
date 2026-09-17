@@ -5,6 +5,8 @@ WordPress as the site's backend, edited in wp-admin and shown with this site's d
 - **Content:** posts (list, categories, post pages, RSS, latest posts on the home
   page) and pages, in every language through Polylang, with SEO, hreflang, sitemap
   entries, and the cache cleared the moment something is published.
+- **The site's own pages:** texts, lists and images of the pages built in code (home,
+  about, services, contact) are editable in wp-admin; empty fields keep the code copy.
 - **Plugins:** anything niche (payment gateways, invoicing, ERP or courier sync,
   forms, SEO) is a WordPress plugin listed in config and configured in wp-admin.
 - **Shop (optional):** WooCommerce behind the `commerce` storefront, with checkout on
@@ -16,7 +18,7 @@ modules: { wordpress: true },
 options: {
   wordpress: {
     shop: false,                              // true: WooCommerce storefront (commerce + woocommerce)
-    content: { posts: true, pages: true },    // false for a WordPress used only for plugins
+    content: { posts: true, pages: true, sitePages: true },   // all false: WordPress only for plugins
     postsPath: "blog",                        // posts at /[lang]/blog (don't enable the blog module too)
     postsPerPage: 9,
     latestOnHome: 3,
@@ -31,6 +33,7 @@ options: {
 ```bash
 npm run wp:up -- --demo     # WordPress on :8088 (admin / admin), demo posts/pages (and shop)
 npm run dev                 # WORDPRESS_URL and WORDPRESS_WEBHOOK_SECRET in .env (wp:up prints them)
+npm run wp:fields           # after changing a page's copy or editable-pages.ts
 npm run wp:down             # stop (-- --volumes deletes the data)
 ```
 
@@ -41,6 +44,41 @@ languages from `site.config.ts`.
 
 The dev server doesn't cache pages, so publishing shows up on reload. To see cache
 invalidation locally, run the production build (`npm run build && npm start`).
+
+## The site's own pages (`content.sitePages`)
+
+Pages built in code keep their layout, sections and SEO structure; editors change what's
+in them. Each page listed in `src/config/editable-pages.ts` has a WordPress page per
+language (created by `wp:up` / `wp:plugins`), shown in wp-admin under Pages with a
+"Page content" screen:
+
+- **Texts:** every string in the page's copy (`src/i18n/locales/<lang>/<page>.json`), one
+  tab per section, the code text shown as the default.
+- **Lists:** FAQ items, features, team members, plans… as repeaters (add, remove, reorder).
+- **Images:** the slots declared in `editable-pages.ts` (hero images, team photos, the
+  services gallery), from the media library.
+
+An empty field shows the code copy; an edited list replaces the list, and empty fields in
+an item fall back to the code item at the same position. "View page" opens the page on
+the site. Fields come from Secure Custom Fields (free; installed automatically).
+
+While this is on, those pages are server-rendered and cached (about 1 ms once cached,
+cleared when a page is saved) instead of prerendered; images from WordPress are served
+in the sizes WordPress generated rather than built by the site. Turn it off and they are
+prerendered again with the code copy.
+
+**Adding a page or an image slot:** add the page to `editable-pages.ts`, read it in the
+page with `const { copy, images } = await getPageContent(Astro, "<key>")`, then run
+`npm run wp:fields`. Changing the JSON copy (new keys, new sections) also needs
+`wp:fields`. Field definitions are written to `wordpress/headless-fields.json` (commit it);
+values already entered in WordPress stay as long as the key names do.
+
+## WordPress's own front end
+
+The bridge sends visitors of WordPress's front end to the same page on the site (posts,
+pages, categories, products, the home page), and "View post/page" in wp-admin lands
+there. Payment steps, the customer account pages, previews, feeds, the REST API and any
+URL with a query string stay on WordPress.
 
 ## Content
 
@@ -97,7 +135,8 @@ wp-admin: updates overwrite it. Put custom code in a small plugin zip instead.
 
 1. WordPress on its own (sub)domain, e.g. `cms.client.gr`, with pretty permalinks as
    above. With `shop`: WooCommerce's "Coming soon" mode off.
-2. Copy `wordpress/headless-bridge.php` to `wp-content/mu-plugins/` and add to
+2. Copy `wordpress/headless-bridge.php` and `wordpress/headless-fields.json` to
+   `wp-content/mu-plugins/` (`npm run wp:fields -- --ssh …` does it) and add to
    `wp-config.php`:
    ```php
    define( 'HEADLESS_SITE_URL', 'https://www.client.gr' );
@@ -107,7 +146,8 @@ wp-admin: updates overwrite it. Put custom code in a small plugin zip instead.
 3. `.env` of the site: `WORDPRESS_URL=https://cms.client.gr` (also at build time, for
    the CSP) and `WORDPRESS_WEBHOOK_SECRET`. `WORDPRESS_MEDIA_URL` when uploads are
    served from another origin (CDN).
-4. `npm run wp:plugins -- --ssh …`, then configure plugins in wp-admin.
+4. `npm run wp:plugins -- --ssh …` (plugins, bridge, site pages), then configure plugins
+   in wp-admin.
 5. Keep WordPress's own front end out of search engines (Settings → Reading →
    discourage indexing, or a redirect to the site): the site is the public front.
 

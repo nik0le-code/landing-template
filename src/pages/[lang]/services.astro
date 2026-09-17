@@ -7,6 +7,7 @@ import HeroCentered from "@/components/sections/HeroCentered.astro";
 import Steps from "@/components/sections/Steps.astro";
 import type { FeatureItem } from "@/components/sections/types";
 import { getDictionary, localeStaticPaths, localizePath } from "@/i18n";
+import { getPageContent } from "@/lib/page-content";
 import g1 from "@/assets/demo/gallery-1.jpg";
 import g2 from "@/assets/demo/gallery-2.jpg";
 import g3 from "@/assets/demo/gallery-3.jpg";
@@ -15,14 +16,18 @@ import g5 from "@/assets/demo/gallery-5.jpg";
 import g6 from "@/assets/demo/gallery-6.jpg";
 
 // Static content → rendered once at build time (HTML + optimized images on disk).
+// While a CMS provides page content (wordpress: content.sitePages), getPageContent makes
+// this page server-rendered and cached instead, so edits appear without a rebuild.
 export const prerender = true;
 export const getStaticPaths = () => localeStaticPaths();
 
 const lang = Astro.locals.lang;
 const dict = getDictionary(lang);
-const copy = dict.services;
+const [{ copy, images }, { copy: home }] = await Promise.all([getPageContent(Astro, "services"), getPageContent(Astro, "home")]);
 const contactHref = localizePath("/contact", lang);
-const gallery = [g1, g2, g3, g4, g5, g6].map((src, i) => ({ src, alt: `${copy.gallery.title} ${i + 1}` }));
+const gallery =
+  images.list("gallery.images")?.map((image, i) => ({ src: image.src, alt: image.alt || `${copy.gallery.title} ${i + 1}` })) ??
+  [g1, g2, g3, g4, g5, g6].map((src, i) => ({ src, alt: `${copy.gallery.title} ${i + 1}` }));
 ---
 
 <PageLayout
@@ -32,7 +37,7 @@ const gallery = [g1, g2, g3, g4, g5, g6].map((src, i) => ({ src, alt: `${copy.ga
   <HeroCentered title={copy.hero.title} description={copy.hero.description} actions={[{ label: copy.hero.primary, href: contactHref }]} />
   <FeatureGrid id="consulting" {...copy.consulting} items={copy.consulting.items as FeatureItem[]} columns={2} highlightFirst tone="muted" />
   <FeatureGrid id="development" {...copy.development} eyebrow={undefined} items={copy.development.items as FeatureItem[]} columns={4} variant="plain" align="left" />
-  <Steps {...dict.home.steps} eyebrow={undefined} steps={dict.home.steps.items} tone="muted" />
+  <Steps {...home.steps} eyebrow={undefined} steps={home.steps.items} tone="muted" />
   <Gallery {...copy.gallery} images={gallery} closeLabel={dict.common.close} />
-  <Cta title={dict.home.cta.title} description={dict.home.cta.description} actions={[{ label: dict.home.cta.primary, href: contactHref }]} />
+  <Cta title={home.cta.title} description={home.cta.description} actions={[{ label: home.cta.primary, href: contactHref }]} />
 </PageLayout>

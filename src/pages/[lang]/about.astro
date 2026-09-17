@@ -7,16 +7,20 @@ import Stats from "@/components/sections/Stats.astro";
 import Team from "@/components/sections/Team.astro";
 import Timeline from "@/components/sections/Timeline.astro";
 import type { FeatureItem } from "@/components/sections/types";
-import { getDictionary, localeStaticPaths, localizePath } from "@/i18n";
+import { localeStaticPaths, localizePath } from "@/i18n";
+import { getPageContent } from "@/lib/page-content";
 import aboutImage from "@/assets/demo/about.jpg";
 
 // Static content → rendered once at build time (HTML + optimized images on disk).
+// While a CMS provides page content (wordpress: content.sitePages), getPageContent makes
+// this page server-rendered and cached instead, so edits appear without a rebuild.
 export const prerender = true;
 export const getStaticPaths = () => localeStaticPaths();
 
 const lang = Astro.locals.lang;
-const dict = getDictionary(lang);
-const copy = dict.about;
+const [{ copy, images }, { copy: home }] = await Promise.all([getPageContent(Astro, "about"), getPageContent(Astro, "home")]);
+const hero = images.get("hero.image");
+const members = copy.team.members.map((member, i) => ({ ...member, photo: images.get(`team.members.${i}.photo`)?.src }));
 const contactHref = localizePath("/contact", lang);
 ---
 
@@ -30,11 +34,11 @@ const contactHref = localizePath("/contact", lang);
     description={copy.hero.description}
     bullets={copy.hero.bullets}
     actions={[{ label: copy.hero.cta, href: contactHref }]}
-    image={{ src: aboutImage, alt: copy.hero.imageAlt }}
+    image={{ src: hero?.src ?? aboutImage, alt: hero?.alt || copy.hero.imageAlt }}
   />
-  <Stats items={dict.home.stats.items} tone="dark" />
+  <Stats items={home.stats.items} tone="dark" />
   <FeatureGrid {...copy.values} items={copy.values.items as FeatureItem[]} variant="plain" />
   <Timeline {...copy.timeline} eyebrow={undefined} tone="muted" />
-  <Team {...copy.team} eyebrow={undefined} />
+  <Team {...copy.team} members={members} eyebrow={undefined} />
   <Cta title={copy.cta.title} description={copy.cta.description} actions={[{ label: copy.cta.primary, href: contactHref }]} variant="banner" />
 </PageLayout>

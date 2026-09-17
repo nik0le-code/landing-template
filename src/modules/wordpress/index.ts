@@ -4,7 +4,8 @@ import el from "./i18n/el.json";
 import en from "./i18n/en.json";
 import "./options";
 
-const postsEnabled = () => (moduleOptions.wordpress?.content as { posts?: boolean } | undefined)?.posts !== false;
+const content = () => (moduleOptions.wordpress?.content ?? {}) as { posts?: boolean; sitePages?: boolean };
+const postsEnabled = () => content().posts !== false;
 
 export default defineModuleRuntime({
   name: "wordpress",
@@ -13,6 +14,8 @@ export default defineModuleRuntime({
     "admin.dashboard": () => import("./components/DashboardWidget.astro"),
   },
   sitemap: async () => (await import("./lib/content")).sitemapEntries(),
+  // null while content.sitePages is off: the site's pages then keep their code copy (and stay prerendered).
+  provides: { pageContent: async () => (content().sitePages === false ? null : (await import("./lib/page-content")).wordpressPageContent) },
   publicNav: [
     {
       path: () => `/${(moduleOptions.wordpress?.postsPath as string | undefined) ?? "blog"}`,
