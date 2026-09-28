@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_site_home_pricing_billing",
+  "info": {
+    "displayName": "Pricing: Billing"
+  },
+  "options": {},
+  "attributes": {
+    "monthly": {
+      "type": "string"
+    },
+    "yearly": {
+      "type": "string"
+    },
+    "note": {
+      "type": "text"
+    }
+  }
+}

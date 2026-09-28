@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_site_services_development_items",
+  "info": {
+    "displayName": "Development: Items"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

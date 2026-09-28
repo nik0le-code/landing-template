@@ -1,0 +1,41 @@
+---
+import type { Locale } from "@site-config";
+import { localeRegions } from "@/i18n";
+import { translateModule } from "@/modules/registry";
+import Card from "@/components/ui/Card.astro";
+import { postsPath, type PostSummary } from "../lib/content";
+import StrapiImage from "./StrapiImage.astro";
+
+interface Props {
+  post: PostSummary;
+  lang: Locale;
+  headingTag?: "h2" | "h3";
+  /** First row of a listing: eager image. */
+  priority?: boolean;
+}
+
+const { post, lang, headingTag: Heading = "h2", priority = false } = Astro.props;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "strapi", key, params);
+const date = new Intl.DateTimeFormat(localeRegions[lang], { dateStyle: "medium" }).format(post.publishedAt);
+---
+
+<Card as="article" padding="none" interactive class="flex h-full flex-col overflow-hidden">
+  {
+    post.image ? (
+      <StrapiImage image={post.image} alt="" sizes="(min-width: 1024px) 24rem, (min-width: 640px) 50vw, 100vw" priority={priority} class="aspect-[16/9] w-full" />
+    ) : (
+      <div class="aspect-[16/9] w-full bg-muted" aria-hidden="true" />
+    )
+  }
+  <div class="flex flex-1 flex-col p-5">
+    <p class="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+      {post.categories[0] && <span class="font-semibold text-foreground">{post.categories[0].name}</span>}
+      <time datetime={post.publishedAt.toISOString()}>{date}</time>
+      <span>· {t("minutes", { n: post.readingMinutes })}</span>
+    </p>
+    <Heading class="mt-2 text-lg font-semibold text-balance">
+      <a href={postsPath(lang, post.slug)} class="after:absolute after:inset-0">{post.title}</a>
+    </Heading>
+    {post.excerpt && <p class="mt-2 line-clamp-3 text-sm text-muted-foreground">{post.excerpt}</p>}
+  </div>
+</Card>

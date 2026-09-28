@@ -1,0 +1,30 @@
+---
+/** Admin dashboard: is Strapi reachable with the token, and is publishing wired to the cache? */
+import { translateModule } from "@/modules/registry";
+import Panel from "@/admin/components/Panel.astro";
+import { strapiConfig } from "../lib/config";
+import { strapiGet, StrapiError } from "../lib/rest";
+
+const lang = Astro.locals.lang;
+const tm = (key: string, params?: Record<string, string | number>) => translateModule(lang, "strapi", key, params);
+const config = strapiConfig();
+const query = { pagination: { pageSize: 1 }, fields: ["slug"] };
+const status = config
+  ? await Promise.all([strapiGet<unknown[]>("/posts", query), strapiGet<unknown[]>("/pages", query)])
+      .then(([posts, pages]) => ({ ok: true as const, posts: posts?.pagination.total ?? 0, pages: pages?.pagination.total ?? 0 }))
+      .catch((error: unknown) => ({ ok: false as const, unauthorized: error instanceof StrapiError && (error.status === 401 || error.status === 403) }))
+  : null;
+---
+
+<Panel title="Strapi">
+  {
+    !config || !status ? (
+      <p class="text-sm text-destructive">{tm("admin.notConfigured")}</p>
+    ) : status.ok ? (
+      <p class="text-sm">{tm("admin.connected", { url: config.url, posts: status.posts, pages: status.pages })}</p>
+    ) : (
+      <p class="text-sm text-destructive">{tm(status.unauthorized ? "admin.unauthorized" : "admin.unreachable", { url: config.url })}</p>
+    )
+  }
+  {config && !config.webhookSecret && <p class="mt-2 text-sm text-muted-foreground">{tm("admin.noWebhook")}</p>}
+</Panel>

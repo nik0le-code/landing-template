@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_site_services_consulting_items",
+  "info": {
+    "displayName": "Consulting: Items"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

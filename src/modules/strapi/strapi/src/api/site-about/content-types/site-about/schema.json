@@ -1,0 +1,80 @@
+{
+  "kind": "singleType",
+  "collectionName": "site_about",
+  "info": {
+    "singularName": "site-about",
+    "pluralName": "site-abouts",
+    "displayName": "Site page: About",
+    "description": "Copy of the site's page /about (empty fields keep the site's copy)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "metaFields": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-about.meta",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "hero": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-about.hero",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "values": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-about.values",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "timeline": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-about.timeline",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "team": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-about.team",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "cta": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-about.cta",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    }
+  }
+}

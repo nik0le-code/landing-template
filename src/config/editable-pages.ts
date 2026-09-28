@@ -16,6 +16,11 @@
 export interface EditableImage {
   type: "image" | "gallery";
   label: string;
+  /**
+   * The image(s) the page shows by default (project paths, the files the page imports).
+   * `npm run strapi:sync` uploads them so the CMS starts with what the site shows.
+   */
+  src?: string | string[];
 }
 
 export interface EditablePage {
@@ -25,15 +30,24 @@ export interface EditablePage {
 }
 
 export const editablePages = {
-  home: { path: "/", images: { "hero.image": { type: "image", label: "Hero image" } } },
+  home: { path: "/", images: { "hero.image": { type: "image", label: "Hero image", src: "src/assets/demo/hero.jpg" } } },
   about: {
     path: "/about",
     images: {
-      "hero.image": { type: "image", label: "Hero image" },
+      "hero.image": { type: "image", label: "Hero image", src: "src/assets/demo/about.jpg" },
       "team.members.photo": { type: "image", label: "Photo" },
     },
   },
-  services: { path: "/services", images: { "gallery.images": { type: "gallery", label: "Gallery images" } } },
+  services: {
+    path: "/services",
+    images: {
+      "gallery.images": {
+        type: "gallery",
+        label: "Gallery images",
+        src: [1, 2, 3, 4, 5, 6].map((n) => `src/assets/demo/gallery-${n}.jpg`),
+      },
+    },
+  },
   contact: { path: "/contact", images: {} },
 } satisfies Record<string, EditablePage>;
 

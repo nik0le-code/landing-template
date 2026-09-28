@@ -13,6 +13,8 @@ COPY . .
 #   docker build --build-arg SITE_URL=https://www.client.gr .
 ARG SITE_URL
 ENV SITE_URL=$SITE_URL
+# Content backends' origins go into the image CSP (img-src, form-action) at build time.
+ARG WORDPRESS_URL WORDPRESS_MEDIA_URL STRAPI_URL STRAPI_MEDIA_URL
 RUN npm run build
 
 # Drop dev dependencies from the runtime image.

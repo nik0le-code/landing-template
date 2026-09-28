@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_site_services_consulting",
+  "info": {
+    "displayName": "Consulting"
+  },
+  "options": {},
+  "attributes": {
+    "eyebrow": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "site-services.consulting-items"
+    }
+  }
+}

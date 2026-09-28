@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_site_about_timeline_items",
+  "info": {
+    "displayName": "Timeline: Items"
+  },
+  "options": {},
+  "attributes": {
+    "date": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

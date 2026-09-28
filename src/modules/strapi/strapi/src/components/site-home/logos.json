@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_site_home_logos",
+  "info": {
+    "displayName": "Logos"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,120 @@
+---
+/**
+ * Strapi posts: /[lang]/<postsPath>, /page/2, /category/<slug>(/page/2).
+ */
+import { siteConfig } from "@site-config";
+import { translateModule } from "@/modules/registry";
+import PageLayout from "@/layouts/PageLayout.astro";
+import Button from "@/components/ui/Button.astro";
+import Section from "@/components/ui/Section.astro";
+import SectionHeading from "@/components/ui/SectionHeading.astro";
+import PostCard from "../components/PostCard.astro";
+import { strapiOptions } from "../lib/config";
+import { categoryPath, getCategoryBySlug, listCategories, listPosts, postsPath, STRAPI_CACHE_TAG, type Category } from "../lib/content";
+
+export const prerender = false;
+
+const lang = Astro.locals.lang;
+const t = (key: string, params?: Record<string, string | number>) => translateModule(lang, "strapi", key, params);
+
+const pageParam = Astro.params.page;
+const page = pageParam === undefined ? 1 : Number(pageParam);
+// /page/1 duplicates the index; non-numeric pages don't exist.
+if (!Number.isInteger(page) || page < 1 || pageParam === "1") return Astro.rewrite("/404");
+
+let result;
+let category: Category | null = null;
+let categories: Category[] = [];
+try {
+  category = Astro.params.category ? await getCategoryBySlug(Astro.params.category, lang) : null;
+  if (Astro.params.category && !category) return Astro.rewrite("/404");
+  [result, categories] = await Promise.all([listPosts({ lang, page, categoryId: category?.documentId }), listCategories(lang)]);
+} catch (error) {
+  console.error("[strapi] posts:", error);
+  return new Response(t("unavailable"), { status: 503, headers: { "Retry-After": "60", "Content-Type": "text/plain; charset=utf-8" } });
+}
+const { items, pages } = result;
+if (page > pages) return Astro.rewrite("/404");
+
+const basePath = (l: string) => (category ? categoryPath(l, category.slug) : postsPath(l));
+const pagePath = (n: number, l: string = lang) => (n === 1 ? basePath(l) : `${basePath(l)}/page/${n}`);
+const heading = category ? category.name : t("title");
+const title = page > 1 ? `${heading} - ${t("page", { n: page })}` : heading;
+
+Astro.cache.set({ maxAge: strapiOptions().cacheSeconds, swr: 3600, tags: [STRAPI_CACHE_TAG] });
+---
+
+<PageLayout
+  seo={{
+    title,
+    description: t("description"),
+    // Category slugs differ per language, so a category page only has itself.
+    alternates: category ? { [lang]: pagePath(page) } : Object.fromEntries(siteConfig.locales.map((l) => [l, pagePath(page, l)])),
+  }}
+  breadcrumbs={[
+    { name: t("title"), path: postsPath(lang) },
+    ...(category ? [{ name: heading, path: basePath(lang) }] : []),
+    ...(page > 1 ? [{ name: t("page", { n: page }), path: pagePath(page) }] : []),
+  ]}
+>
+  <link slot="head" rel="alternate" type="application/rss+xml" title={`${siteConfig.name} - ${t("title")}`} href={`${postsPath(lang)}/rss.xml`} />
+  {page > 1 && <link slot="head" rel="prev" href={pagePath(page - 1)} />}
+  {page < pages && <link slot="head" rel="next" href={pagePath(page + 1)} />}
+
+  <Section spacing="sm">
+    <SectionHeading tag="h1" title={title} description={t("description")} align="left" />
+
+    {
+      categories.length > 0 && (
+        <nav aria-label={t("categories")} class="mt-8">
+          <ul class="flex flex-wrap gap-2">
+            <li>
+              <a
+                href={postsPath(lang)}
+                aria-current={!category ? "page" : undefined}
+                class="block border border-border px-4 py-1.5 text-sm hover:border-foreground/40 aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:text-primary-foreground"
+              >
+                {t("allPosts")}
+              </a>
+            </li>
+            {categories.map((c) => (
+              <li>
+                <a
+                  href={categoryPath(lang, c.slug)}
+                  aria-current={category?.documentId === c.documentId ? "page" : undefined}
+                  class="block border border-border px-4 py-1.5 text-sm hover:border-foreground/40 aria-[current]:border-primary aria-[current]:bg-primary aria-[current]:text-primary-foreground"
+                >
+                  {c.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+
+    {
+      items.length === 0 ? (
+        <p class="mt-12 text-muted-foreground">{t("empty")}</p>
+      ) : (
+        <ul class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((post, index) => (
+            <li>
+              <PostCard post={post} lang={lang} priority={index < 3} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      pages > 1 && (
+        <nav class="mt-12 flex items-center justify-between" aria-label={t("page", { n: page })}>
+          {page > 1 ? <Button href={pagePath(page - 1)} variant="outline">← {t("previous")}</Button> : <span />}
+          <span class="text-sm text-muted-foreground">{page} / {pages}</span>
+          {page < pages ? <Button href={pagePath(page + 1)} variant="outline">{t("next")} →</Button> : <span />}
+        </nav>
+      )
+    }
+  </Section>
+</PageLayout>

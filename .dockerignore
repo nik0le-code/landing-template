@@ -11,3 +11,7 @@ docs
 .env
 .env.*
 !.env.example
+# The Strapi app has its own image (src/modules/strapi/strapi/Dockerfile).
+src/modules/strapi/strapi/node_modules
+src/modules/strapi/strapi/.tmp
+src/modules/strapi/strapi/public/uploads

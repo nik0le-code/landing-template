@@ -50,7 +50,7 @@ Then `npm run build` for anything touching rendering, modules or the server.
 | Editable bits of static pages | `<Component server:defer />` (server island) | Admin edits appear without a rebuild |
 | Admin | server-rendered, `no-store` | Never cached |
 
-| Code pages with CMS-editable copy | `getPageContent(Astro, key)` instead of `getDictionary(lang)[key]` (keys in `src/config/editable-pages.ts`) | Prerendered normally; server-rendered + cached (tag-invalidated) only while a module provides page content (wordpress `content.sitePages`) |
+| Code pages with CMS-editable copy | `getPageContent(Astro, key)` instead of `getDictionary(lang)[key]` (keys in `src/config/editable-pages.ts`) | Prerendered normally; server-rendered + cached (tag-invalidated) only while a module provides page content (wordpress or strapi `content.sitePages`) |
 
 Rules that follow from this:
 
@@ -80,11 +80,16 @@ imports of enabled modules only.
 - `module.json` route patterns may use `{option}` placeholders (`optionDefaults`
   holds the fallback), and `when: "content.pages"` injects a route only when that option
   is truthy.
+- `conflicts: ["wordpress"]` in `module.json` makes two modules mutually exclusive
+  (`strapi` and `wordpress` are alternative content backends).
 - A module can switch others on: `enables: [{ module, when }]`. Building blocks marked
   `internal` (`commerce`, `woocommerce`) are never listed in `modules.config.ts`; they
   follow `shopify` or `wordpress: { shop: true }`.
 - Adding/editing a `db/schema.ts` → `npm run db:generate` (migrations cover every
   module folder, so toggling a module needs no DB step).
+- The `strapi` module runs Strapi in Docker (`npm run strapi:up`, `strapi:fields`); its
+  content types are files in `src/modules/strapi/strapi/src` (the Content-Type Builder is
+  off), and the site reads with a read-only token. See its README.
 - The `shopify` module has a playbook in
   [`.claude/skills/headless-shopify-storefront/`](.claude/skills/headless-shopify-storefront/SKILL.md):
   the Shopify admin steps the client has to do, where the two APIs live, and the

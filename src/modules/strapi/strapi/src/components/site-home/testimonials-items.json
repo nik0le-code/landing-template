@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_site_home_testimonials_items",
+  "info": {
+    "displayName": "Testimonials: Items"
+  },
+  "options": {},
+  "attributes": {
+    "quote": {
+      "type": "text"
+    },
+    "name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "decimal"
+    }
+  }
+}

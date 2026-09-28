@@ -1,0 +1,70 @@
+{
+  "kind": "singleType",
+  "collectionName": "site_services",
+  "info": {
+    "singularName": "site-services",
+    "pluralName": "site-servicess",
+    "displayName": "Site page: Services",
+    "description": "Copy of the site's page /services (empty fields keep the site's copy)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "metaFields": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-services.meta",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "hero": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-services.hero",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "consulting": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-services.consulting",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "development": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-services.development",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "gallery": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-services.gallery",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    }
+  }
+}

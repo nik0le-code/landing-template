@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_site_home_pricing",
+  "info": {
+    "displayName": "Pricing"
+  },
+  "options": {},
+  "attributes": {
+    "eyebrow": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "billing": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.pricing-billing"
+    },
+    "plans": {
+      "type": "component",
+      "repeatable": true,
+      "component": "site-home.pricing-plans"
+    }
+  }
+}

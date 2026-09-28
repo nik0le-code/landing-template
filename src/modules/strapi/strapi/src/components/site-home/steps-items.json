@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_site_home_steps_items",
+  "info": {
+    "displayName": "Steps: Items"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

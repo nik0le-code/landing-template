@@ -218,6 +218,7 @@ export default defineModulesConfig({
 | `blog` | Posts per language linked as translations, Markdown editor, categories, RSS |
 | `catalog` | Products/services with prices, gallery, categories (`basePath` sets the URL) |
 | `wordpress` | WordPress as the backend: posts and pages from wp-admin in the site's design (Polylang, SEO, cache purge on publish), WordPress plugins listed in config (`npm run wp:up`, `wp:plugins`), and the WooCommerce shop with `shop: true` (checkout here: cash on delivery, bank transfer, Viva.com, Piraeus ePay) |
+| `strapi` | Strapi as the backend instead of WordPress: posts, categories and pages written in Strapi in the site's design, the site's own pages editable (localized, SEO, cache purge on publish), a lean local Strapi in Docker (`npm run strapi:up`) |
 | `shopify` | Headless Shopify shop: storefront, filters, cart drawer, Shopify's hosted checkout |
 | `bookings` | Appointment requests with rules, admin workflow, customer emails |
 | `settings` | Announcement bar, socials, notification emails — editable without a redeploy |

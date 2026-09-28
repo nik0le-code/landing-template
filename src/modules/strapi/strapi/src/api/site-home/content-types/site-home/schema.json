@@ -1,0 +1,130 @@
+{
+  "kind": "singleType",
+  "collectionName": "site_home",
+  "info": {
+    "singularName": "site-home",
+    "pluralName": "site-homes",
+    "displayName": "Site page: Home",
+    "description": "Copy of the site's page / (empty fields keep the site's copy)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "metaFields": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.meta",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "hero": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.hero",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "logos": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.logos",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "features": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.features",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "bento": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.bento",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "steps": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.steps",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "stats": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.stats",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "testimonials": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.testimonials",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "pricing": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.pricing",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "faq": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.faq",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "cta": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.cta",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    }
+  }
+}

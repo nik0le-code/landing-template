@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_site_home_faq_items",
+  "info": {
+    "displayName": "Faq: Items"
+  },
+  "options": {},
+  "attributes": {
+    "question": {
+      "type": "string"
+    },
+    "answer": {
+      "type": "text"
+    }
+  }
+}

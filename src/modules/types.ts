@@ -61,6 +61,11 @@ export interface ModuleManifest {
    */
   internal?: boolean;
   /**
+   * Modules that can't be enabled together with this one (e.g. two content backends that
+   * both own the posts routes and page content).
+   */
+  conflicts?: string[];
+  /**
    * The module provides page content (`provides.pageContent`) while this option is truthy
    * (or always, with `true`): pages calling getPageContent() are then server-rendered.
    */

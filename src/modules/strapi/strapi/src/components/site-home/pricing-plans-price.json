@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_site_home_pricing_plans_price",
+  "info": {
+    "displayName": "Pricing: Plans: Price"
+  },
+  "options": {},
+  "attributes": {
+    "monthly": {
+      "type": "string"
+    },
+    "yearly": {
+      "type": "string"
+    }
+  }
+}

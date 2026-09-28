@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_site_home_pricing_plans_features_item",
+  "info": {
+    "displayName": "Features item"
+  },
+  "options": {},
+  "attributes": {
+    "value": {
+      "type": "string"
+    }
+  }
+}

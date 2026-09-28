@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_site_home_bento_items",
+  "info": {
+    "displayName": "Bento: Items"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "size": {
+      "type": "string"
+    },
+    "highlight": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

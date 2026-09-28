@@ -1,0 +1,1712 @@
+{
+  "generatedBy": "npm run strapi:fields",
+  "locales": [
+    "el",
+    "en"
+  ],
+  "defaultLocale": "el",
+  "pages": {
+    "home": {
+      "uid": "api::site-home.site-home",
+      "apiPath": "site-home",
+      "fields": [
+        {
+          "kind": "group",
+          "key": "meta",
+          "attr": "metaFields",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "hero",
+          "attr": "hero",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "badge",
+              "attr": "badge"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "value",
+              "key": "primary",
+              "attr": "primary"
+            },
+            {
+              "kind": "value",
+              "key": "secondary",
+              "attr": "secondary"
+            },
+            {
+              "kind": "value",
+              "key": "imageAlt",
+              "attr": "imageAlt"
+            },
+            {
+              "kind": "image",
+              "key": "image",
+              "attr": "image"
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "logos",
+          "attr": "logos",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "features",
+          "attr": "features",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "icon",
+                  "attr": "icon"
+                },
+                {
+                  "kind": "value",
+                  "key": "title",
+                  "attr": "title"
+                },
+                {
+                  "kind": "value",
+                  "key": "description",
+                  "attr": "description"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "bento",
+          "attr": "bento",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "icon",
+                  "attr": "icon"
+                },
+                {
+                  "kind": "value",
+                  "key": "title",
+                  "attr": "title"
+                },
+                {
+                  "kind": "value",
+                  "key": "description",
+                  "attr": "description"
+                },
+                {
+                  "kind": "value",
+                  "key": "size",
+                  "attr": "size"
+                },
+                {
+                  "kind": "value",
+                  "key": "highlight",
+                  "attr": "highlight"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "steps",
+          "attr": "steps",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "title",
+                  "attr": "title"
+                },
+                {
+                  "kind": "value",
+                  "key": "description",
+                  "attr": "description"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "stats",
+          "attr": "stats",
+          "fields": [
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "value",
+                  "attr": "value"
+                },
+                {
+                  "kind": "value",
+                  "key": "label",
+                  "attr": "label"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "testimonials",
+          "attr": "testimonials",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "quote",
+                  "attr": "quote"
+                },
+                {
+                  "kind": "value",
+                  "key": "name",
+                  "attr": "name"
+                },
+                {
+                  "kind": "value",
+                  "key": "role",
+                  "attr": "role"
+                },
+                {
+                  "kind": "value",
+                  "key": "rating",
+                  "attr": "rating"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "pricing",
+          "attr": "pricing",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "group",
+              "key": "billing",
+              "attr": "billing",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "monthly",
+                  "attr": "monthly"
+                },
+                {
+                  "kind": "value",
+                  "key": "yearly",
+                  "attr": "yearly"
+                },
+                {
+                  "kind": "value",
+                  "key": "note",
+                  "attr": "note"
+                }
+              ]
+            },
+            {
+              "kind": "list",
+              "key": "plans",
+              "attr": "plans",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "name",
+                  "attr": "name"
+                },
+                {
+                  "kind": "value",
+                  "key": "description",
+                  "attr": "description"
+                },
+                {
+                  "kind": "group",
+                  "key": "price",
+                  "attr": "price",
+                  "fields": [
+                    {
+                      "kind": "value",
+                      "key": "monthly",
+                      "attr": "monthly"
+                    },
+                    {
+                      "kind": "value",
+                      "key": "yearly",
+                      "attr": "yearly"
+                    }
+                  ]
+                },
+                {
+                  "kind": "group",
+                  "key": "period",
+                  "attr": "period",
+                  "fields": [
+                    {
+                      "kind": "value",
+                      "key": "monthly",
+                      "attr": "monthly"
+                    },
+                    {
+                      "kind": "value",
+                      "key": "yearly",
+                      "attr": "yearly"
+                    }
+                  ]
+                },
+                {
+                  "kind": "strings",
+                  "key": "features",
+                  "attr": "features"
+                },
+                {
+                  "kind": "value",
+                  "key": "cta",
+                  "attr": "cta"
+                },
+                {
+                  "kind": "value",
+                  "key": "featured",
+                  "attr": "featured"
+                },
+                {
+                  "kind": "value",
+                  "key": "badge",
+                  "attr": "badge"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "faq",
+          "attr": "faq",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "question",
+                  "attr": "question"
+                },
+                {
+                  "kind": "value",
+                  "key": "answer",
+                  "attr": "answer"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "cta",
+          "attr": "cta",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "value",
+              "key": "primary",
+              "attr": "primary"
+            },
+            {
+              "kind": "value",
+              "key": "secondary",
+              "attr": "secondary"
+            }
+          ]
+        }
+      ],
+      "path": "/"
+    },
+    "about": {
+      "uid": "api::site-about.site-about",
+      "apiPath": "site-about",
+      "fields": [
+        {
+          "kind": "group",
+          "key": "meta",
+          "attr": "metaFields",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "hero",
+          "attr": "hero",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "badge",
+              "attr": "badge"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "strings",
+              "key": "bullets",
+              "attr": "bullets"
+            },
+            {
+              "kind": "value",
+              "key": "cta",
+              "attr": "cta"
+            },
+            {
+              "kind": "value",
+              "key": "imageAlt",
+              "attr": "imageAlt"
+            },
+            {
+              "kind": "image",
+              "key": "image",
+              "attr": "image"
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "values",
+          "attr": "values",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "icon",
+                  "attr": "icon"
+                },
+                {
+                  "kind": "value",
+                  "key": "title",
+                  "attr": "title"
+                },
+                {
+                  "kind": "value",
+                  "key": "description",
+                  "attr": "description"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "timeline",
+          "attr": "timeline",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "date",
+                  "attr": "date"
+                },
+                {
+                  "kind": "value",
+                  "key": "title",
+                  "attr": "title"
+                },
+                {
+                  "kind": "value",
+                  "key": "description",
+                  "attr": "description"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "team",
+          "attr": "team",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "list",
+              "key": "members",
+              "attr": "members",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "name",
+                  "attr": "name"
+                },
+                {
+                  "kind": "value",
+                  "key": "role",
+                  "attr": "role"
+                },
+                {
+                  "kind": "value",
+                  "key": "bio",
+                  "attr": "bio"
+                },
+                {
+                  "kind": "image",
+                  "key": "photo",
+                  "attr": "photo"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "cta",
+          "attr": "cta",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "value",
+              "key": "primary",
+              "attr": "primary"
+            }
+          ]
+        }
+      ],
+      "path": "/about"
+    },
+    "services": {
+      "uid": "api::site-services.site-services",
+      "apiPath": "site-services",
+      "fields": [
+        {
+          "kind": "group",
+          "key": "meta",
+          "attr": "metaFields",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "hero",
+          "attr": "hero",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "value",
+              "key": "primary",
+              "attr": "primary"
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "consulting",
+          "attr": "consulting",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "icon",
+                  "attr": "icon"
+                },
+                {
+                  "kind": "value",
+                  "key": "title",
+                  "attr": "title"
+                },
+                {
+                  "kind": "value",
+                  "key": "description",
+                  "attr": "description"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "development",
+          "attr": "development",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            },
+            {
+              "kind": "list",
+              "key": "items",
+              "attr": "items",
+              "fields": [
+                {
+                  "kind": "value",
+                  "key": "icon",
+                  "attr": "icon"
+                },
+                {
+                  "kind": "value",
+                  "key": "title",
+                  "attr": "title"
+                },
+                {
+                  "kind": "value",
+                  "key": "description",
+                  "attr": "description"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "key": "gallery",
+          "attr": "gallery",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "eyebrow",
+              "attr": "eyebrow"
+            },
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "gallery",
+              "key": "images",
+              "attr": "images"
+            }
+          ]
+        }
+      ],
+      "path": "/services"
+    },
+    "contact": {
+      "uid": "api::site-contact.site-contact",
+      "apiPath": "site-contact",
+      "fields": [
+        {
+          "kind": "group",
+          "key": "meta",
+          "attr": "metaFields",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "title",
+              "attr": "title"
+            },
+            {
+              "kind": "value",
+              "key": "description",
+              "attr": "description"
+            }
+          ]
+        },
+        {
+          "kind": "value",
+          "key": "title",
+          "attr": "title"
+        },
+        {
+          "kind": "value",
+          "key": "description",
+          "attr": "description"
+        },
+        {
+          "kind": "group",
+          "key": "labels",
+          "attr": "labels",
+          "fields": [
+            {
+              "kind": "value",
+              "key": "email",
+              "attr": "email"
+            },
+            {
+              "kind": "value",
+              "key": "phone",
+              "attr": "phone"
+            },
+            {
+              "kind": "value",
+              "key": "address",
+              "attr": "address"
+            },
+            {
+              "kind": "value",
+              "key": "hours",
+              "attr": "hours"
+            },
+            {
+              "kind": "value",
+              "key": "writeUs",
+              "attr": "writeUs"
+            }
+          ]
+        }
+      ],
+      "path": "/contact"
+    }
+  },
+  "labels": {
+    "site-home.meta": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Αρχική",
+        "description": "Empty: Αρχική"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Η Acme βοηθά επιχειρήσεις να αναπτυχθούν με σύγχρονες ψηφιακές λύσεις: στρατηγική, ανάπτυξη και υποστήριξη από μία ομ…",
+        "description": "Empty: Η Acme βοηθά επιχειρήσεις να αναπτυχθούν με σύγχρονες ψηφιακές λύσεις: στρατηγική, ανάπτυξη και υποστήριξη από μία ομ…"
+      }
+    },
+    "site-home.hero": {
+      "badge": {
+        "label": "Badge",
+        "placeholder": "Νέο: Υπηρεσίες AI για μικρές επιχειρήσεις",
+        "description": "Empty: Νέο: Υπηρεσίες AI για μικρές επιχειρήσεις"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Αναπτύξτε την επιχείρησή σας χωρίς πολυπλοκότητα",
+        "description": "Empty: Αναπτύξτε την επιχείρησή σας χωρίς πολυπλοκότητα"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Σχεδιάζουμε, υλοποιούμε και υποστηρίζουμε τα ψηφιακά εργαλεία της ομάδας σας, ώστε να εστιάζετε στη δουλειά σας.",
+        "description": "Empty: Σχεδιάζουμε, υλοποιούμε και υποστηρίζουμε τα ψηφιακά εργαλεία της ομάδας σας, ώστε να εστιάζετε στη δουλειά σας."
+      },
+      "primary": {
+        "label": "Primary",
+        "placeholder": "Ξεκινήστε δωρεάν",
+        "description": "Empty: Ξεκινήστε δωρεάν"
+      },
+      "secondary": {
+        "label": "Secondary",
+        "placeholder": "Δείτε πώς λειτουργεί",
+        "description": "Empty: Δείτε πώς λειτουργεί"
+      },
+      "imageAlt": {
+        "label": "Image Alt",
+        "placeholder": "Πίνακας ελέγχου της πλατφόρμας Acme",
+        "description": "Empty: Πίνακας ελέγχου της πλατφόρμας Acme"
+      },
+      "image": {
+        "label": "Hero image",
+        "description": "Empty: the site's own image."
+      }
+    },
+    "site-home.logos": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Μας εμπιστεύονται περισσότερες από 500 επιχειρήσεις",
+        "description": "Empty: Μας εμπιστεύονται περισσότερες από 500 επιχειρήσεις"
+      }
+    },
+    "site-home.features-items": {
+      "icon": {
+        "label": "Icon",
+        "placeholder": "zap",
+        "description": "Empty: zap Icon name from lucide.dev/icons, e.g. zap.",
+        "mainField": true
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Γρήγορη υλοποίηση",
+        "description": "Empty: Γρήγορη υλοποίηση"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Από την ιδέα στην παραγωγή σε εβδομάδες, όχι μήνες.",
+        "description": "Empty: Από την ιδέα στην παραγωγή σε εβδομάδες, όχι μήνες."
+      }
+    },
+    "site-home.features": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Γιατί Acme",
+        "description": "Empty: Γιατί Acme"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Όλα όσα χρειάζεστε, σε ένα μέρος",
+        "description": "Empty: Όλα όσα χρειάζεστε, σε ένα μέρος"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Εργαλεία σχεδιασμένα για ομάδες που θέλουν αποτελέσματα, όχι επιπλέον δουλειά.",
+        "description": "Empty: Εργαλεία σχεδιασμένα για ομάδες που θέλουν αποτελέσματα, όχι επιπλέον δουλειά."
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-home.bento-items": {
+      "icon": {
+        "label": "Icon",
+        "placeholder": "layout-dashboard",
+        "description": "Empty: layout-dashboard Icon name from lucide.dev/icons, e.g. zap.",
+        "mainField": true
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Ενιαίος πίνακας ελέγχου",
+        "description": "Empty: Ενιαίος πίνακας ελέγχου"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Όλα τα δεδομένα της επιχείρησής σας με μια ματιά.",
+        "description": "Empty: Όλα τα δεδομένα της επιχείρησής σας με μια ματιά."
+      },
+      "size": {
+        "label": "Size",
+        "placeholder": "large",
+        "description": "Empty: large"
+      },
+      "highlight": {
+        "label": "Highlight"
+      }
+    },
+    "site-home.bento": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Πλατφόρμα",
+        "description": "Empty: Πλατφόρμα"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Σχεδιασμένη για να μεγαλώνει μαζί σας",
+        "description": "Empty: Σχεδιασμένη για να μεγαλώνει μαζί σας"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Ξεκινήστε με τα βασικά και προσθέστε δυνατότητες όταν τις χρειαστείτε.",
+        "description": "Empty: Ξεκινήστε με τα βασικά και προσθέστε δυνατότητες όταν τις χρειαστείτε."
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-home.steps-items": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Γνωριμία",
+        "description": "Empty: Γνωριμία",
+        "mainField": true
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Συζητάμε τους στόχους σας σε μια δωρεάν κλήση 30 λεπτών.",
+        "description": "Empty: Συζητάμε τους στόχους σας σε μια δωρεάν κλήση 30 λεπτών."
+      }
+    },
+    "site-home.steps": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Πώς λειτουργεί",
+        "description": "Empty: Πώς λειτουργεί"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Τρία βήματα μέχρι το αποτέλεσμα",
+        "description": "Empty: Τρία βήματα μέχρι το αποτέλεσμα"
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-home.stats-items": {
+      "value": {
+        "label": "Value",
+        "placeholder": "500+",
+        "description": "Empty: 500+",
+        "mainField": true
+      },
+      "label": {
+        "label": "Label",
+        "placeholder": "Ενεργοί πελάτες",
+        "description": "Empty: Ενεργοί πελάτες"
+      }
+    },
+    "site-home.stats": {
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-home.testimonials-items": {
+      "quote": {
+        "label": "Quote",
+        "placeholder": "Σε δύο μήνες είχαμε νέα ιστοσελίδα και διπλάσια αιτήματα επικοινωνίας.",
+        "description": "Empty: Σε δύο μήνες είχαμε νέα ιστοσελίδα και διπλάσια αιτήματα επικοινωνίας.",
+        "mainField": true
+      },
+      "name": {
+        "label": "Name",
+        "placeholder": "Μαρία Παπαδοπούλου",
+        "description": "Empty: Μαρία Παπαδοπούλου"
+      },
+      "role": {
+        "label": "Role",
+        "placeholder": "Ιδιοκτήτρια, Ανθός Florist",
+        "description": "Empty: Ιδιοκτήτρια, Ανθός Florist"
+      },
+      "rating": {
+        "label": "Rating",
+        "placeholder": "5",
+        "description": "Empty: 5"
+      }
+    },
+    "site-home.testimonials": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Κριτικές",
+        "description": "Empty: Κριτικές"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Τι λένε οι πελάτες μας",
+        "description": "Empty: Τι λένε οι πελάτες μας"
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-home.pricing-billing": {
+      "monthly": {
+        "label": "Monthly",
+        "placeholder": "Μηνιαία",
+        "description": "Empty: Μηνιαία"
+      },
+      "yearly": {
+        "label": "Yearly",
+        "placeholder": "Ετήσια",
+        "description": "Empty: Ετήσια"
+      },
+      "note": {
+        "label": "Note",
+        "placeholder": "-20%",
+        "description": "Empty: -20%"
+      }
+    },
+    "site-home.pricing-plans-price": {
+      "monthly": {
+        "label": "Monthly",
+        "placeholder": "€19",
+        "description": "Empty: €19"
+      },
+      "yearly": {
+        "label": "Yearly",
+        "placeholder": "€15",
+        "description": "Empty: €15"
+      }
+    },
+    "site-home.pricing-plans-period": {
+      "monthly": {
+        "label": "Monthly",
+        "placeholder": "/μήνα",
+        "description": "Empty: /μήνα"
+      },
+      "yearly": {
+        "label": "Yearly",
+        "placeholder": "/μήνα, ετήσια χρέωση",
+        "description": "Empty: /μήνα, ετήσια χρέωση"
+      }
+    },
+    "site-home.pricing-plans-features-item": {
+      "value": {
+        "label": "Feature",
+        "mainField": true
+      }
+    },
+    "site-home.pricing-plans": {
+      "name": {
+        "label": "Name",
+        "placeholder": "Starter",
+        "description": "Empty: Starter",
+        "mainField": true
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Για ελεύθερους επαγγελματίες.",
+        "description": "Empty: Για ελεύθερους επαγγελματίες."
+      },
+      "price": {
+        "label": "Price"
+      },
+      "period": {
+        "label": "Period"
+      },
+      "features": {
+        "label": "Features",
+        "description": "Empty list: the site's items (1 χρήστης, Βασικές αναφορές, Υποστήριξη μέσω email)."
+      },
+      "cta": {
+        "label": "Call to action",
+        "placeholder": "Ξεκινήστε",
+        "description": "Empty: Ξεκινήστε"
+      },
+      "featured": {
+        "label": "Featured"
+      },
+      "badge": {
+        "label": "Badge",
+        "placeholder": "Δημοφιλέστερο",
+        "description": "Empty: Δημοφιλέστερο"
+      }
+    },
+    "site-home.pricing": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Τιμές",
+        "description": "Empty: Τιμές"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Απλές, διαφανείς τιμές",
+        "description": "Empty: Απλές, διαφανείς τιμές"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Χωρίς κρυφές χρεώσεις. Ακυρώστε όποτε θέλετε.",
+        "description": "Empty: Χωρίς κρυφές χρεώσεις. Ακυρώστε όποτε θέλετε."
+      },
+      "billing": {
+        "label": "Billing"
+      },
+      "plans": {
+        "label": "Plans",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-home.faq-items": {
+      "question": {
+        "label": "Question",
+        "placeholder": "Πόσο γρήγορα μπορούμε να ξεκινήσουμε;",
+        "description": "Empty: Πόσο γρήγορα μπορούμε να ξεκινήσουμε;",
+        "mainField": true
+      },
+      "answer": {
+        "label": "Answer",
+        "placeholder": "Τις περισσότερες φορές μέσα σε μία εβδομάδα από την υπογραφή της πρότασης.",
+        "description": "Empty: Τις περισσότερες φορές μέσα σε μία εβδομάδα από την υπογραφή της πρότασης."
+      }
+    },
+    "site-home.faq": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Συχνές ερωτήσεις",
+        "description": "Empty: Συχνές ερωτήσεις"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Έχετε απορίες;",
+        "description": "Empty: Έχετε απορίες;"
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-home.cta": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Έτοιμοι να κάνετε το επόμενο βήμα;",
+        "description": "Empty: Έτοιμοι να κάνετε το επόμενο βήμα;"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Κλείστε μια δωρεάν συνάντηση γνωριμίας και δείτε τι μπορούμε να πετύχουμε μαζί.",
+        "description": "Empty: Κλείστε μια δωρεάν συνάντηση γνωριμίας και δείτε τι μπορούμε να πετύχουμε μαζί."
+      },
+      "primary": {
+        "label": "Primary",
+        "placeholder": "Κλείστε ραντεβού",
+        "description": "Empty: Κλείστε ραντεβού"
+      },
+      "secondary": {
+        "label": "Secondary",
+        "placeholder": "Δείτε τις τιμές",
+        "description": "Empty: Δείτε τις τιμές"
+      }
+    },
+    "api::site-home.site-home": {
+      "metaFields": {
+        "label": "SEO"
+      },
+      "hero": {
+        "label": "Hero"
+      },
+      "logos": {
+        "label": "Logos"
+      },
+      "features": {
+        "label": "Features"
+      },
+      "bento": {
+        "label": "Bento"
+      },
+      "steps": {
+        "label": "Steps"
+      },
+      "stats": {
+        "label": "Stats"
+      },
+      "testimonials": {
+        "label": "Testimonials"
+      },
+      "pricing": {
+        "label": "Pricing"
+      },
+      "faq": {
+        "label": "Faq"
+      },
+      "cta": {
+        "label": "Call to action"
+      }
+    },
+    "site-about.meta": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Σχετικά με εμάς",
+        "description": "Empty: Σχετικά με εμάς"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Γνωρίστε την ομάδα της Acme, την ιστορία μας και τις αξίες που καθοδηγούν κάθε έργο.",
+        "description": "Empty: Γνωρίστε την ομάδα της Acme, την ιστορία μας και τις αξίες που καθοδηγούν κάθε έργο."
+      }
+    },
+    "site-about.hero-bullets-item": {
+      "value": {
+        "label": "Bullet",
+        "mainField": true
+      }
+    },
+    "site-about.hero": {
+      "badge": {
+        "label": "Badge",
+        "placeholder": "Από το 2014",
+        "description": "Empty: Από το 2014"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Χτίζουμε τεχνολογία με ανθρώπινο πρόσωπο",
+        "description": "Empty: Χτίζουμε τεχνολογία με ανθρώπινο πρόσωπο"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Είμαστε μια ομάδα 25 ανθρώπων στην Αθήνα που πιστεύει ότι η καλή τεχνολογία πρέπει να είναι απλή, γρήγορη και προσβάσ…",
+        "description": "Empty: Είμαστε μια ομάδα 25 ανθρώπων στην Αθήνα που πιστεύει ότι η καλή τεχνολογία πρέπει να είναι απλή, γρήγορη και προσβάσ…"
+      },
+      "bullets": {
+        "label": "Bullets",
+        "description": "Empty list: the site's items (Πάνω από 300 ολοκληρωμένα έργα, Ομάδα με έδρα στην Ελλάδα, Πιστοποιημένοι συνεργάτες cloud)."
+      },
+      "cta": {
+        "label": "Call to action",
+        "placeholder": "Γνωρίστε μας",
+        "description": "Empty: Γνωρίστε μας"
+      },
+      "imageAlt": {
+        "label": "Image Alt",
+        "placeholder": "Η ομάδα της Acme στο γραφείο",
+        "description": "Empty: Η ομάδα της Acme στο γραφείο"
+      },
+      "image": {
+        "label": "Hero image",
+        "description": "Empty: the site's own image."
+      }
+    },
+    "site-about.values-items": {
+      "icon": {
+        "label": "Icon",
+        "placeholder": "target",
+        "description": "Empty: target Icon name from lucide.dev/icons, e.g. zap.",
+        "mainField": true
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Εστίαση στο αποτέλεσμα",
+        "description": "Empty: Εστίαση στο αποτέλεσμα"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Μετράμε την επιτυχία με βάση τη δική σας ανάπτυξη.",
+        "description": "Empty: Μετράμε την επιτυχία με βάση τη δική σας ανάπτυξη."
+      }
+    },
+    "site-about.values": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Οι αξίες μας",
+        "description": "Empty: Οι αξίες μας"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Τι μας καθοδηγεί",
+        "description": "Empty: Τι μας καθοδηγεί"
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-about.timeline-items": {
+      "date": {
+        "label": "Date",
+        "placeholder": "2014",
+        "description": "Empty: 2014",
+        "mainField": true
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Η αρχή",
+        "description": "Empty: Η αρχή"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Δύο φίλοι ξεκινούν την Acme σε ένα μικρό γραφείο στο Παγκράτι.",
+        "description": "Empty: Δύο φίλοι ξεκινούν την Acme σε ένα μικρό γραφείο στο Παγκράτι."
+      }
+    },
+    "site-about.timeline": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Η ιστορία μας",
+        "description": "Empty: Η ιστορία μας"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Από δύο άτομα σε μια ολόκληρη ομάδα",
+        "description": "Empty: Από δύο άτομα σε μια ολόκληρη ομάδα"
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-about.team-members": {
+      "name": {
+        "label": "Name",
+        "placeholder": "Νίκος Αλεξίου",
+        "description": "Empty: Νίκος Αλεξίου",
+        "mainField": true
+      },
+      "role": {
+        "label": "Role",
+        "placeholder": "Συνιδρυτής & CEO",
+        "description": "Empty: Συνιδρυτής & CEO"
+      },
+      "bio": {
+        "label": "Bio",
+        "placeholder": "15 χρόνια στη διοίκηση τεχνολογικών έργων.",
+        "description": "Empty: 15 χρόνια στη διοίκηση τεχνολογικών έργων."
+      },
+      "photo": {
+        "label": "Photo",
+        "description": "Empty: the site's own image."
+      }
+    },
+    "site-about.team": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Η ομάδα",
+        "description": "Empty: Η ομάδα"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Οι άνθρωποι πίσω από την Acme",
+        "description": "Empty: Οι άνθρωποι πίσω από την Acme"
+      },
+      "members": {
+        "label": "Members",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-about.cta": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Θέλετε να δουλέψουμε μαζί;",
+        "description": "Empty: Θέλετε να δουλέψουμε μαζί;"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Πείτε μας για το έργο σας και θα επικοινωνήσουμε μέσα σε μία εργάσιμη.",
+        "description": "Empty: Πείτε μας για το έργο σας και θα επικοινωνήσουμε μέσα σε μία εργάσιμη."
+      },
+      "primary": {
+        "label": "Primary",
+        "placeholder": "Επικοινωνήστε μαζί μας",
+        "description": "Empty: Επικοινωνήστε μαζί μας"
+      }
+    },
+    "api::site-about.site-about": {
+      "metaFields": {
+        "label": "SEO"
+      },
+      "hero": {
+        "label": "Hero"
+      },
+      "values": {
+        "label": "Values"
+      },
+      "timeline": {
+        "label": "Timeline"
+      },
+      "team": {
+        "label": "Team"
+      },
+      "cta": {
+        "label": "Call to action"
+      }
+    },
+    "site-services.meta": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Υπηρεσίες",
+        "description": "Empty: Υπηρεσίες"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Συμβουλευτική, σχεδιασμός και ανάπτυξη ψηφιακών λύσεων για επιχειρήσεις κάθε μεγέθους.",
+        "description": "Empty: Συμβουλευτική, σχεδιασμός και ανάπτυξη ψηφιακών λύσεων για επιχειρήσεις κάθε μεγέθους."
+      }
+    },
+    "site-services.hero": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Υπηρεσίες προσαρμοσμένες στην επιχείρησή σας",
+        "description": "Empty: Υπηρεσίες προσαρμοσμένες στην επιχείρησή σας"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Από τη στρατηγική μέχρι την υλοποίηση και τη συντήρηση, αναλαμβάνουμε ολόκληρο τον κύκλο.",
+        "description": "Empty: Από τη στρατηγική μέχρι την υλοποίηση και τη συντήρηση, αναλαμβάνουμε ολόκληρο τον κύκλο."
+      },
+      "primary": {
+        "label": "Primary",
+        "placeholder": "Ζητήστε προσφορά",
+        "description": "Empty: Ζητήστε προσφορά"
+      }
+    },
+    "site-services.consulting-items": {
+      "icon": {
+        "label": "Icon",
+        "placeholder": "search",
+        "description": "Empty: search Icon name from lucide.dev/icons, e.g. zap.",
+        "mainField": true
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Ανάλυση αναγκών",
+        "description": "Empty: Ανάλυση αναγκών"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Χαρτογράφηση διαδικασιών και εντοπισμός ευκαιριών.",
+        "description": "Empty: Χαρτογράφηση διαδικασιών και εντοπισμός ευκαιριών."
+      }
+    },
+    "site-services.consulting": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Συμβουλευτική",
+        "description": "Empty: Συμβουλευτική"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Στρατηγική που οδηγεί σε αποτελέσματα",
+        "description": "Empty: Στρατηγική που οδηγεί σε αποτελέσματα"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Αναλύουμε τις διαδικασίες σας και προτείνουμε τις λύσεις με τη μεγαλύτερη απόδοση.",
+        "description": "Empty: Αναλύουμε τις διαδικασίες σας και προτείνουμε τις λύσεις με τη μεγαλύτερη απόδοση."
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-services.development-items": {
+      "icon": {
+        "label": "Icon",
+        "placeholder": "code",
+        "description": "Empty: code Icon name from lucide.dev/icons, e.g. zap.",
+        "mainField": true
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Ιστοσελίδες & e-shop",
+        "description": "Empty: Ιστοσελίδες & e-shop"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Γρήγορες, βελτιστοποιημένες για μηχανές αναζήτησης.",
+        "description": "Empty: Γρήγορες, βελτιστοποιημένες για μηχανές αναζήτησης."
+      }
+    },
+    "site-services.development": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Ανάπτυξη",
+        "description": "Empty: Ανάπτυξη"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Λύσεις που χτίζονται για να αντέχουν",
+        "description": "Empty: Λύσεις που χτίζονται για να αντέχουν"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Ιστοσελίδες, εφαρμογές και ενσωματώσεις με έμφαση στην ταχύτητα και την ασφάλεια.",
+        "description": "Empty: Ιστοσελίδες, εφαρμογές και ενσωματώσεις με έμφαση στην ταχύτητα και την ασφάλεια."
+      },
+      "items": {
+        "label": "Items",
+        "description": "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position."
+      }
+    },
+    "site-services.gallery": {
+      "eyebrow": {
+        "label": "Eyebrow",
+        "placeholder": "Έργα",
+        "description": "Empty: Έργα"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Πρόσφατη δουλειά μας",
+        "description": "Empty: Πρόσφατη δουλειά μας"
+      },
+      "images": {
+        "label": "Gallery images",
+        "description": "Empty: the site's own images."
+      }
+    },
+    "api::site-services.site-services": {
+      "metaFields": {
+        "label": "SEO"
+      },
+      "hero": {
+        "label": "Hero"
+      },
+      "consulting": {
+        "label": "Consulting"
+      },
+      "development": {
+        "label": "Development"
+      },
+      "gallery": {
+        "label": "Gallery"
+      }
+    },
+    "site-contact.meta": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Επικοινωνία",
+        "description": "Empty: Επικοινωνία"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Επικοινωνήστε με την Acme για μια δωρεάν συνάντηση γνωριμίας ή οποιαδήποτε απορία.",
+        "description": "Empty: Επικοινωνήστε με την Acme για μια δωρεάν συνάντηση γνωριμίας ή οποιαδήποτε απορία."
+      }
+    },
+    "site-contact.labels": {
+      "email": {
+        "label": "Email",
+        "placeholder": "Email",
+        "description": "Empty: Email"
+      },
+      "phone": {
+        "label": "Phone",
+        "placeholder": "Τηλέφωνο",
+        "description": "Empty: Τηλέφωνο"
+      },
+      "address": {
+        "label": "Address",
+        "placeholder": "Διεύθυνση",
+        "description": "Empty: Διεύθυνση"
+      },
+      "hours": {
+        "label": "Hours",
+        "placeholder": "Ώρες λειτουργίας",
+        "description": "Empty: Ώρες λειτουργίας"
+      },
+      "writeUs": {
+        "label": "Write Us",
+        "placeholder": "Στείλτε μας μήνυμα",
+        "description": "Empty: Στείλτε μας μήνυμα"
+      }
+    },
+    "api::site-contact.site-contact": {
+      "metaFields": {
+        "label": "SEO"
+      },
+      "title": {
+        "label": "Title",
+        "placeholder": "Ας μιλήσουμε",
+        "description": "Empty: Ας μιλήσουμε"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Συμπληρώστε τη φόρμα ή χρησιμοποιήστε τα στοιχεία επικοινωνίας. Απαντάμε μέσα σε μία εργάσιμη ημέρα.",
+        "description": "Empty: Συμπληρώστε τη φόρμα ή χρησιμοποιήστε τα στοιχεία επικοινωνίας. Απαντάμε μέσα σε μία εργάσιμη ημέρα."
+      },
+      "labels": {
+        "label": "Labels"
+      }
+    }
+  }
+}

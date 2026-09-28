@@ -1,0 +1,9 @@
+---
+/** Fills "home.beforeCta" with the latest Strapi posts, when posts are on. */
+import LatestPosts from "./LatestPosts.astro";
+import { strapiOptions } from "../lib/config";
+
+const { content, latestOnHome } = strapiOptions();
+---
+
+{content.posts && latestOnHome > 0 && <LatestPosts server:defer lang={Astro.locals.lang} />}

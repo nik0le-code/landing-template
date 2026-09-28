@@ -1,0 +1,6 @@
+node_modules
+.tmp
+.strapi
+dist
+build
+public/uploads

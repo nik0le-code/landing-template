@@ -1,0 +1,12 @@
+{
+  "collectionName": "components_site_about_hero_bullets_item",
+  "info": {
+    "displayName": "Bullets item"
+  },
+  "options": {},
+  "attributes": {
+    "value": {
+      "type": "string"
+    }
+  }
+}

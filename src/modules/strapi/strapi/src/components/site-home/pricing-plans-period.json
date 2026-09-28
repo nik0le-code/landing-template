@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_site_home_pricing_plans_period",
+  "info": {
+    "displayName": "Pricing: Plans: Period"
+  },
+  "options": {},
+  "attributes": {
+    "monthly": {
+      "type": "string"
+    },
+    "yearly": {
+      "type": "string"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "extends": "astro/tsconfigs/strictest",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "node_modules", "data"],
+  "exclude": ["dist", "node_modules", "data", "src/modules/strapi/strapi"],
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],

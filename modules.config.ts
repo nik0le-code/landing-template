@@ -4,6 +4,8 @@
  *   true   the module is part of the site
  *   false  it contributes nothing: no routes, admin pages, actions or JavaScript
  *
+ * `strapi` and `wordpress` are alternative content backends: enable one of them.
+ *
  * Some modules are building blocks switched on by others' options instead of
  * listed here: `commerce` (by shopify or wordpress.shop) and `woocommerce` (by
  * wordpress.shop).
@@ -24,6 +26,7 @@ export default defineModulesConfig({
     media: false,
     settings: false,
     shopify: false,
+    strapi: false,
     wordpress: true,
   },
 
@@ -49,6 +52,10 @@ export default defineModulesConfig({
     },
     media: { maxUploadMb: 15 },
     shopify: { country: "" },
+    strapi: {
+      content: { posts: true, pages: true, sitePages: true }, // sitePages: home/about/… copy editable in Strapi
+      postsPath: "blog",
+    },
     wordpress: {
       shop: true, // WooCommerce storefront (commerce options below)
       content: { posts: true, pages: true, sitePages: true }, // sitePages: home/about/… copy editable in wp-admin

@@ -1,0 +1,26 @@
+{
+  "nav": "Άρθρα",
+  "title": "Blog",
+  "description": "Νέα, οδηγοί και ιδέες.",
+  "minutes": "{n} λεπτά ανάγνωσης",
+  "by": "Από {name}",
+  "allPosts": "Όλα τα άρθρα",
+  "categories": "Κατηγορίες",
+  "empty": "Δεν υπάρχουν ακόμη άρθρα.",
+  "related": "Σχετικά άρθρα",
+  "onThisPage": "Σε αυτό το άρθρο",
+  "page": "Σελίδα {n}",
+  "previous": "Νεότερα",
+  "next": "Παλαιότερα",
+  "latest": "Τελευταία άρθρα",
+  "latestDescription": "Νέα και οδηγοί από την ομάδα μας.",
+  "updated": "Ενημερώθηκε",
+  "unavailable": "Το περιεχόμενο δεν είναι προσωρινά διαθέσιμο. Δοκιμάστε ξανά σε λίγο.",
+  "admin": {
+    "connected": "Συνδεδεμένο με {url}: {posts} άρθρα, {pages} σελίδες.",
+    "unreachable": "Το Strapi δεν απαντά στο {url}. Ελέγξτε το STRAPI_URL.",
+    "unauthorized": "Το Strapi στο {url} απορρίπτει το STRAPI_TOKEN. Δημιουργήστε ένα read-only API token (npm run strapi:up το κάνει τοπικά).",
+    "notConfigured": "Δεν έχει ρυθμιστεί: ορίστε STRAPI_URL και STRAPI_TOKEN.",
+    "noWebhook": "Δεν έχει οριστεί STRAPI_WEBHOOK_SECRET, οπότε οι αλλαγές στο Strapi εμφανίζονται μόλις λήξει η cache."
+  }
+}

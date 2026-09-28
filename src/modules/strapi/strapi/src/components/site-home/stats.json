@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_site_home_stats",
+  "info": {
+    "displayName": "Stats"
+  },
+  "options": {},
+  "attributes": {
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "site-home.stats-items"
+    }
+  }
+}

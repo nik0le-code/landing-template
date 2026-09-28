@@ -126,6 +126,12 @@ before moving on.
 - `src/config/editable-pages.ts`: page keys, paths, image slots; `npm run wp:fields` generates ACF (Secure Custom Fields) groups from the JSON copy (tabs, groups, repeaters, images, galleries) and creates the WordPress pages per language
 - Bridge 2.2: field groups on the site pages, `headless/v1/page-content/<key>` endpoint, classic editor for them, "View page" links and front-end redirects to the site, cache purge on field saves
 
+### 19. Module: strapi (alternative content backend)
+- `strapi` module: posts, categories, pages (blocks rich text rendered from JSON, SEO component, localized with hreflang, sitemap, RSS, latest on home) and editable site pages (`provides.pageContent`), same routes and options as wordpress
+- Lean Strapi 5 app in `src/modules/strapi/strapi`: production mode, SQLite, no users-permissions/cloud plugins, read-only API token, heap cap; ~200 MB idle
+- `npm run strapi:up / strapi:fields / strapi:down / strapi:secrets / strapi`: Docker, first admin, token, `.env` wiring, demo content; site pages' single types + components generated from the copy (reserved names mapped, labels and placeholders from the code copy)
+- Signed change notifications from a document-service middleware (debounced) → `/api/strapi/webhook`; module manifest `conflicts` (strapi ⟷ wordpress)
+
 ## Progress
 
 - [x] 0 Foundation
@@ -147,3 +153,4 @@ before moving on.
 - [x] 16 Commerce layer + WooCommerce
 - [x] 17 Module: wordpress
 - [x] 18 Editable site pages + WordPress front end
+- [x] 19 Module: strapi

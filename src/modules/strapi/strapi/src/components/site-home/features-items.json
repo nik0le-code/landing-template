@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_site_home_features_items",
+  "info": {
+    "displayName": "Features: Items"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

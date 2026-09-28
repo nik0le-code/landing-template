@@ -1,0 +1,56 @@
+{
+  "kind": "singleType",
+  "collectionName": "site_contact",
+  "info": {
+    "singularName": "site-contact",
+    "pluralName": "site-contacts",
+    "displayName": "Site page: Contact",
+    "description": "Copy of the site's page /contact (empty fields keep the site's copy)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "metaFields": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-contact.meta",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "title": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "description": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "labels": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-contact.labels",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    }
+  }
+}

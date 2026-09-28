@@ -1,0 +1,40 @@
+{
+  "collectionName": "components_site_home_pricing_plans",
+  "info": {
+    "displayName": "Pricing: Plans"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "price": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.pricing-plans-price"
+    },
+    "period": {
+      "type": "component",
+      "repeatable": false,
+      "component": "site-home.pricing-plans-period"
+    },
+    "features": {
+      "type": "component",
+      "repeatable": true,
+      "component": "site-home.pricing-plans-features-item"
+    },
+    "cta": {
+      "type": "string"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": true
+    },
+    "badge": {
+      "type": "string"
+    }
+  }
+}

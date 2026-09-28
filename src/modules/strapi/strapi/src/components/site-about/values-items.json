@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_site_about_values_items",
+  "info": {
+    "displayName": "Values: Items"
+  },
+  "options": {},
+  "attributes": {
+    "icon": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

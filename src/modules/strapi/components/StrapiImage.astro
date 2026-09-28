@@ -1,0 +1,28 @@
+---
+/** A Strapi upload with the renditions Strapi generated as srcset. */
+import { cn } from "@/lib/cn";
+import type { Picture } from "../lib/content";
+
+interface Props {
+  image: Picture;
+  alt?: string;
+  sizes: string;
+  priority?: boolean;
+  class?: string;
+}
+
+const { image, alt, sizes, priority = false, class: className } = Astro.props;
+---
+
+<img
+  src={image.url}
+  srcset={image.srcset ?? undefined}
+  sizes={image.srcset ? sizes : undefined}
+  alt={alt ?? image.alt}
+  width={image.width ?? undefined}
+  height={image.height ?? undefined}
+  loading={priority ? "eager" : "lazy"}
+  fetchpriority={priority ? "high" : undefined}
+  decoding="async"
+  class={cn("bg-muted object-cover", className)}
+/>

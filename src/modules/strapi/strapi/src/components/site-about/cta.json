@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_site_about_cta",
+  "info": {
+    "displayName": "Call to action"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "primary": {
+      "type": "string"
+    }
+  }
+}

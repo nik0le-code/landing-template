@@ -1,0 +1,15 @@
+{
+  "collectionName": "components_site_home_stats_items",
+  "info": {
+    "displayName": "Stats: Items"
+  },
+  "options": {},
+  "attributes": {
+    "value": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    }
+  }
+}

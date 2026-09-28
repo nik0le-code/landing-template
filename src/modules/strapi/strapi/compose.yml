@@ -1,0 +1,32 @@
+# Local Strapi for development (npm run strapi:up). Production uses the same image
+# (see the module README): set real secrets and PUBLIC_URL there.
+name: landing-strapi
+
+services:
+  strapi:
+    build: .
+    ports: ["${STRAPI_PORT:-1337}:1337"]
+    # Change notifications reach the dev server on the host (Linux needs the mapping).
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    environment:
+      PUBLIC_URL: http://localhost:${STRAPI_PORT:-1337}
+      HEADLESS_WEBHOOK_URL: ${HEADLESS_WEBHOOK_URL:-http://host.docker.internal:3000/api/strapi/webhook}
+      HEADLESS_WEBHOOK_SECRET: ${STRAPI_WEBHOOK_SECRET:-}
+      # Local-only secrets; production sets its own (npm run strapi:secrets).
+      APP_KEYS: local-key-1,local-key-2
+      API_TOKEN_SALT: local-api-token-salt
+      ADMIN_JWT_SECRET: local-admin-jwt-secret
+      TRANSFER_TOKEN_SALT: local-transfer-token-salt
+      ENCRYPTION_KEY: local-encryption-key
+    volumes:
+      # Content types and config come from the repo, so `npm run strapi:fields` only needs a restart.
+      - ./src:/opt/app/src:ro
+      - ./config:/opt/app/config:ro
+      - data:/data
+      - uploads:/opt/app/public/uploads
+    mem_limit: 512m
+    restart: unless-stopped
+
+volumes:
+  data: {}
+  uploads: {}

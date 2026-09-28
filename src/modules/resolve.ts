@@ -124,6 +124,9 @@ export function resolveModules(root: string, config: ModulesConfig): ResolvedMod
   for (const name of enabledNames) {
     const options = optionsOf(name);
     const manifest = readManifest(root, name);
+    for (const other of manifest.conflicts ?? []) {
+      if (enabledNames.has(other)) throw new Error(`[modules] "${name}" and "${other}" can't be enabled together. Switch one off in modules.config.ts.`);
+    }
     for (const dependency of manifest.dependsOn ?? []) {
       if (!enabledNames.has(dependency)) {
         throw new Error(`[modules] "${name}" depends on "${dependency}", which is not enabled in modules.config.ts.`);
