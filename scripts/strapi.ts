@@ -6,8 +6,12 @@
  *   npm run strapi:down [-- --volumes]   stop it (--volumes also deletes its data and uploads)
  *   npm run strapi:fields                regenerate the site pages' content types from src/i18n + editable-pages.ts
  *   npm run strapi:sync [-- --force]     fill empty site-page fields with the site's copy and images (--force: all)
+ *   npm run strapi:token [-- --url …]    print a new read-only token for the site (replaces the old one)
  *   npm run strapi:secrets               secrets for a production Strapi (APP_KEYS, salts…)
  *   npm run strapi -- <command>          any Strapi CLI command inside the container
+ *
+ * `sync` and `token` take --url for another Strapi (e.g. `kubectl port-forward`) and log in
+ * with STRAPI_ADMIN_EMAIL / STRAPI_ADMIN_PASSWORD.
  *
  * Strapi runs in production mode (prebuilt admin, no watchers, SQLite), so it idles at
  * about 200 MB. Content types live in src/modules/strapi/strapi/src and are mounted into
@@ -44,6 +48,7 @@ const { positionals, values: flags } = parseArgs({
     volumes: { type: "boolean", default: false },
     port: { type: "string" },
     "site-url": { type: "string" },
+    url: { type: "string" },
   },
 });
 const [command] = positionals;
@@ -61,6 +66,8 @@ const options = () =>
 
 const port = () => String(flags.port ?? process.env.STRAPI_PORT ?? "1337");
 const localUrl = () => `http://localhost:${port()}`;
+/** The Strapi `sync` and `token` talk to: --url (a port-forwarded or remote one) or the local one. */
+const targetUrl = () => (flags.url ? String(flags.url).replace(/\/+$/, "") : localUrl());
 
 // ---------------------------------------------------------------- site pages → content types
 
@@ -295,7 +302,8 @@ async function waitForStrapi(url: string) {
 
 // ---------------------------------------------------------------- admin API
 
-const ADMIN = { email: "admin@example.com", password: "Admin1234", firstname: "Admin" };
+// The local Strapi's admin; a real one is given with STRAPI_ADMIN_EMAIL / STRAPI_ADMIN_PASSWORD.
+const ADMIN = { email: process.env.STRAPI_ADMIN_EMAIL || "admin@example.com", password: process.env.STRAPI_ADMIN_PASSWORD || "Admin1234", firstname: "Admin" };
 
 async function api<T>(url: string, init: RequestInit & { token?: string } = {}): Promise<T> {
   const headers = new Headers(init.headers);
@@ -307,12 +315,15 @@ async function api<T>(url: string, init: RequestInit & { token?: string } = {}):
   return (text ? JSON.parse(text) : null) as T;
 }
 
-/** The first admin (admin@example.com / Admin1234) on a fresh Strapi, then an admin session. */
-async function adminLogin(url: string): Promise<{ jwt: string; created: boolean }> {
+/** An admin session; on a fresh local Strapi (`register`) the first admin is created first. */
+async function adminLogin(url: string, register = false): Promise<{ jwt: string; created: boolean }> {
   const { data } = await api<{ data: { hasAdmin: boolean } }>(`${url}/admin/init`);
-  if (!data.hasAdmin) await api(`${url}/admin/register-admin`, { method: "POST", body: JSON.stringify(ADMIN) });
+  if (!data.hasAdmin) {
+    if (!register) fail(`${url} has no admin yet: open ${url}/admin and create one first.`);
+    await api(`${url}/admin/register-admin`, { method: "POST", body: JSON.stringify(ADMIN) });
+  }
   const login = await api<{ data: { token?: string; accessToken?: string } }>(`${url}/admin/login`, { method: "POST", body: JSON.stringify({ email: ADMIN.email, password: ADMIN.password }) }).catch(() =>
-    fail(`Could not log in as ${ADMIN.email}. If you changed the admin password, set STRAPI_TOKEN in .env to a read-only API token yourself.`),
+    fail(`Could not log in to ${url} as ${ADMIN.email}: set STRAPI_ADMIN_EMAIL / STRAPI_ADMIN_PASSWORD.`),
   );
   const jwt = login.data.accessToken ?? login.data.token;
   if (!jwt) fail("Strapi's admin login returned no token.");
@@ -543,7 +554,7 @@ async function up() {
   compose(["up", "-d", "--build", "--wait"], { STRAPI_WEBHOOK_SECRET: secret, HEADLESS_WEBHOOK_URL: webhookUrl.toString() });
   await waitForStrapi(url);
 
-  const { jwt, created } = await adminLogin(url);
+  const { jwt, created } = await adminLogin(url, true);
   if (created) done(`Admin user created: ${ADMIN.email} / ${ADMIN.password}`);
   let token = process.env.STRAPI_TOKEN;
   if (!(await tokenWorks(url, token)) || process.env.STRAPI_URL !== url) {
@@ -559,7 +570,7 @@ async function up() {
   const { content, postsPath } = options();
   console.log(`
 Strapi is running.
-  admin   ${url}/admin   (${ADMIN.email} / ${ADMIN.password})
+  admin   ${siteUrl}/cms/admin   (${ADMIN.email} / ${ADMIN.password}; the site must be running: npm run dev)
   site    ${siteUrl}${content.posts ? `   posts at /${siteConfig.defaultLocale}/${postsPath}` : ""}
 
 In modules.config.ts: strapi: true. Site pages are under Content Manager → Single Types.`);
@@ -601,9 +612,15 @@ switch (command) {
     await fields();
     break;
   case "sync": {
-    if (!isRunning()) fail("Strapi isn't running: npm run strapi:up");
+    if (!flags.url && !isRunning()) fail("Strapi isn't running: npm run strapi:up (or --url for another Strapi)");
     if (!options().content.sitePages) fail("content.sitePages is off in modules.config.ts: there are no site pages to fill.");
-    await syncSitePages(localUrl(), (await adminLogin(localUrl())).jwt, Boolean(flags.force));
+    await syncSitePages(targetUrl(), (await adminLogin(targetUrl())).jwt, Boolean(flags.force));
+    break;
+  }
+  case "token": {
+    // A new read-only token named "site" (replacing the old one) for STRAPI_TOKEN elsewhere, e.g. Vault.
+    if (!flags.url && !isRunning()) fail("Strapi isn't running: npm run strapi:up (or --url for another Strapi)");
+    console.log(await createSiteToken(targetUrl(), (await adminLogin(targetUrl())).jwt));
     break;
   }
   case "secrets":
@@ -617,5 +634,5 @@ switch (command) {
     break;
   }
   default:
-    fail("Usage: npm run strapi:up | strapi:fields | strapi:sync | strapi:down | strapi:secrets | strapi -- <strapi command>");
+    fail("Usage: npm run strapi:up | strapi:fields | strapi:sync | strapi:token | strapi:down | strapi:secrets | strapi -- <strapi command>");
 }

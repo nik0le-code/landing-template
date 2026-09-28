@@ -457,6 +457,24 @@ npm run brand:assets   # favicons + OG image from public/favicon.svg
 npm run demo:images    # regenerate the placeholder images
 ```
 
+### Running the production image locally
+
+`compose.yml` builds the site from the project `Dockerfile` and runs it on
+http://localhost:3000 with the settings in `.env` (SQLite and uploads in a Docker volume):
+
+```bash
+npm run strapi:up                  # first, when the strapi module is on
+docker compose up -d --build       # build + start the site image
+docker compose logs -f site        # logs
+docker compose down                # stop (-v also deletes the site's data volume)
+```
+
+Rebuild after changing code or `modules.config.ts` (both are baked into the image).
+Inside the container `localhost` is the container itself, so the site reaches Strapi on
+this machine through `host.docker.internal` (the site serves Strapi's images itself, at
+`/uploads`). The container runs the way the k3s landings chart runs it: uid 1000, read-only
+root filesystem, writable `/tmp` and `/app/data` only.
+
 ## 🎯 Best Practices
 
 **Performance is the reason this template exists — these aren't style preferences:**

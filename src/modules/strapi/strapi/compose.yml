@@ -9,7 +9,8 @@ services:
     # Change notifications reach the dev server on the host (Linux needs the mapping).
     extra_hosts: ["host.docker.internal:host-gateway"]
     environment:
-      PUBLIC_URL: http://localhost:${STRAPI_PORT:-1337}
+      # The site's origin: the admin is at <site>/cms/admin (the site proxies /cms here).
+      PUBLIC_URL: ${SITE_URL:-http://localhost:3000}
       HEADLESS_WEBHOOK_URL: ${HEADLESS_WEBHOOK_URL:-http://host.docker.internal:3000/api/strapi/webhook}
       HEADLESS_WEBHOOK_SECRET: ${STRAPI_WEBHOOK_SECRET:-}
       # Local-only secrets; production sets its own (npm run strapi:secrets).
@@ -25,6 +26,11 @@ services:
       - data:/data
       - uploads:/opt/app/public/uploads
     mem_limit: 512m
+    # As in Kubernetes: read-only root, uid 1000 (the image's USER), no capabilities.
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     restart: unless-stopped
 
 volumes:

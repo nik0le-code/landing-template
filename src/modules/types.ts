@@ -32,6 +32,8 @@ export interface ModuleRoute {
    * into the module's options, falling back to `optionDefaults`).
    */
   when?: string;
+  /** Only inject the route when the site has no admin area of its own (e.g. /admin → a CMS). */
+  unlessAdmin?: boolean;
 }
 
 export interface ModuleManifest {

@@ -33,11 +33,13 @@ ENV NODE_ENV=production \
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/drizzle ./drizzle
-COPY --from=build /app/server.mjs ./package.json ./
+COPY --from=build /app/server.mjs /app/package.json ./
 
 # Uploads and the SQLite file live here — mount a volume at /app/data.
-RUN mkdir -p /app/data && chown -R node:node /app/data
-USER node
+RUN mkdir -p /app/data && chown -R 1000:1000 /app/data
+# Numeric (the node user): Kubernetes' runAsNonRoot can't verify a user name. The image
+# also runs with a read-only root filesystem when /tmp and /app/data are writable mounts.
+USER 1000
 VOLUME ["/app/data"]
 EXPOSE 3000
 

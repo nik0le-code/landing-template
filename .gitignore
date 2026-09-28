@@ -25,3 +25,6 @@ npm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .DS_Store
+
+# editor session artifacts (screenshots)
+.nimbalyst/

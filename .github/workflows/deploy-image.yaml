@@ -1,0 +1,77 @@
+# The NOTIXV landings pipeline (k3s repo, 02-environments/landings/astro/README.md step 5),
+# plus the CMS image: with the strapi module on, <repo>-cms is built from the same commit
+# with the same tag. Identical in every client repo; the template itself builds nothing.
+name: Build & publish
+
+on:
+  push:
+    branches: [dev, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: notixv
+  REGION: europe-west3
+  AR_REPO: landings
+
+jobs:
+  build:
+    if: ${{ !github.event.repository.is_template }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: tag
+        name: Derive image tag
+        run: |
+          IMAGE=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
+          SHA=$(git rev-parse --short HEAD)
+          TS=$(date +%s)
+          case "$GITHUB_REF" in
+            refs/heads/dev)  TAG="dev-${SHA}-${TS}" ;;
+            refs/heads/main) TAG="rel-${SHA}-${TS}" ;;
+            *) echo "unexpected ref $GITHUB_REF" >&2; exit 1 ;;
+          esac
+          BASE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}"
+          echo "IMAGE_URL=${BASE}/${IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+          echo "CMS_IMAGE_URL=${BASE}/${IMAGE}-cms:${TAG}" >> "$GITHUB_OUTPUT"
+          echo "SITE_URL=https://${IMAGE}.landings.notixv.com" >> "$GITHUB_OUTPUT"
+          # The CMS image only when modules.config.ts switches strapi on.
+          if grep -Eq '^\s*strapi:\s*true' modules.config.ts; then echo "CMS=true" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/559585018204/locations/global/workloadIdentityPools/github/providers/github
+          service_account: gh-actions@notixv.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.tag.outputs.IMAGE_URL }}
+          build-args: |
+            SITE_URL=${{ steps.tag.outputs.SITE_URL }}
+          cache-from: type=gha,scope=site
+          cache-to: type=gha,mode=max,scope=site
+          provenance: false
+
+      - if: steps.tag.outputs.CMS == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: src/modules/strapi/strapi
+          push: true
+          tags: ${{ steps.tag.outputs.CMS_IMAGE_URL }}
+          cache-from: type=gha,scope=cms
+          cache-to: type=gha,mode=max,scope=cms
+          provenance: false

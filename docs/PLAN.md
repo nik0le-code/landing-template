@@ -131,6 +131,7 @@ before moving on.
 - Lean Strapi 5 app in `src/modules/strapi/strapi`: production mode, SQLite, no users-permissions/cloud plugins, read-only API token, heap cap; ~200 MB idle
 - `npm run strapi:up / strapi:fields / strapi:down / strapi:secrets / strapi`: Docker, first admin, token, `.env` wiring, demo content; site pages' single types + components generated from the copy (reserved names mapped, labels and placeholders from the code copy)
 - Signed change notifications from a document-service middleware (debounced) → `/api/strapi/webhook`; module manifest `conflicts` (strapi ⟷ wordpress)
+- `strapi:sync` fills the site pages with the code copy and default images; k3s-ready: uid 1000 + read-only root for both images, uploads served by the site at `/uploads`, webhook to several sites, build workflow with the `-cms` image, `docs/k3s-strapi.md` for the chart
 
 ## Progress
 

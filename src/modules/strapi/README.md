@@ -31,9 +31,16 @@ options: {
 ## Quick start
 
 ```bash
-npm run strapi:up             # Strapi on :1337, admin user, read-only token, .env written, site pages filled
+npm run strapi:up             # Strapi in Docker, admin user, read-only token, .env written, site pages filled
 npm run dev                   # restart it if it was running: .env changed
 ```
+
+Editors open **`<site>/admin`** (here http://localhost:3000/admin), which redirects to
+Strapi's admin at `/cms/admin`: Strapi lives under `/cms` on the site's own domain, so there
+is no second hostname. Locally the site passes `/cms/*` to Strapi (`pages/cms.ts`); in
+production the proxy in front does (Traefik in the k3s cluster). `/admin` only redirects
+while the site has no admin area of its own (no module with `"admin": true`, e.g. leads);
+with one, editors go to `/cms/admin` directly.
 
 `strapi:up` is safe to run again; it only fills in what's missing. It:
 
@@ -52,6 +59,7 @@ It warns when `strapi` is off in `modules.config.ts` (Strapi still starts) or wh
 ```bash
 npm run strapi:fields         # after changing a page's copy or editable-pages.ts (restarts Strapi, fills new fields)
 npm run strapi:sync           # fill empty site-page fields from the code copy (-- --force: overwrite all)
+npm run strapi:token          # print a new read-only token for the site (replaces the old one)
 npm run strapi -- routes:list # any Strapi CLI command, inside the container
 npm run strapi:down           # stop (-- --volumes deletes the data and uploads)
 ```
@@ -127,24 +135,41 @@ as the key names do. Keys Strapi reserves (`meta`, `status`, `locale`…) are st
 
 ## Production
 
-Strapi runs as its own service, e.g. `cms.client.gr`, from the same image:
+Strapi runs as its own service next to the site, from its own image. On the NOTIXV k3s
+landings pipeline the chart runs it (`strapi: true` in the site file) and the build
+workflow publishes `<repo>-cms` next to `<repo>`: see
+[`docs/k3s-strapi.md`](../../../docs/k3s-strapi.md). Anywhere else:
 
 ```bash
 docker build -t client-strapi src/modules/strapi/strapi
 npm run strapi:secrets        # prints APP_KEYS, salts, ENCRYPTION_KEY, the webhook secret
 ```
 
-1. Run the image with the printed variables, `PUBLIC_URL=https://cms.client.gr`,
-   `IS_PROXIED=true` behind a proxy, and two volumes: `/data` (SQLite database) and
+1. Run the image with the printed variables, `PUBLIC_URL=https://www.client.gr` (the
+   site's origin; Strapi appends `/cms`), and two volumes: `/data` (SQLite database) and
    `/opt/app/public/uploads` (media). Back up both. One replica: SQLite is one file.
+   It runs as uid 1000 with a read-only root filesystem; `/tmp` must be writable.
 2. `HEADLESS_WEBHOOK_URL=https://www.client.gr/api/strapi/webhook` and
-   `HEADLESS_WEBHOOK_SECRET` (same value as the site's `STRAPI_WEBHOOK_SECRET`).
-3. Open `/admin`, create the first admin, then Settings → API Tokens → a **read-only**
-   token with unlimited duration.
-4. Site `.env`: `STRAPI_URL=https://cms.client.gr` (also at build time, for the image
-   CSP: `--build-arg STRAPI_URL=…`), `STRAPI_TOKEN`, `STRAPI_WEBHOOK_SECRET`.
-   `STRAPI_MEDIA_URL` when uploads are served from another origin (an S3/CDN provider).
+   `HEADLESS_WEBHOOK_SECRET` (same value as the site's `STRAPI_WEBHOOK_SECRET`). Several
+   sites (development and production) are comma-separated URLs.
+3. Route `<site>/cms/*` to Strapi with the `/cms` prefix stripped, except `/cms/api/*`
+   (the content API stays internal). Then open `<site>/cms/admin`, create the first admin,
+   and `npm run strapi:token -- --url …` (or Settings → API Tokens → a **read-only** token
+   with unlimited duration).
+4. Site environment (runtime only, nothing at build time): `STRAPI_URL` (the address the
+   site's server reaches Strapi at; an internal one is best), `STRAPI_TOKEN`,
+   `STRAPI_WEBHOOK_SECRET`.
 5. Content types ship with the image: rebuild and redeploy it after `strapi:fields`.
+
+The admin bundle is built for `/cms` with relative URLs (one image works on every host)
+and its session cookies are scoped to `/cms/admin`, so both are fixed at build time: serving
+Strapi under another prefix means changing `CMS_PATH` in `config/server.js` and the cookie
+path in `config/admin.js`, then rebuilding. Every Strapi response carries
+`X-Robots-Tag: noindex`. Browsers load images from the site itself:
+`/uploads/<file>` is streamed from Strapi by the site (`pages/uploads.ts`) with immutable
+caching, so the CSP needs no CMS origin and Strapi's API can stay private.
+`STRAPI_MEDIA_URL` is only for uploads served from elsewhere (an S3/CDN provider); set it
+at build time too, for the CSP.
 
 Memory: the image caps Node's heap at 384 MB (`NODE_OPTIONS`); the compose file limits the
 container to 512 MB. It idles around 200 MB and stays under 250 MB while editing.

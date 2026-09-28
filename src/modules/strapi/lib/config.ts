@@ -10,7 +10,7 @@ import { strapiDefaults, type StrapiOptions } from "../options";
 export interface StrapiConfig {
   /** Strapi origin + path, no trailing slash, e.g. https://cms.client.gr */
   url: string;
-  /** Where uploads are served from (a CDN), defaults to `url`. */
+  /** Origin browsers load uploads from; "" = the site itself (/uploads, pages/uploads.ts). */
   mediaUrl: string;
   token: string;
   webhookSecret: string;
@@ -24,7 +24,7 @@ export function strapiConfig(): StrapiConfig | null {
   cached = url
     ? {
         url,
-        mediaUrl: (getSecret("STRAPI_MEDIA_URL") ?? "").trim().replace(/\/+$/, "") || url,
+        mediaUrl: (getSecret("STRAPI_MEDIA_URL") ?? "").trim().replace(/\/+$/, ""),
         token: (getSecret("STRAPI_TOKEN") ?? "").trim(),
         webhookSecret: (getSecret("STRAPI_WEBHOOK_SECRET") ?? "").trim(),
       }

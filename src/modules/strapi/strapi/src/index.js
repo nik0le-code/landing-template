@@ -10,7 +10,8 @@
 const { createHmac } = require("node:crypto");
 const sitePages = require("./site-pages.json");
 
-const WEBHOOK_URL = process.env.HEADLESS_WEBHOOK_URL || "";
+// Comma-separated: one Strapi can serve several copies of the site (development and production).
+const WEBHOOK_URLS = (process.env.HEADLESS_WEBHOOK_URL || "").split(",").map((url) => url.trim()).filter(Boolean);
 const WEBHOOK_SECRET = process.env.HEADLESS_WEBHOOK_SECRET || "";
 const WRITE_ACTIONS = new Set(["create", "update", "delete", "publish", "unpublish", "discardDraft"]);
 
@@ -19,24 +20,29 @@ let changed = new Set();
 
 /** One notification per burst of writes (publishing a localized entry is several writes). */
 function notifySite(strapi, uid) {
-  if (!WEBHOOK_URL || !WEBHOOK_SECRET) return;
+  if (!WEBHOOK_URLS.length || !WEBHOOK_SECRET) return;
   changed.add(uid);
   if (pending) return;
   pending = setTimeout(async () => {
     const body = JSON.stringify({ event: "change", models: [...changed], at: new Date().toISOString() });
+    const signature = createHmac("sha256", WEBHOOK_SECRET).update(body, "utf8").digest("base64");
     pending = null;
     changed = new Set();
-    try {
-      const response = await fetch(WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Headless-Signature": createHmac("sha256", WEBHOOK_SECRET).update(body, "utf8").digest("base64") },
-        body,
-        signal: AbortSignal.timeout(5000),
-      });
-      if (!response.ok) strapi.log.warn(`[headless] site answered ${response.status} to the change notification`);
-    } catch (error) {
-      strapi.log.warn(`[headless] change notification failed: ${error.message}`);
-    }
+    await Promise.all(
+      WEBHOOK_URLS.map(async (url) => {
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Headless-Signature": signature },
+            body,
+            signal: AbortSignal.timeout(5000),
+          });
+          if (!response.ok) strapi.log.warn(`[headless] ${url} answered ${response.status} to the change notification`);
+        } catch (error) {
+          strapi.log.warn(`[headless] change notification to ${url} failed: ${error.message}`);
+        }
+      }),
+    );
   }, 300);
 }
 
@@ -102,6 +108,6 @@ module.exports = {
   async bootstrap({ strapi }) {
     await ensureLocales(strapi);
     await applyFieldLabels(strapi);
-    if (!WEBHOOK_URL || !WEBHOOK_SECRET) strapi.log.warn("[headless] HEADLESS_WEBHOOK_URL / HEADLESS_WEBHOOK_SECRET not set: the site learns about edits only when its cache expires.");
+    if (!WEBHOOK_URLS.length || !WEBHOOK_SECRET) strapi.log.warn("[headless] HEADLESS_WEBHOOK_URL / HEADLESS_WEBHOOK_SECRET not set: the site learns about edits only when its cache expires.");
   },
 };

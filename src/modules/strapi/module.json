@@ -3,7 +3,9 @@
   "description": "Strapi as the site's content backend: posts, categories and pages written in Strapi rendered with this site's design, editable copy and images of the site's own pages (localized, SEO, sitemap, cache invalidation on publish), and a lean local Strapi in Docker (npm run strapi:up).",
   "admin": false,
   "dependsOn": [],
-  "conflicts": ["wordpress"],
+  "conflicts": [
+    "wordpress"
+  ],
   "optionDefaults": {
     "postsPath": "blog",
     "content": {
@@ -13,17 +15,67 @@
     }
   },
   "csp": {
-    "img-src": ["{env:STRAPI_URL}", "{env:STRAPI_MEDIA_URL}"]
+    "img-src": [
+      "{env:STRAPI_MEDIA_URL}"
+    ]
   },
   "routes": [
-    { "pattern": "/[lang]/{postsPath}", "entrypoint": "./pages/posts.astro", "when": "content.posts" },
-    { "pattern": "/[lang]/{postsPath}/page/[page]", "entrypoint": "./pages/posts.astro", "when": "content.posts" },
-    { "pattern": "/[lang]/{postsPath}/category/[category]", "entrypoint": "./pages/posts.astro", "when": "content.posts" },
-    { "pattern": "/[lang]/{postsPath}/category/[category]/page/[page]", "entrypoint": "./pages/posts.astro", "when": "content.posts" },
-    { "pattern": "/[lang]/{postsPath}/rss.xml", "entrypoint": "./pages/rss.ts", "when": "content.posts" },
-    { "pattern": "/[lang]/{postsPath}/[slug]", "entrypoint": "./pages/post.astro", "when": "content.posts" },
-    { "pattern": "/[lang]/[...path]", "entrypoint": "./pages/page.astro", "when": "content.pages" },
-    { "pattern": "/api/strapi/webhook", "entrypoint": "./pages/webhook.ts" }
+    {
+      "pattern": "/[lang]/{postsPath}",
+      "entrypoint": "./pages/posts.astro",
+      "when": "content.posts"
+    },
+    {
+      "pattern": "/[lang]/{postsPath}/page/[page]",
+      "entrypoint": "./pages/posts.astro",
+      "when": "content.posts"
+    },
+    {
+      "pattern": "/[lang]/{postsPath}/category/[category]",
+      "entrypoint": "./pages/posts.astro",
+      "when": "content.posts"
+    },
+    {
+      "pattern": "/[lang]/{postsPath}/category/[category]/page/[page]",
+      "entrypoint": "./pages/posts.astro",
+      "when": "content.posts"
+    },
+    {
+      "pattern": "/[lang]/{postsPath}/rss.xml",
+      "entrypoint": "./pages/rss.ts",
+      "when": "content.posts"
+    },
+    {
+      "pattern": "/[lang]/{postsPath}/[slug]",
+      "entrypoint": "./pages/post.astro",
+      "when": "content.posts"
+    },
+    {
+      "pattern": "/[lang]/[...path]",
+      "entrypoint": "./pages/page.astro",
+      "when": "content.pages"
+    },
+    {
+      "pattern": "/uploads/[...path]",
+      "entrypoint": "./pages/uploads.ts"
+    },
+    {
+      "pattern": "/cms",
+      "entrypoint": "./pages/cms-root.ts"
+    },
+    {
+      "pattern": "/cms/[...path]",
+      "entrypoint": "./pages/cms.ts"
+    },
+    {
+      "pattern": "/admin",
+      "entrypoint": "./pages/admin-redirect.ts",
+      "unlessAdmin": true
+    },
+    {
+      "pattern": "/api/strapi/webhook",
+      "entrypoint": "./pages/webhook.ts"
+    }
   ],
   "pageContent": "content.sitePages"
 }

@@ -1,0 +1,32 @@
+# The site as it runs in production (the project Dockerfile), on this machine:
+#
+#   npm run strapi:up                 # the CMS, if the strapi module is on
+#   docker compose up -d --build      # the site on http://localhost:3000
+#
+# Settings come from .env. Inside the container "localhost" is the container itself, so
+# the server reaches a CMS running on this machine through host.docker.internal. It runs
+# the way the k3s landings chart runs it: read-only root, uid 1000, no capabilities.
+name: landing-site
+
+services:
+  site:
+    build:
+      context: .
+      args:
+        SITE_URL: ${SITE_URL:-http://localhost:3000}
+    ports: ["${SITE_PORT:-3000}:3000"]
+    env_file: [{ path: .env, required: false }]
+    environment:
+      STRAPI_URL: ${DOCKER_STRAPI_URL:-http://host.docker.internal:1337}
+      DATABASE_URL: file:/app/data/site.db
+      UPLOADS_DIR: /app/data/uploads
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: [data:/app/data]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+
+volumes:
+  data: {}

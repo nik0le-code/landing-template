@@ -175,6 +175,7 @@ export function modulesIntegration(config: ModulesConfig): AstroIntegration {
               return value;
             });
             if (route.when && !optionValue(module.manifest, module.options, route.when)) continue;
+            if (route.unlessAdmin && adminEnabled) continue;
             injectRoute({
               pattern,
               entrypoint: `./${module.dir}/${route.entrypoint.replace(/^\.\//, "")}`,

@@ -64,7 +64,7 @@ export async function strapiGet<T>(path: string, query: Query = {}): Promise<{ d
   }
 }
 
-/** Absolute URL of an upload (Strapi's local provider returns /uploads/…). */
+/** URL of an upload: /uploads/… on the site itself, or on STRAPI_MEDIA_URL (a CDN, an S3 provider's absolute URLs pass through). */
 export function mediaUrl(url: string): string {
   if (/^https?:\/\//.test(url)) return url;
   return `${strapiConfig()?.mediaUrl ?? ""}${url}`;
