@@ -1,6 +1,7 @@
 # The NOTIXV landings pipeline (k3s repo, 02-environments/landings/astro/README.md step 5),
 # plus the CMS image: with the strapi module on, <repo>-cms is built from the same commit
 # with the same tag. Identical in every client repo; the template itself builds nothing.
+# The site is built on the runner, not in Docker, so Astro's resized images can be cached.
 name: Build & publish
 
 on:
@@ -24,7 +25,8 @@ jobs:
   build:
     if: ${{ !github.event.repository.is_template }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # A cold image cache re-encodes every image; that takes minutes, not tens of them.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -46,6 +48,36 @@ jobs:
           # The CMS image only when modules.config.ts switches strapi on.
           if grep -Eq '^\s*strapi:\s*true' modules.config.ts; then echo "CMS=true" >> "$GITHUB_OUTPUT"; fi
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --fund=false
+      - run: npm run images:check
+
+      # Astro's image cache: only images (or widths) the last saved build didn't have are encoded.
+      - id: images-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules/.astro/assets
+          key: astro-images-
+          restore-keys: astro-images-
+      - run: npm run build
+        env:
+          SITE_URL: ${{ steps.tag.outputs.SITE_URL }}
+      - id: images
+        name: Prune the image cache
+        run: |
+          node scripts/images.mjs prune-cache
+          mkdir -p node_modules/.astro/assets
+          echo "key=astro-images-$(ls node_modules/.astro/assets | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      # Saved only when the set of images changed.
+      - if: steps.images.outputs.key != steps.images-restore.outputs.cache-matched-key
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules/.astro/assets
+          key: ${{ steps.images.outputs.key }}
+
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: projects/559585018204/locations/global/workloadIdentityPools/github/providers/github
@@ -60,8 +92,11 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.tag.outputs.IMAGE_URL }}
+          # The build above, instead of building again inside Docker.
           build-args: |
-            SITE_URL=${{ steps.tag.outputs.SITE_URL }}
+            ASTRO_BUILD=prebuilt
+          build-contexts: |
+            dist=./dist
           cache-from: type=gha,scope=site
           cache-to: type=gha,mode=max,scope=site
           provenance: false

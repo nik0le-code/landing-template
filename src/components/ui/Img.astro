@@ -2,7 +2,8 @@
 /**
  * One image component for every source:
  * - imported assets (`import hero from "@/assets/hero.jpg"`) → optimized <picture>
- *   with AVIF/WebP, responsive srcset and intrinsic size (no layout shift);
+ *   with AVIF and a WebP fallback (a copy in the source format would be MBs per width
+ *   for a PNG), responsive srcset and intrinsic size (no layout shift);
  * - imported SVGs → served as-is (vector; rasterizing would only add bytes);
  * - string URLs (uploaded media, remote) → plain <img> with lazy loading.
  *
@@ -55,7 +56,8 @@ const plain =
     <Picture
       src={src as ImageMetadata}
       alt={alt}
-      formats={["avif", "webp"]}
+      formats={["avif"]}
+      fallbackFormat="webp"
       width={width}
       height={height}
       sizes={sizes}

@@ -65,6 +65,9 @@ more than that. Both light and dark values live in this one file.
 **5. `src/assets/demo/*.jpg` — photography.** Replace with the client's real photos,
 keeping the file names (or update the imports in `src/pages/[lang]/*.astro`).
 `npm run demo:images` refills them with neutral placeholders in the meantime.
+Keep each at most 2560px and 1 MB: `npm run images:fix` shrinks them, and
+`npm run check` fails until they fit (every image is encoded at several widths and
+two formats on each build).
 
 **6. `src/content/legal/{el,en}/privacy.md` and `terms.md`.** Markdown with
 `title` / `description` / `updatedAt` frontmatter. The shipped text is a placeholder
@@ -444,7 +447,7 @@ with `trackConversion("lead")` or a `data-track-conversion` attribute.
 ```bash
 npm run setup          # configure a fresh clone for a new client
 npm run dev            # dev server
-npm run check          # astro check — types + templates. THE correctness gate
+npm run check          # astro check (types + templates) + image limits. THE correctness gate
 npm run build          # production build
 npm start              # run the production build locally
 
@@ -455,6 +458,7 @@ npm run admin:create -- --email you@client.gr --name "Your Name"
 npm run module:list    # modules: on/off, dependencies, tables
 npm run brand:assets   # favicons + OG image from public/favicon.svg
 npm run demo:images    # regenerate the placeholder images
+npm run images:fix     # shrink source images over 2560px / 1 MB in place
 ```
 
 ### Running the production image locally
@@ -470,6 +474,8 @@ docker compose down                # stop (-v also deletes the site's data volum
 ```
 
 Rebuild after changing code or `modules.config.ts` (both are baked into the image).
+This builds from source inside Docker; CI builds on the runner instead, where resized
+images are cached between runs, and passes the output in (`ASTRO_BUILD=prebuilt`).
 Inside the container `localhost` is the container itself, so the site reaches Strapi on
 this machine through `host.docker.internal` (the site serves Strapi's images itself, at
 `/uploads`). The container runs the way the k3s landings chart runs it: uid 1000, read-only

@@ -1,13 +1,24 @@
 # syntax=docker/dockerfile:1
 
-# --- build -------------------------------------------------------------------
-FROM node:24-slim AS build
+# Builds the site from source by default (docker compose, a plain docker build). CI builds
+# on the runner, where Astro's image cache survives between runs, and passes the output in:
+#   docker build --build-arg ASTRO_BUILD=prebuilt --build-context dist=./dist .
+ARG ASTRO_BUILD=source
+
+# --- dependencies ------------------------------------------------------------
+FROM node:24-slim AS deps
 WORKDIR /app
 ENV NODE_ENV=development
-
 COPY package*.json ./
 RUN npm ci --no-audit --fund=false
 
+FROM node:24-slim AS prod-deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev --no-audit --fund=false
+
+# --- build -------------------------------------------------------------------
+FROM deps AS build-source
 COPY . .
 # SITE_URL is baked into prerendered pages (canonical/hreflang/OG), so pass it:
 #   docker build --build-arg SITE_URL=https://www.client.gr .
@@ -17,8 +28,10 @@ ENV SITE_URL=$SITE_URL
 ARG WORDPRESS_URL WORDPRESS_MEDIA_URL STRAPI_URL STRAPI_MEDIA_URL
 RUN npm run build
 
-# Drop dev dependencies from the runtime image.
-RUN npm prune --omit=dev
+FROM scratch AS build-prebuilt
+COPY --from=dist / /app/dist/
+
+FROM build-${ASTRO_BUILD} AS build
 
 # --- runtime -----------------------------------------------------------------
 FROM node:24-slim AS runtime
@@ -30,10 +43,10 @@ ENV NODE_ENV=production \
     # sharp/libvips allocate per-thread arenas; capping them keeps RSS predictable.
     MALLOC_ARENA_MAX=2
 
-COPY --from=build /app/node_modules ./node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/drizzle ./drizzle
-COPY --from=build /app/server.mjs /app/package.json ./
+COPY drizzle ./drizzle
+COPY server.mjs package.json ./
 
 # Uploads and the SQLite file live here — mount a volume at /app/data.
 RUN mkdir -p /app/data && chown -R 1000:1000 /app/data

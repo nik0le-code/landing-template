@@ -133,6 +133,15 @@ before moving on.
 - Signed change notifications from a document-service middleware (debounced) → `/api/strapi/webhook`; module manifest `conflicts` (strapi ⟷ wordpress)
 - `strapi:sync` fills the site pages with the code copy and default images; k3s-ready: uid 1000 + read-only root for both images, uploads served by the site at `/uploads`, webhook to several sites, build workflow with the `-cms` image, `docs/k3s-strapi.md` for the chart
 
+### 20. Image build cost + CI image cache
+- Astro images: AVIF at effort 2 (about 6x faster than the default 4, ~5% larger), breakpoints 640/960/1280/1920/2560, AVIF with a WebP fallback instead of a third copy in the source format
+- `npm run images:check` (part of `npm run check` and CI): source images under `src/` at most 2560px and 1 MB; `npm run images:fix` shrinks them in place
+- CI builds on the runner with Astro's image cache restored and saved around it (pruned to what the build used), then `docker build --build-arg ASTRO_BUILD=prebuilt --build-context dist=./dist`; a plain `docker build` still builds from source; 15-minute timeout
+
+### 21. No image encoding at request time
+- Server-rendered pages (editable page content) point code images at `/_image`, which encoded every request: server.mjs serves those from disk instead, baked at build by crawling the built site; misses are encoded one at a time and kept in `/tmp`
+- k3s: Node sites probe `/api/health`, startup probe in the landings chart
+
 ## Progress
 
 - [x] 0 Foundation
@@ -155,3 +164,5 @@ before moving on.
 - [x] 17 Module: wordpress
 - [x] 18 Editable site pages + WordPress front end
 - [x] 19 Module: strapi
+- [x] 20 Image build cost + CI image cache
+- [ ] 21 No image encoding at request time

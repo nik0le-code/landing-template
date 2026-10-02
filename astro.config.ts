@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { defineConfig, envField, fontProviders, memoryCache } from "astro/config";
+import { defineConfig, envField, fontProviders, memoryCache, sharpImageService } from "astro/config";
 import { loadEnv } from "vite";
 import node from "@astrojs/node";
 import react from "@astrojs/react";
@@ -87,6 +87,10 @@ export default defineConfig({
 
   image: {
     responsiveStyles: true,
+    // Every width is one encode per format at build. Originals stay ≤ 2560px (npm run images:check).
+    breakpoints: [640, 960, 1280, 1920, 2560],
+    // AVIF effort 2 encodes ~6x faster than sharp's default 4 for ~5% more bytes.
+    service: sharpImageService({ avif: { effort: 2 } }),
   },
 
   security: {

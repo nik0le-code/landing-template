@@ -38,7 +38,7 @@ languages, brand colour, modules, first admin — all available as flags plus
 `--yes` for unattended runs). It rewrites the config files rather than
 scaffolding new ones, so it is safe to run once, at the start.
 
-**`npm run check` (astro check) is the correctness gate — run it after every change.**
+**`npm run check` (astro check + source image limits) is the correctness gate — run it after every change.**
 Then `npm run build` for anything touching rendering, modules or the server.
 
 ## Rendering model (the reason this template exists)
@@ -148,6 +148,13 @@ AVIF/WebP at several widths **once** and served from disk with immutable caching
 Use `<MediaImage media={…} sizes priority />`, `<MediaField>` (one image) and
 `<MediaGalleryInput>` (ordered list) in forms; `getMediaMap(ids)` to avoid N queries.
 Rich text goes through `renderMarkdown()` (sanitized HTML stored on save).
+
+Images pages import (`src/assets`) are encoded at build into several widths, AVIF
+plus a WebP fallback, so their size is the build's cost: originals stay at most 2560px
+and 1 MB (`npm run images:check`, part of `check`; `npm run images:fix` shrinks them in
+place). A photo saved as PNG doesn't get under that; convert it. CI builds on the runner
+with Astro's image cache restored, and the Dockerfile copies that `dist`
+(`ASTRO_BUILD=prebuilt`); a plain `docker build` builds from source.
 
 ## Conventions
 
