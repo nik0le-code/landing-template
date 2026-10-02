@@ -137,14 +137,30 @@ function generatePage(pageKey: string, copy: Record<string, unknown>, images: Re
         labels[attr] = { label };
         fields.push({ kind: "value", key, attr });
       } else if (Array.isArray(value) && value.every((item) => typeof item === "string")) {
-        const uid = component(`${childPath}.item`, `${humanize(key)} item`, [["value", ""]], { value: { label: humanize(key).replace(/s$/, ""), mainField: true } });
+        // The longest line decides short or long text (short text is capped at 255 characters).
+        const longest = (value as string[]).reduce((a, b) => (b.length > a.length ? b : a), "");
+        const uid = component(`${childPath}.item`, `${humanize(key)} item`, [["value", longest]], { value: { label: humanize(key).replace(/s$/, ""), mainField: true } });
         attributes[attr] = { type: "component", repeatable: true, component: uid };
         labels[attr] = { label, description: `Empty list: the site's items (${hint((value as string[]).join(", "))}).` };
         fields.push({ kind: "strings", key, attr });
       } else if (Array.isArray(value)) {
         // Every key any item uses, in first-seen order; hints from the first item that has it.
+        // Nested lists are pooled across items, so an empty list in the first item (e.g. a
+        // division with no sub-brands) doesn't make the nested list look like plain strings.
         const sample: Record<string, unknown> = {};
-        for (const item of value as Record<string, unknown>[]) for (const [itemKey, itemValue] of Object.entries(item)) if (!(itemKey in sample)) sample[itemKey] = itemValue;
+        for (const item of value as Record<string, unknown>[]) {
+          for (const [itemKey, itemValue] of Object.entries(item)) {
+            if (Array.isArray(itemValue) && Array.isArray(sample[itemKey])) {
+              const pooled = sample[itemKey] as unknown[];
+              // Lists of objects are pooled (every key any item uses); other lists keep the first non-empty one.
+              if (pooled.length === 0) sample[itemKey] = itemValue;
+              else if (itemValue.some((entry) => entry && typeof entry === "object")) sample[itemKey] = [...pooled, ...itemValue];
+            }
+            // A long text further down still gets a long-text field (hints stay the first item's otherwise).
+            else if (typeof itemValue === "string" && typeof sample[itemKey] === "string" && itemValue.length > 80 && (sample[itemKey] as string).length <= 80) sample[itemKey] = itemValue;
+            else if (!(itemKey in sample)) sample[itemKey] = itemValue;
+          }
+        }
         const { uid, fields: children } = group(childPath, Object.entries(sample), true);
         attributes[attr] = { type: "component", repeatable: true, component: uid };
         labels[attr] = { label, description: "Empty list: the site's own items. An edited list replaces them; empty fields in an item keep the site's item at that position." };

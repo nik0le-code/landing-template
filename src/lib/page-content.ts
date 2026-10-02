@@ -58,6 +58,8 @@ function merge(code: Value, edited: Value): Value {
       const strings = edited.map((row) => (isObject(row) ? row.value : row)).filter((item): item is string => typeof item === "string" && item.trim() !== "");
       return strings.length ? strings : code;
     }
+    // Nothing in the code list to take the shape from (items added in the CMS to an empty list).
+    if (code.length === 0) return edited;
     return edited.map((item, index) => merge(code[index] ?? blankLike(code[0]), item));
   }
   if (isObject(code)) {
