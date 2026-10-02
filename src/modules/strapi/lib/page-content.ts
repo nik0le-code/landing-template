@@ -10,7 +10,7 @@ import type { StrapiMedia } from "./blocks";
 import { strapiOptions } from "./config";
 import { STRAPI_CACHE_TAG } from "./content";
 import { mediaUrl, strapiGet, type Query } from "./rest";
-import type { SiteField, SitePagesFile } from "./site-fields";
+import { SITE_DEFAULT_CAPTION, type SiteField, type SitePagesFile } from "./site-fields";
 
 const sitePages = sitePagesJson as unknown as SitePagesFile;
 
@@ -27,6 +27,9 @@ function populateOf(fields: SiteField[]): Query | undefined {
   }
   return Object.keys(populate).length ? populate : undefined;
 }
+
+/** Uploaded by strapi:sync as what the page shows anyway: the page keeps its own copy. */
+const isSiteDefault = (media: StrapiMedia | null | undefined) => media?.caption === SITE_DEFAULT_CAPTION;
 
 function contentImage(media: StrapiMedia | null | undefined): ContentImage | undefined {
   if (!media?.url) return undefined;
@@ -55,10 +58,11 @@ function reshape(fields: SiteField[], raw: Raw): Record<string, unknown> {
         values[field.key] = value;
         break;
       case "image":
-        values[field.key] = contentImage(value as StrapiMedia);
+        if (!isSiteDefault(value as StrapiMedia)) values[field.key] = contentImage(value as StrapiMedia);
         break;
       case "gallery":
-        values[field.key] = (value as StrapiMedia[]).map(contentImage).filter(Boolean);
+        // Only the site's own images: its own gallery. Any other image: the gallery as edited.
+        if (!(value as StrapiMedia[]).every(isSiteDefault)) values[field.key] = (value as StrapiMedia[]).map(contentImage).filter(Boolean);
         break;
       case "group":
         values[field.key] = reshape(field.fields, value as Raw);

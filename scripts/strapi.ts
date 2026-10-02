@@ -5,7 +5,8 @@
  *   npm run strapi:up [-- --demo]        local Strapi in Docker: admin user, read-only token, .env wired
  *   npm run strapi:down [-- --volumes]   stop it (--volumes also deletes its data and uploads)
  *   npm run strapi:fields                regenerate the site pages' content types from src/i18n + editable-pages.ts
- *   npm run strapi:sync [-- --force]     fill empty site-page fields with the site's copy and images (--force: all)
+ *   npm run strapi:sync [-- --force]     fill empty site-page fields with the site's copy and images (--force: all);
+ *                                        images per list item come from src/config/editable-images.ts
  *   npm run strapi:token [-- --url …]    print a new read-only token for the site (replaces the old one)
  *   npm run strapi:secrets               secrets for a production Strapi (APP_KEYS, salts…)
  *   npm run strapi -- <command>          any Strapi CLI command inside the container
@@ -23,11 +24,11 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import path from "node:path";
 import { parseArgs } from "node:util";
 import modulesConfig from "../modules.config";
-import { editablePages, type EditableImage } from "../src/config/editable-pages";
+import { editablePages, type EditableImage, type EditablePage } from "../src/config/editable-pages";
 import { siteConfig } from "../site.config";
 import { mergeOptions } from "../src/modules/merge";
 import { strapiDefaults, type StrapiOptions } from "../src/modules/strapi/options";
-import type { FieldLabel, SiteField, SitePagesFile } from "../src/modules/strapi/lib/site-fields";
+import { SITE_DEFAULT_CAPTION, type FieldLabel, type SiteField, type SitePagesFile } from "../src/modules/strapi/lib/site-fields";
 
 const ROOT = process.cwd();
 const ENV_FILE = path.join(ROOT, ".env");
@@ -176,7 +177,15 @@ function generatePage(pageKey: string, copy: Record<string, unknown>, images: Re
       const key = imagePath.slice(imagePath.lastIndexOf(".") + 1);
       const attr = attrName(key);
       attributes[attr] = { type: "media", multiple: image.type === "gallery", allowedTypes: ["images"] };
-      labels[attr] = { label: image.label, description: image.type === "gallery" ? "Empty: the site's own images." : "Empty: the site's own image." };
+      const shared = image.sameAs && (editablePages[image.sameAs.page as keyof typeof editablePages] as EditablePage | undefined);
+      labels[attr] = {
+        label: image.label,
+        description: shared
+          ? `The same picture as in Site page: ${("label" in shared && shared.label) || humanize(image.sameAs!.page)} (matched by ${image.sameAs!.by}): changing it here changes it there too.`
+          : image.type === "gallery"
+            ? "Empty: the site's own images."
+            : "Empty: the site's own image.",
+      };
       fields.push({ kind: image.type, key, attr });
     }
     return { attributes, labels, fields };
@@ -248,7 +257,12 @@ function writeFieldDefinitions(): boolean {
       pages[key] = { ...generated, path: page.path };
     }
   }
-  const sitePages: SitePagesFile = { generatedBy: "npm run strapi:fields", locales: [...siteConfig.locales], defaultLocale: siteConfig.defaultLocale, pages, labels: out.labels };
+  const links = Object.entries(editablePages).flatMap(([key, page]) =>
+    Object.entries(page.images as Record<string, EditableImage>).flatMap(([imagePath, image]) =>
+      image.sameAs && pages[key] && pages[image.sameAs.page] ? [{ from: { page: key, path: imagePath }, to: { page: image.sameAs.page, path: image.sameAs.path }, by: image.sameAs.by }] : [],
+    ),
+  );
+  const sitePages: SitePagesFile = { generatedBy: "npm run strapi:fields", locales: [...siteConfig.locales], defaultLocale: siteConfig.defaultLocale, pages, links, labels: out.labels };
   out.files.set("src/site-pages.json", json(sitePages));
 
   let changed = 0;
@@ -466,15 +480,62 @@ async function seedDemo(url: string, jwt: string) {
 
 const MIME: Record<string, string> = { ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".avif": "image/avif", ".gif": "image/gif" };
 
-/** Uploads a project file to the media library once (reused by file name); returns its id. */
-async function uploadFile(url: string, jwt: string, file: string): Promise<number> {
+/**
+ * Uploads a project file to the media library once (reused by file name, and caption when
+ * given); returns its id. `file` is relative to the project or absolute.
+ */
+async function uploadFile(url: string, jwt: string, file: string, caption?: string): Promise<number> {
   const name = path.basename(file);
-  const existing = await api<{ results: { id: number }[] }>(`${url}/upload/files?filters[name][$eq]=${encodeURIComponent(name)}&pageSize=1`, { token: jwt });
+  const byCaption = caption ? `&filters[caption][$eq]=${encodeURIComponent(caption)}` : "";
+  const existing = await api<{ results: { id: number }[] }>(`${url}/upload/files?filters[name][$eq]=${encodeURIComponent(name)}${byCaption}&pageSize=1`, { token: jwt });
   if (existing.results[0]) return existing.results[0].id;
   const form = new FormData();
-  form.append("files", new Blob([readFileSync(path.join(ROOT, file))], { type: MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream" }), name);
+  form.append("files", new Blob([readFileSync(path.resolve(ROOT, file))], { type: MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream" }), name);
+  if (caption) form.append("fileInfo", JSON.stringify({ name, caption }));
   const [uploaded] = await api<{ id: number }[]>(`${url}/upload`, { method: "POST", token: jwt, body: form });
   return uploaded!.id;
+}
+
+type ImageSource = string | { src: string };
+type DefaultImage = (item: Record<string, unknown>, index: number) => ImageSource | ImageSource[] | null | undefined;
+type DefaultImages = Record<string, Record<string, DefaultImage>>;
+
+let vite: { close(): Promise<void> } | undefined;
+
+/**
+ * src/config/editable-images.ts, loaded through Astro's Vite config: it imports images and
+ * the site's own modules, so it names the image each item shows without repeating it here.
+ */
+async function loadDefaultImages(): Promise<DefaultImages> {
+  if (!existsSync(path.join(ROOT, "src/config/editable-images.ts"))) return {};
+  const { getViteConfig } = await import("astro/config");
+  const { createServer } = await import("vite");
+  const config = await getViteConfig({ appType: "custom", logLevel: "error", server: { middlewareMode: true, hmr: false }, optimizeDeps: { noDiscovery: true, include: [] }, cacheDir: "node_modules/.vite/strapi-sync" })({ command: "serve", mode: "development" });
+  const server = await createServer({ ...config, configFile: false });
+  vite = server;
+  const loaded = (await server.ssrLoadModule("/src/config/editable-images.ts")) as { defaultImages?: DefaultImages };
+  return loaded.defaultImages ?? {};
+}
+
+/** An imported image (under Vite its src is `/@fs/<file>?origWidth=…`) or a project path, as a file; remote ones are skipped. */
+function imageFile(source: ImageSource | null | undefined): string | undefined {
+  const src = typeof source === "string" ? source : source?.src;
+  if (!src || /^(?:https?:)?\/\//.test(src)) return undefined;
+  if (src.startsWith("/@fs/")) return decodeURIComponent(src.slice("/@fs".length).split("?")[0]!);
+  return path.resolve(ROOT, src.replace(/^\/+/, ""));
+}
+
+/** Where a page's empty image fields come from: editable-images.ts, else `src` in editable-pages.ts. */
+interface PageDefaults {
+  resolvers: Record<string, DefaultImage>;
+  files: Map<string, string[]>;
+  upload: (file: string) => Promise<number>;
+}
+
+async function defaultImageIds(defaults: PageDefaults, imagePath: string, item: Json, index: number): Promise<number[]> {
+  const resolved = defaults.resolvers[imagePath]?.(item, index);
+  const files = (Array.isArray(resolved) ? resolved : [resolved]).map(imageFile).filter((file): file is string => Boolean(file));
+  return Promise.all((files.length ? files : (defaults.files.get(imagePath) ?? [])).map(defaults.upload));
 }
 
 type Json = Record<string, unknown>;
@@ -484,11 +545,16 @@ const mediaId = (value: unknown) => (value && typeof value === "object" && "id" 
 /**
  * The payload for one site page in one language: what's already in Strapi, with every
  * empty field filled from the code copy (all of them with `force`). Components are sent
- * without ids, so Strapi stores them fresh; media as ids.
+ * without ids, so Strapi stores them fresh; media as ids, the image the site shows for an
+ * empty one uploaded as the site's own (SITE_DEFAULT_CAPTION).
  */
-function sitePagePayload(fields: SiteField[], existing: Json | null | undefined, code: unknown, images: Map<string, number[]>, dotPath: string, force: boolean, stats: { filled: number }): Json {
+async function sitePagePayload(fields: SiteField[], existing: Json | null | undefined, code: unknown, defaults: PageDefaults, dotPath: string, index: number, force: boolean, stats: { filled: number }): Promise<Json> {
   const copy = (code && typeof code === "object" ? code : {}) as Json;
   const out: Json = {};
+  // This group or list item as the site shows it (empty fields keep the code copy), for editable-images.ts.
+  const item: Json = Object.fromEntries(
+    fields.filter((field) => field.kind === "value").map((field) => [field.key, force || isEmpty(existing?.[field.attr]) ? copy[field.key] : existing![field.attr]]),
+  );
   for (const field of fields) {
     const current = force ? undefined : existing?.[field.attr];
     const fieldPath = dotPath ? `${dotPath}.${field.key}` : field.key;
@@ -501,18 +567,22 @@ function sitePagePayload(fields: SiteField[], existing: Json | null | undefined,
         out[field.attr] = keep ? (current as Json[]).map((row) => ({ value: row.value })) : ((copy[field.key] as string[] | undefined) ?? []).map((value) => ({ value }));
         break;
       case "image":
-        out[field.attr] = keep ? mediaId(current) : (images.get(fieldPath)?.[0] ?? null);
+        out[field.attr] = keep ? mediaId(current) : ((await defaultImageIds(defaults, fieldPath, item, index))[0] ?? null);
         break;
       case "gallery":
-        out[field.attr] = keep ? (current as unknown[]).map(mediaId) : (images.get(fieldPath) ?? []);
+        out[field.attr] = keep ? (current as unknown[]).map(mediaId) : await defaultImageIds(defaults, fieldPath, item, index);
         break;
       case "group":
-        out[field.attr] = sitePagePayload(field.fields, current as Json | undefined, copy[field.key], images, fieldPath, force, stats);
+        out[field.attr] = await sitePagePayload(field.fields, current as Json | undefined, copy[field.key], defaults, fieldPath, index, force, stats);
         continue;
       case "list": {
         const codeItems = (copy[field.key] as unknown[] | undefined) ?? [];
         const items = keep ? (current as Json[]) : codeItems.map(() => null);
-        out[field.attr] = items.map((item, index) => sitePagePayload(field.fields, item, codeItems[index], images, fieldPath, force, stats));
+        const payloads: Json[] = [];
+        for (const [position, listItem] of items.entries()) {
+          payloads.push(await sitePagePayload(field.fields, listItem, codeItems[position], defaults, fieldPath, position, force, stats));
+        }
+        out[field.attr] = payloads;
         break;
       }
     }
@@ -524,24 +594,32 @@ function sitePagePayload(fields: SiteField[], existing: Json | null | undefined,
 /** Fills the site pages in Strapi with what the site shows (copy in every language, default images). */
 async function syncSitePages(url: string, jwt: string, force: boolean) {
   const sitePages = JSON.parse(readFileSync(path.join(STRAPI_DIR, "src/site-pages.json"), "utf8")) as SitePagesFile;
-  for (const [key, page] of Object.entries(sitePages.pages)) {
-    const images = new Map<string, number[]>();
-    for (const [imagePath, image] of Object.entries(editablePages[key as keyof typeof editablePages].images as Record<string, EditableImage>)) {
-      const files = typeof image.src === "string" ? [image.src] : (image.src ?? []);
-      if (files.length) images.set(imagePath, await Promise.all(files.map((file) => uploadFile(url, jwt, file))));
+  const defaultImages = await loadDefaultImages();
+  // Each file once per run, whichever pages and languages show it.
+  const uploads = new Map<string, Promise<number>>();
+  const upload = (file: string) => uploads.get(file) ?? uploads.set(file, uploadFile(url, jwt, file, SITE_DEFAULT_CAPTION)).get(file)!;
+  try {
+    for (const [key, page] of Object.entries(sitePages.pages)) {
+      const files = new Map<string, string[]>();
+      for (const [imagePath, image] of Object.entries(editablePages[key as keyof typeof editablePages].images as Record<string, EditableImage>)) {
+        files.set(imagePath, typeof image.src === "string" ? [image.src] : (image.src ?? []));
+      }
+      const defaults: PageDefaults = { resolvers: defaultImages[key] ?? {}, files, upload };
+      const filled: string[] = [];
+      for (const lang of sitePages.locales) {
+        const endpoint = `${url}/content-manager/single-types/${page.uid}?locale=${lang}`;
+        const { data } = await api<{ data: Json | null }>(endpoint, { token: jwt }).catch(() => ({ data: null }));
+        const existing = data && "id" in data ? data : null;
+        const stats = { filled: 0 };
+        const payload = await sitePagePayload(page.fields, existing, readDictionary(lang, key), defaults, "", 0, force, stats);
+        if (!stats.filled && existing) continue;
+        await api(endpoint, { method: "PUT", token: jwt, body: JSON.stringify(payload) });
+        filled.push(`${lang} (${stats.filled})`);
+      }
+      info(`Site page "${key}": ${filled.length ? `filled ${filled.join(", ")}` : "up to date"}`);
     }
-    const filled: string[] = [];
-    for (const lang of sitePages.locales) {
-      const endpoint = `${url}/content-manager/single-types/${page.uid}?locale=${lang}`;
-      const { data } = await api<{ data: Json | null }>(endpoint, { token: jwt }).catch(() => ({ data: null }));
-      const existing = data && "id" in data ? data : null;
-      const stats = { filled: 0 };
-      const payload = sitePagePayload(page.fields, existing, readDictionary(lang, key), images, "", force, stats);
-      if (!stats.filled && existing) continue;
-      await api(endpoint, { method: "PUT", token: jwt, body: JSON.stringify(payload) });
-      filled.push(`${lang} (${stats.filled})`);
-    }
-    info(`Site page "${key}": ${filled.length ? `filled ${filled.join(", ")}` : "up to date"}`);
+  } finally {
+    await vite?.close();
   }
 }
 

@@ -109,17 +109,27 @@ Each page in `src/config/editable-pages.ts` gets a single type, "Site page: Home
   and the description, so editors see what an empty field shows.
 - **Lists:** FAQ items, features, team members, plans… as repeatable components.
 - **Images:** the slots declared in `editable-pages.ts`, from the media library. A slot's
-  `src` lists the file(s) the page shows by default; `strapi:sync` uploads them.
+  `src` lists the file(s) the page shows by default; images a page picks per list item
+  (by slug, by position) are named in `src/config/editable-images.ts`. `strapi:sync`
+  uploads them, so every slot shows the picture the page shows. A slot with `sameAs`
+  (`{ page, path, by: "slug" }`) is one picture with another page's slot, item by item:
+  Strapi copies an image chosen on either page to the other (same language), so a home
+  grid and the page it previews stay in step whichever one the editor opens.
 
 `strapi:up` fills every field, in every language, with the site's current copy and uploads
-the page's default images (`src` of each slot in `editable-pages.ts`), so Strapi starts as
-an exact copy of the site. From then on **Strapi is the source of truth** for those pages:
+the page's default images (`src` in `editable-pages.ts`, `editable-images.ts`), so Strapi
+starts as an exact copy of the site. From then on **Strapi is the source of truth** for those pages:
 changing the JSON copy in code no longer shows on the site for fields Strapi has a value
 for. `strapi:sync` only fills fields that are empty (new sections, a cleared field, a new
 language); `strapi:sync -- --force` overwrites everything with the code copy again.
 
 A field cleared in Strapi shows the code copy; an edited list replaces the list, and empty
 fields in an item fall back to the code item at the same position.
+
+Default images are uploaded with the caption "The site's own image". The site ignores
+those and keeps its own optimized copy with its framing (crop, plate), so syncing never
+changes how a page looks; choosing another image in the field is what replaces it.
+Emptying the field shows the site's own image too.
 
 While this is on, those pages are server-rendered and cached (about 2 ms once cached,
 cleared when a site page is saved) instead of prerendered. Turn it off and they are

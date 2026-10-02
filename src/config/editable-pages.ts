@@ -18,9 +18,16 @@ export interface EditableImage {
   label: string;
   /**
    * The image(s) the page shows by default (project paths, the files the page imports).
-   * `npm run strapi:sync` uploads them so the CMS starts with what the site shows.
+   * `npm run strapi:sync` uploads them so the CMS starts with what the site shows. Images
+   * picked per list item (by slug, by position) go in src/config/editable-images.ts.
    */
   src?: string | string[];
+  /**
+   * One picture with another page's image, item by item: the items whose `by` field
+   * matches ("slug") share it, and changing it on either page changes both (Strapi keeps
+   * them in step). For a list shown on two pages, e.g. a home grid of the services page.
+   */
+  sameAs?: { page: string; path: string; by: string };
 }
 
 export interface EditablePage {

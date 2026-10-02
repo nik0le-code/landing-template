@@ -4,6 +4,13 @@
  * Plain Node reads this file too: no imports.
  */
 
+/**
+ * Caption of the images `npm run strapi:sync` uploads as what the site shows by default.
+ * The site keeps its own copy of those (optimized, with its framing); an editor picking
+ * another image is what changes the page.
+ */
+export const SITE_DEFAULT_CAPTION = "The site's own image";
+
 /** One field of a site page: where it sits in the copy (`key`) and in Strapi (`attr`). */
 export type SiteField =
   | { kind: "value"; key: string; attr: string }
@@ -26,6 +33,8 @@ export interface SitePagesFile {
   defaultLocale: string;
   /** Page key → Strapi single type (REST path /api/<apiPath>) and its fields. */
   pages: Record<string, { uid: string; apiPath: string; path: string; fields: SiteField[] }>;
+  /** Image slots that are one picture on two pages (editable-pages.ts `sameAs`), kept in step by Strapi. */
+  links?: { from: { page: string; path: string }; to: { page: string; path: string }; by: string }[];
   /** Content-manager labels per content type / component uid, applied by Strapi on start. */
   labels: Record<string, Record<string, FieldLabel>>;
 }

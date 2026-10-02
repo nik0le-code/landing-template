@@ -10,6 +10,7 @@ import { mediaUrl } from "./rest";
 export interface StrapiMedia {
   url: string;
   alternativeText: string | null;
+  caption?: string | null;
   width: number | null;
   height: number | null;
   formats?: Record<string, { url: string; width: number; height: number }> | null;
