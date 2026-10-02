@@ -176,3 +176,30 @@ container to 512 MB. It idles around 200 MB and stays under 250 MB while editing
 
 The page cache is in memory per site pod: with several replicas only the pod that
 receives a notification is purged at once, the rest within `cacheSeconds`.
+
+## AI assistants (Strapi's MCP server)
+
+Strapi's built-in MCP server answers at `<site>/cms/mcp` (`mcp` in `config/server.js`;
+`MCP_ENABLED=false` on Strapi turns it off). It exposes list, get, create, update, delete,
+publish and unpublish tools for every content type, limited to the permissions of the token
+it is called with.
+It works on every host the site serves, through the same `/cms` route as the admin.
+
+1. In `<site>/cms/admin`: **Settings → Admin Tokens → Create new Admin Token**. Its
+   permissions are chosen there and can never exceed its creator's: give it only the
+   Content Manager permissions for the content types the assistant should edit. Copy the
+   token; Strapi shows it once.
+2. Add the server to the assistant, with the token as a Bearer header:
+
+   ```bash
+   claude mcp add --transport http strapi https://www.client.gr/cms/mcp \
+     --header "Authorization: Bearer <admin token>"
+   ```
+
+   Claude Desktop, Cursor and other clients take the same URL and
+   `Authorization: Bearer <admin token>` header in their MCP settings.
+3. Revoke or regenerate the token in **Settings → Admin Tokens** when it leaks or a person
+   leaves.
+
+Locally it is `http://localhost:1337/mcp` (or `http://localhost:3000/cms/mcp` through the
+site) after `npm run strapi:up`.

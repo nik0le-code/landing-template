@@ -13,4 +13,7 @@ module.exports = ({ env }) => ({
   // No cron, no update checks: nothing runs between requests.
   cron: { enabled: false },
   logger: { updates: { enabled: false } },
+  // Strapi's MCP server at /mcp (<site>/cms/mcp): AI assistants read and edit content with an
+  // Admin Token (Settings → Admin Tokens), limited to the permissions given to that token.
+  mcp: { enabled: env.bool("MCP_ENABLED", true) },
 });
