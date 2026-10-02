@@ -126,10 +126,11 @@ language); `strapi:sync -- --force` overwrites everything with the code copy aga
 A field cleared in Strapi shows the code copy; an edited list replaces the list, and empty
 fields in an item fall back to the code item at the same position.
 
-Default images are uploaded with the caption "The site's own image". The site ignores
-those and keeps its own optimized copy with its framing (crop, plate), so syncing never
-changes how a page looks; choosing another image in the field is what replaces it.
-Emptying the field shows the site's own image too.
+Default images are uploaded with the caption "The site's own image". In the slot it was
+synced for, such an image is the page's own picture: the page keeps its optimized copy
+with its framing (crop, plate), so syncing never changes how a page looks. Any other
+image, including one of those files picked for a different slot, replaces it. Emptying
+the field shows the site's own image too.
 
 While this is on, those pages are server-rendered and cached (about 2 ms once cached,
 cleared when a site page is saved) instead of prerendered. Turn it off and they are

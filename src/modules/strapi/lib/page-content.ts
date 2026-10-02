@@ -28,9 +28,6 @@ function populateOf(fields: SiteField[]): Query | undefined {
   return Object.keys(populate).length ? populate : undefined;
 }
 
-/** Uploaded by strapi:sync as what the page shows anyway: the page keeps its own copy. */
-const isSiteDefault = (media: StrapiMedia | null | undefined) => media?.caption === SITE_DEFAULT_CAPTION;
-
 function contentImage(media: StrapiMedia | null | undefined): ContentImage | undefined {
   if (!media?.url) return undefined;
   const sizes = Object.fromEntries(Object.entries(media.formats ?? {}).map(([name, format]) => [name, mediaUrl(format.url)]));
@@ -40,6 +37,9 @@ function contentImage(media: StrapiMedia | null | undefined): ContentImage | und
     width: media.formats?.large?.width ?? media.width,
     height: media.formats?.large?.height ?? media.height,
     sizes: { ...sizes, full: mediaUrl(media.url) },
+    file: media.name,
+    // Uploaded by strapi:sync; lib/page-content.ts decides whether it is still the slot's own.
+    siteDefault: media.caption === SITE_DEFAULT_CAPTION,
   };
 }
 
@@ -58,11 +58,10 @@ function reshape(fields: SiteField[], raw: Raw): Record<string, unknown> {
         values[field.key] = value;
         break;
       case "image":
-        if (!isSiteDefault(value as StrapiMedia)) values[field.key] = contentImage(value as StrapiMedia);
+        values[field.key] = contentImage(value as StrapiMedia);
         break;
       case "gallery":
-        // Only the site's own images: its own gallery. Any other image: the gallery as edited.
-        if (!(value as StrapiMedia[]).every(isSiteDefault)) values[field.key] = (value as StrapiMedia[]).map(contentImage).filter(Boolean);
+        values[field.key] = (value as StrapiMedia[]).map(contentImage).filter(Boolean);
         break;
       case "group":
         values[field.key] = reshape(field.fields, value as Raw);

@@ -613,7 +613,8 @@ async function syncSitePages(url: string, jwt: string, force: boolean) {
         const stats = { filled: 0 };
         const payload = await sitePagePayload(page.fields, existing, readDictionary(lang, key), defaults, "", 0, force, stats);
         if (!stats.filled && existing) continue;
-        await api(endpoint, { method: "PUT", token: jwt, body: JSON.stringify(payload) });
+        // Marked as the sync, so Strapi doesn't copy these defaults onto pages sharing an image slot.
+      await api(endpoint, { method: "PUT", token: jwt, headers: { "X-Site-Sync": "1" }, body: JSON.stringify(payload) });
         filled.push(`${lang} (${stats.filled})`);
       }
       info(`Site page "${key}": ${filled.length ? `filled ${filled.join(", ")}` : "up to date"}`);

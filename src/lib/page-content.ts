@@ -15,7 +15,8 @@ import type { AstroGlobal } from "astro";
 import type { Locale } from "@site-config";
 import { getDictionary, type Dictionary } from "@/i18n";
 import { modules } from "@/modules/registry";
-import type { EditablePageKey } from "@/config/editable-pages";
+import { editablePages, type EditableImage, type EditablePageKey } from "@/config/editable-pages";
+import { defaultImages } from "@/config/editable-images";
 
 export interface ContentImage {
   /** A large rendition (about 1500px). */
@@ -25,6 +26,10 @@ export interface ContentImage {
   height: number | null;
   /** Other renditions by name (thumbnail, medium, large…), when the CMS provides them. */
   sizes: Record<string, string>;
+  /** The uploaded file's name. */
+  file?: string;
+  /** Uploaded by the CMS sync as some page's own image (it may since have been picked for another slot). */
+  siteDefault?: boolean;
 }
 
 export interface PageContentProvider {
@@ -81,6 +86,29 @@ function at(values: Value, dotPath: string): Value {
   return dotPath.split(".").reduce<Value>((node, key) => (Array.isArray(node) ? node[Number(key)] : isObject(node) ? node[key] : undefined), values);
 }
 
+/** "/_astro/team.Ab3dEf9h.webp", "/@fs/…/team.webp?origWidth=…" or "src/assets/team.webp" → "team.webp". */
+function fileName(source: unknown): string | undefined {
+  const src = typeof source === "string" ? source : isImage(source) ? source.src : undefined;
+  const name = src?.split("?")[0]!.split("/").pop();
+  return name?.replace(/^(.+)\.[\w-]{8}\.(\w+)$/, "$1.$2");
+}
+
+/**
+ * Whether an image the CMS sync put in this slot is still the slot's own picture
+ * (editable-images.ts or `src`): the page then shows its optimized copy with its framing.
+ * The same file picked for another slot is an editor's choice there.
+ */
+function isOwnDefault(key: EditablePageKey, path: string, image: ContentImage, copy: Value): boolean {
+  if (!image.siteDefault || !image.file) return false;
+  const segments = path.split(".");
+  const generic = segments.filter((segment) => !/^\d+$/.test(segment)).join(".");
+  const position = segments.findLastIndex((segment) => /^\d+$/.test(segment));
+  const item = at(copy, segments.slice(0, -1).join("."));
+  const resolved = defaultImages[key]?.[generic]?.(isObject(item) ? item : {}, position >= 0 ? Number(segments[position]) : 0);
+  const declared = (editablePages[key].images as Record<string, EditableImage>)[generic]?.src;
+  return [resolved, declared].flat().some((source) => fileName(source) === image.file);
+}
+
 export interface PageContent<K extends EditablePageKey> {
   copy: Dictionary[K];
   images: {
@@ -107,17 +135,19 @@ export async function getPageContent<K extends EditablePageKey>(astro: Pick<Astr
     }
   }
 
+  const copy = edited ? merge(code, edited) : code;
   return {
-    copy: (edited ? merge(code, edited) : code) as Dictionary[K],
+    copy: copy as Dictionary[K],
     images: {
       get: (path) => {
         const value = edited ? at(edited, path) : undefined;
-        return isImage(value) ? value : undefined;
+        return isImage(value) && !isOwnDefault(key, path, value, copy) ? value : undefined;
       },
       list: (path) => {
         const value = edited ? at(edited, path) : undefined;
         const images = Array.isArray(value) ? value.filter(isImage) : [];
-        return images.length ? images : undefined;
+        // The sync's defaults only: the page's own gallery.
+        return images.length && !images.every((image) => isOwnDefault(key, path, image, copy)) ? images : undefined;
       },
     },
   };

@@ -11,8 +11,8 @@
  * picks per item (by slug, by position) from its own imports, so nothing is listed twice.
  *
  * The site keeps showing its own optimized copy, with its own framing, until an editor
- * picks another image (SITE_DEFAULT_CAPTION in src/modules/strapi/lib/site-fields.ts).
- * Loaded through Vite by the sync script only; pages don't import it.
+ * picks another image: lib/page-content.ts reads this file too, to tell the slot's own
+ * picture (SITE_DEFAULT_CAPTION, same file) from an editor's choice.
  */
 import type { ImageMetadata } from "astro";
 import type { EditablePageKey } from "./editable-pages";

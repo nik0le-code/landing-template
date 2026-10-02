@@ -95,8 +95,6 @@ async function applyFieldLabels(strapi) {
 
 // ---------------------------------------------------------------- shared images
 
-/** As in the site's lib/site-fields.ts: uploaded by strapi:sync as the page's own default. */
-const SITE_DEFAULT_CAPTION = "The site's own image";
 const pageOfUid = new Map(Object.entries(sitePages.pages ?? {}).map(([key, page]) => [page.uid, key]));
 // Both directions: a save on either page updates the other.
 const LINKS = (sitePages.links ?? []).flatMap((link) => [link, { from: link.to, to: link.from, by: link.by }]);
@@ -160,50 +158,65 @@ async function loadPage(strapi, page, locale, topField) {
   return strapi.documents(uid).findFirst({ locale, populate: { [topField.attr]: Object.keys(nested).length ? { populate: nested } : true } });
 }
 
-/** After a save of `page` in `locale`: its shared images, copied onto the other page's matching items. */
-async function mirrorSharedImages(strapi, page, locale) {
+const imageAttr = (chain) => chain[chain.length - 1].attr;
+const byAttr = (chain, by) => (chain[chain.length - 2]?.fields ?? []).find((field) => field.key === by)?.attr;
+
+/** For each link from `page`: its items' images by their `by` value (null: no image). */
+async function sharedPictures(strapi, page, locale) {
+  const shares = [];
   for (const link of LINKS.filter((candidate) => candidate.from.page === page)) {
     const from = fieldsAlong(link.from.page, link.from.path);
-    const to = fieldsAlong(link.to.page, link.to.path);
-    if (!from || !to) continue;
-    const imageAttr = (chain) => chain[chain.length - 1].attr;
-    const byAttr = (chain) => (chain[chain.length - 2]?.fields ?? []).find((field) => field.key === link.by)?.attr;
-    const source = await loadPage(strapi, link.from.page, locale, from[0]);
+    if (!from) continue;
+    const source = await loadPage(strapi, page, locale, from[0]);
     const pictures = new Map();
     for (const item of holders(source?.[from[0].attr], from.slice(1))) {
-      const key = item[byAttr(from)];
-      const media = item[imageAttr(from)];
-      // A default (the page's own picture) stays per page; a picture an editor chose is shared.
-      if (key && media && media.caption !== SITE_DEFAULT_CAPTION) pictures.set(key, media);
+      const key = item[byAttr(from, link.by)];
+      if (key) pictures.set(key, item[imageAttr(from)] ?? null);
     }
-    if (!pictures.size) continue;
-    const target = await loadPage(strapi, link.to.page, locale, to[0]);
+    shares.push({ link, pictures });
+  }
+  return shares;
+}
+
+/** After a save: the images the editor changed on `page`, set on the other page's matching items. */
+async function mirrorSharedImages(strapi, page, locale, before) {
+  for (const { link, pictures } of await sharedPictures(strapi, page, locale)) {
+    const previous = before.find((share) => share.link === link)?.pictures ?? new Map();
+    const changed = [...pictures].filter(([key, media]) => (media?.id ?? null) !== (previous.get(key)?.id ?? null));
+    if (!changed.length) continue;
+    const to = fieldsAlong(link.to.page, link.to.path);
+    const target = to && (await loadPage(strapi, link.to.page, locale, to[0]));
     if (!target) continue;
-    let changed = false;
+    const chosen = new Map(changed);
+    let dirty = false;
     for (const item of holders(target[to[0].attr], to.slice(1))) {
-      const media = pictures.get(item[byAttr(to)]);
-      if (media && item[imageAttr(to)]?.id !== media.id) {
-        item[imageAttr(to)] = media;
-        changed = true;
-      }
+      const key = item[byAttr(to, link.by)];
+      if (!chosen.has(key) || (item[imageAttr(to)]?.id ?? null) === (chosen.get(key)?.id ?? null)) continue;
+      item[imageAttr(to)] = chosen.get(key);
+      dirty = true;
     }
-    if (!changed) continue;
+    if (!dirty) continue;
     await mirroring.run(true, () =>
       strapi.documents(sitePages.pages[link.to.page].uid).update({ documentId: target.documentId, locale, data: { [to[0].attr]: forUpdate(target[to[0].attr], to[0].fields ?? []) } }),
     );
-    strapi.log.info(`[headless] shared images: ${link.from.page} → ${link.to.page} (${locale})`);
+    strapi.log.info(`[headless] shared images: ${link.from.page} → ${link.to.page} (${locale}): ${changed.map(([key]) => key).join(", ")}`);
   }
 }
 
 module.exports = {
   register({ strapi }) {
     strapi.documents.use(async (context, next) => {
+      // Saves of a page with shared images (not strapi:sync filling defaults, not a copy made here).
+      const page = pageOfUid.get(context.uid);
+      const locale = context.params?.locale ?? sitePages.defaultLocale;
+      const shares =
+        page && (context.action === "update" || context.action === "create") && !mirroring.getStore() && !strapi.requestContext.get()?.get("x-site-sync") && LINKS.some((link) => link.from.page === page);
+      const before = shares ? await sharedPictures(strapi, page, locale).catch(() => null) : null;
       const result = await next();
       if (context.uid.startsWith("api::") && WRITE_ACTIONS.has(context.action)) notifySite(strapi, context.uid);
-      const page = pageOfUid.get(context.uid);
-      if (page && (context.action === "update" || context.action === "create") && !mirroring.getStore() && LINKS.some((link) => link.from.page === page)) {
+      if (before) {
         try {
-          await mirrorSharedImages(strapi, page, context.params?.locale ?? sitePages.defaultLocale);
+          await mirrorSharedImages(strapi, page, locale, before);
         } catch (error) {
           strapi.log.warn(`[headless] shared images from ${page}: ${error.message}`);
         }

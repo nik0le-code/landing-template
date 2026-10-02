@@ -6,8 +6,8 @@
 
 /**
  * Caption of the images `npm run strapi:sync` uploads as what the site shows by default.
- * The site keeps its own copy of those (optimized, with its framing); an editor picking
- * another image is what changes the page.
+ * In the slot it was synced for, the site keeps its own copy (optimized, with its
+ * framing); picked anywhere else, it is an editor's choice (src/lib/page-content.ts).
  */
 export const SITE_DEFAULT_CAPTION = "The site's own image";
 
