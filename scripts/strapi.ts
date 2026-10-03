@@ -7,6 +7,8 @@
  *   npm run strapi:fields                regenerate the site pages' content types from src/i18n + editable-pages.ts
  *   npm run strapi:sync [-- --force]     fill empty site-page fields with the site's copy and images (--force: all);
  *                                        images per list item come from src/config/editable-images.ts
+ *   npm run strapi:seed                  write strapi/seed/: what Strapi fills its empty site-page fields with on
+ *                                        every start (strapi/src/index.js); CI runs it before building the image
  *   npm run strapi:token [-- --url …]    print a new read-only token for the site (replaces the old one)
  *   npm run strapi:secrets               secrets for a production Strapi (APP_KEYS, salts…)
  *   npm run strapi -- <command>          any Strapi CLI command inside the container
@@ -529,10 +531,11 @@ function imageFile(source: ImageSource | null | undefined): string | undefined {
 interface PageDefaults {
   resolvers: Record<string, DefaultImage>;
   files: Map<string, string[]>;
-  upload: (file: string) => Promise<number>;
+  /** The media id, or for the seed the file's path in it. */
+  upload: (file: string) => Promise<number | string>;
 }
 
-async function defaultImageIds(defaults: PageDefaults, imagePath: string, item: Json, index: number): Promise<number[]> {
+async function defaultImageIds(defaults: PageDefaults, imagePath: string, item: Json, index: number): Promise<(number | string)[]> {
   const resolved = defaults.resolvers[imagePath]?.(item, index);
   const files = (Array.isArray(resolved) ? resolved : [resolved]).map(imageFile).filter((file): file is string => Boolean(file));
   return Promise.all((files.length ? files : (defaults.files.get(imagePath) ?? [])).map(defaults.upload));
@@ -624,6 +627,49 @@ async function syncSitePages(url: string, jwt: string, force: boolean) {
   }
 }
 
+const SEED_DIR = path.join(STRAPI_DIR, "seed");
+
+/**
+ * The site pages as the site shows them, per page and language, with each empty image's
+ * default as a file under seed/files: what `sync --force` would write into an empty Strapi.
+ * The image carries it and Strapi fills its empty fields from it on every start, where
+ * neither the site's code nor an admin login is at hand. Not committed: CI writes it.
+ */
+async function writeSeed() {
+  const sitePages = JSON.parse(readFileSync(path.join(STRAPI_DIR, "src/site-pages.json"), "utf8")) as SitePagesFile;
+  rmSync(path.join(SEED_DIR, "files"), { recursive: true, force: true });
+  const defaultImages = Object.keys(sitePages.pages).length ? await loadDefaultImages() : {};
+  const copied = new Set<string>();
+  const upload = async (file: string) => {
+    const relative = path.relative(ROOT, path.resolve(ROOT, file));
+    if (relative.startsWith("..")) fail(`Default image outside the project: ${file}`);
+    const target = path.join("files", relative);
+    if (!copied.has(target)) {
+      mkdirSync(path.dirname(path.join(SEED_DIR, target)), { recursive: true });
+      writeFileSync(path.join(SEED_DIR, target), readFileSync(path.join(ROOT, relative)));
+      copied.add(target);
+    }
+    return target;
+  };
+  const pages: Record<string, Record<string, Json>> = {};
+  try {
+    for (const [key, page] of Object.entries(sitePages.pages)) {
+      const files = new Map<string, string[]>();
+      for (const [imagePath, image] of Object.entries(editablePages[key as keyof typeof editablePages].images as Record<string, EditableImage>)) {
+        files.set(imagePath, typeof image.src === "string" ? [image.src] : (image.src ?? []));
+      }
+      const defaults: PageDefaults = { resolvers: defaultImages[key] ?? {}, files, upload };
+      pages[key] = {};
+      for (const lang of sitePages.locales) pages[key][lang] = await sitePagePayload(page.fields, null, readDictionary(lang, key), defaults, "", 0, true, { filled: 0 });
+    }
+  } finally {
+    await vite?.close();
+  }
+  mkdirSync(SEED_DIR, { recursive: true });
+  writeFileSync(path.join(SEED_DIR, "seed.json"), json({ generatedBy: "npm run strapi:seed", caption: SITE_DEFAULT_CAPTION, pages }));
+  done(`Strapi seed: ${Object.keys(pages).join(", ") || "no site pages"}; ${copied.size} default images`);
+}
+
 // ---------------------------------------------------------------- commands
 
 function checkModuleConfig() {
@@ -712,6 +758,9 @@ switch (command) {
     await syncSitePages(targetUrl(), (await adminLogin(targetUrl())).jwt, Boolean(flags.force));
     break;
   }
+  case "seed":
+    await writeSeed();
+    break;
   case "token": {
     // A new read-only token named "site" (replacing the old one) for STRAPI_TOKEN elsewhere, e.g. Vault.
     if (!flags.url && !isRunning()) fail("Strapi isn't running: npm run strapi:up (or --url for another Strapi)");
@@ -729,5 +778,5 @@ switch (command) {
     break;
   }
   default:
-    fail("Usage: npm run strapi:up | strapi:fields | strapi:sync | strapi:token | strapi:down | strapi:secrets | strapi -- <strapi command>");
+    fail("Usage: npm run strapi:up | strapi:fields | strapi:sync | strapi:seed | strapi:token | strapi:down | strapi:secrets | strapi -- <strapi command>");
 }

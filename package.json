@@ -36,6 +36,7 @@
     "strapi:down": "tsx scripts/strapi.ts down",
     "strapi:fields": "tsx scripts/strapi.ts fields",
     "strapi:sync": "tsx scripts/strapi.ts sync",
+    "strapi:seed": "tsx scripts/strapi.ts seed",
     "strapi:token": "tsx scripts/strapi.ts token",
     "strapi:secrets": "tsx scripts/strapi.ts secrets",
     "strapi": "tsx scripts/strapi.ts cli",

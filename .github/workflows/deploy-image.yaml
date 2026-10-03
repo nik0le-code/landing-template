@@ -101,6 +101,11 @@ jobs:
           cache-to: type=gha,mode=max,scope=site
           provenance: false
 
+      # What Strapi fills its empty site-page fields with on every start: the copy and each
+      # empty image's default, worked out by the site's own code (installed above).
+      - name: Strapi seed
+        if: steps.tag.outputs.CMS == 'true'
+        run: npm run strapi:seed
       - if: steps.tag.outputs.CMS == 'true'
         uses: docker/build-push-action@v6
         with:

@@ -15,3 +15,4 @@ docs
 src/modules/strapi/strapi/node_modules
 src/modules/strapi/strapi/.tmp
 src/modules/strapi/strapi/public/uploads
+src/modules/strapi/strapi/seed

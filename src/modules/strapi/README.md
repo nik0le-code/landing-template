@@ -110,18 +110,22 @@ Each page in `src/config/editable-pages.ts` gets a single type, "Site page: Home
 - **Lists:** FAQ items, features, team members, plans… as repeatable components.
 - **Images:** the slots declared in `editable-pages.ts`, from the media library. A slot's
   `src` lists the file(s) the page shows by default; images a page picks per list item
-  (by slug, by position) are named in `src/config/editable-images.ts`. `strapi:sync`
-  uploads them, so every slot shows the picture the page shows. A slot with `sameAs`
+  (by slug, by position) are named in `src/config/editable-images.ts`. Strapi uploads
+  them (as does `strapi:sync`), so every slot shows the picture the page shows. A slot with `sameAs`
   (`{ page, path, by: "slug" }`) is one picture with another page's slot, item by item:
   Strapi copies an image chosen on either page to the other (same language), so a home
   grid and the page it previews stay in step whichever one the editor opens.
 
-`strapi:up` fills every field, in every language, with the site's current copy and uploads
-the page's default images (`src` in `editable-pages.ts`, `editable-images.ts`), so Strapi
-starts as an exact copy of the site. From then on **Strapi is the source of truth** for those pages:
+On every start Strapi fills every empty field, in every language, with the site's current
+copy and uploads the page's default images (`src` in `editable-pages.ts`, `editable-images.ts`),
+so it starts as an exact copy of the site; what editors entered stays (`strapi/src/index.js`).
+It can't run the site's code, so `npm run strapi:seed` writes what to fill with into
+`strapi/seed/` (not committed) and the image carries it: CI runs it before building the
+image. Locally `strapi:up` fills the same way through `strapi:sync`.
+From then on **Strapi is the source of truth** for those pages:
 changing the JSON copy in code no longer shows on the site for fields Strapi has a value
-for. `strapi:sync` only fills fields that are empty (new sections, a cleared field, a new
-language); `strapi:sync -- --force` overwrites everything with the code copy again.
+for. Empty fields (new sections, a cleared field, a new language) are filled on the next
+start, or by `strapi:sync`; `strapi:sync -- --force` overwrites everything with the code copy again.
 
 A field cleared in Strapi shows the code copy; an edited list replaces the list, and empty
 fields in an item fall back to the code item at the same position.
@@ -152,6 +156,7 @@ workflow publishes `<repo>-cms` next to `<repo>`: see
 [`docs/k3s-strapi.md`](../../../docs/k3s-strapi.md). Anywhere else:
 
 ```bash
+npm run strapi:seed           # what Strapi fills empty site-page fields with, into its image
 docker build -t client-strapi src/modules/strapi/strapi
 npm run strapi:secrets        # prints APP_KEYS, salts, ENCRYPTION_KEY, the webhook secret
 ```
@@ -166,11 +171,12 @@ npm run strapi:secrets        # prints APP_KEYS, salts, ENCRYPTION_KEY, the webh
 3. Route `<site>/cms/*` to Strapi with the `/cms` prefix stripped, except `/cms/api/*`
    (the content API stays internal). Then open `<site>/cms/admin`, create the first admin,
    and `npm run strapi:token -- --url …` (or Settings → API Tokens → a **read-only** token
-   with unlimited duration).
+   with unlimited duration). The site pages are already filled with the site's copy.
 4. Site environment (runtime only, nothing at build time): `STRAPI_URL` (the address the
    site's server reaches Strapi at; an internal one is best), `STRAPI_TOKEN`,
    `STRAPI_WEBHOOK_SECRET`.
-5. Content types ship with the image: rebuild and redeploy it after `strapi:fields`.
+5. Content types and the copy Strapi fills empty fields with ship with the image: rebuild
+   and redeploy it after `strapi:fields` or a copy change.
 
 The admin bundle is built for `/cms` with relative URLs (one image works on every host)
 and its session cookies are scoped to `/cms/admin`, so both are fixed at build time: serving

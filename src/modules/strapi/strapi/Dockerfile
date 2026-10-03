@@ -29,6 +29,9 @@ COPY config ./config
 COPY src ./src
 COPY public ./public
 COPY database ./database
+# What Strapi fills empty site-page fields with on start: `npm run strapi:seed`, run by CI
+# before this build. Without it (only seed/.gitignore) the fill is skipped.
+COPY seed ./seed
 RUN mkdir -p /data public/uploads && chown -R 1000:1000 /data public/uploads
 # Numeric (the node user): Kubernetes' runAsNonRoot can't verify a user name. Runs with a
 # read-only root filesystem: only /data, /opt/app/public/uploads and /tmp are written.
