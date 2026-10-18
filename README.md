@@ -499,3 +499,4 @@ root filesystem, writable `/tmp` and `/app/data` only.
 More detail per area: [`CLAUDE.md`](CLAUDE.md) (architecture),
 [`src/modules/README.md`](src/modules/README.md) (module system),
 [`docs/PLAN.md`](docs/PLAN.md) (why things are the way they are).
+# landing-template
